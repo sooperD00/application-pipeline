@@ -1,0 +1,68 @@
+# for the dev
+DEVLOG.txt
+
+# this project
+backend/venv/
+frontend/node_modules/
+*.pyc
+__pycache__/
+.env
+
+
+# === Prompts (private IP) ===
+prompts/
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+*.whl
+
+# Virtual environments
+backend/venv/
+backend/.venv/
+venv/
+.venv/
+
+# === Node / React ===
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# === Environment & secrets ===
+.env
+.env.*
+!.env.example
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# === Postgres (local) ===
+*.sql.bak
+pgdata/
+
+# === Testing ===
+.coverage
+htmlcov/
+.pytest_cache/
+
+# === OS ===
+Thumbs.db
+.DS_Store
+
+# === Logs ===
+*.log
+
+# === Generated files ===
+*.docx
+!docs/**/*.docx
