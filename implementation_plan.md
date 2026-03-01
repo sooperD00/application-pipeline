@@ -1,5 +1,95 @@
 # JD Pipeline Platform — Implementation Plan
 
+<---
+feedback: on the name
+need to communicate: pipeline + strategy + automation
+It saves time and increases signal
+It learns and optimizes over time
+clarity > cleverness
+
+1. Ultra-Clear, Functional Names (High Signal)
+ApplyPipeline
+Repo: apply-pipeline
+
+ApplicationPipeline
+Repo: application-pipeline
+
+JobPipeline
+Repo: job-pipeline
+
+ApplicationEngine
+Repo: application-engine
+
+TailoredApply
+Repo: tailored-apply
+
+ApplyFlow
+Repo: apply-flow
+
+2. Strategic / Optimization Angle
+
+OfferFunnel
+Repo: offer-funnel
+
+ApplicationFunnel
+Repo: application-funnel
+
+InterviewFunnel
+Repo: interview-funnel
+
+SignalApply
+Repo: signal-apply
+
+ConversionApply
+Repo: conversion-apply
+
+PipelineIQ
+Repo: pipeline-iq
+
+3. Automation / Parallelization Angle
+AutoApply Studio
+Repo: autoapply-studio
+
+ParallelApply
+Repo: parallel-apply
+
+ApplyBatch
+Repo: apply-batch
+
+ApplyOrchestrator
+Repo: apply-orchestrator
+
+JD Orchestrator
+Repo: jd-orchestrator
+
+4. Strong, Memorable, Product-Ready
+ApplyForge
+Repo: apply-forge
+
+OfferForge
+Repo: offer-forge
+
+PipelineForge
+Repo: pipeline-forge
+
+ApplyCraft
+Repo: apply-craft
+
+InterviewOS
+Repo: interview-os
+
+ApplicationOS
+Repo: application-os
+
+5. ones I like:
+ApplicationPipeline  <--
+ApplyOrchestrator <--
+ApplicationOS
+OfferFunnel
+PipelineForge
+
+--->
+
 ## Vision
 
 A tool that takes a job seeker from "600 LinkedIn results" to "6 tailored applications running in the background" in under 20 minutes — and learns what's working over time.
@@ -52,6 +142,14 @@ ApplicationTracker (cross-session, persistent)
 
 *(The tracker uses separate rows per stage, not one row updated over time — each stage is its own event with its own date and outcome.)*
 
+
+<---
+feedback: 
+1. definitely need compensation in the jds[]
+2. what are the pros/cons of keeping everything under User like that? I assumed multiple entities in the data model but I'm not sure what your indentations meen exactly in terms of the different entities and how that would shake out, because I'd prbably not store tailoring_jobs[] under session... I don't think of them as belonging to a session in my personal work... but maybe that needs to be the case to track limits etc? or maybe you are just maping out the data model in a way I'm not used to since I"m used to seeing different entities and the FK labeled and the infrastructure layer kind of separate, which SQLModel doesn't quite do - can you help me out here? I'm open to different ways of doing this that make sense and can be maintained easily by me.
+3. you need up to 7 interview slots like up to interview_7 because some chains are long. that should be sufficient and keep things simple as an enum which is what it looks like you're leaning towards
+-->
+
 ---
 
 ## Phase 0 — "Replace My Excel Workflow"
@@ -59,6 +157,11 @@ ApplicationTracker (cross-session, persistent)
 **Goal**: Nicole can use this instead of Excel + manual Claude chats. Single user, deployed on Railway, functional end-to-end.
 
 **What you get**: Paste JDs, get Apply/Maybe/No analysis with requirements breakdown, see results on fanned cards that sort themselves, kick off tailoring for Apply JDs.
+
+<---
+feedback:
+hmmm I'm reading the "replace my excel workflow" section and I realize that I have not designed a place for the user to really *read* the output of the initial comparison analysis with the requirements breakdown and the text. I usually don't care too much about reading it myself now bc I've already seen you be incredibly accurate, but a new user will need to read it to reassure themselves and to tweak things if they dont' really match what's expected. Where should this go? Maybe in that "review" tab where they can click on those vertical cards. That makes sense. But what about this... what if the mini-summary is where they review - I think that makes more sense. They don't need vertical cards. They have a verticle structure to click on in this table. The maybe and no can be color coded and collapsed here too and faded, and they can review/expand or not exactly like you do in gmail. I think that's better. I think there should be a tab "argue with claude" but I haven't designed it yet... that's what should be gray... a gray tab in between phase 0 and phase 1 where you recalibrate with claude - maybe resume isn't quite right. maybe search terms aren't right. I'll have to think about designing prompt help for that phase, but I think we should include it as gray and some description of what the user should do in that phase. They should be able to kick 1 JD analysis in there and chat with claude about it in a fresh context... does that make sense? Mabye they can also kick claude's overall summary from phase 0 into there and chat with claude about it as well. This is very doable I think, though the user for now will have to decide what the deliverable is.
+--->
 
 ### Backend (FastAPI + Postgres)
 
@@ -72,6 +175,10 @@ ApplicationTracker (cross-session, persistent)
 - `PATCH /jds/{id}/status` — user override of Apply/Maybe/No
 - `POST /jds/{id}/tailoring` — kick off resume + cover letter generation
 - `POST /jds/batch-tailor` — "Apply All" endpoint, queues up to 8
+<---
+feedback:
+is this gonna be done in series or parallel? part of the time savings power is the parallel here - that's the difference between take a bathroom/water break and come back in an hour... I want parallel...I'd rather have 4 in parallel and maybe that's a reasonable "free tier" number, with subscribers can go to 8?
+--->
 - `GET /sessions/{id}` — full session state for frontend
 - Resume upload endpoints (up to 3, stored with labels)
 
@@ -79,15 +186,18 @@ ApplicationTracker (cross-session, persistent)
 
 **Session View — Tab 1: Scrape & Analyze**
 
-- Left panel: metadata fields (board, filters, search_term) — set once per session, sticky
+- Left panel <--top-->: metadata fields (board, filters, search_term) — set once per session, sticky
+<---
+- Left panel bottom: claude's meta analysis, replaced after each batch of 5 - you usually give me a summary summarizing all JDs analyzed thus far in a paragraph or so, and we could add info to the prompt to ensure we get this response every time and have him structure it in a tagged section for us (the one where he talks about "you haven't had a lot of hits on this search term - try xyz instead" or "your most consistent skill gap is flink - the best thing you could do is apply to JDs 1,2,3 and then finish your flink project rather than go for 10 this week. Then next week you could easily do 20 with a much higher call back rate.")
+--->
 - Right panel: large text input, "Add" button (or Enter)
-- Above input: fanned cards, left-to-right, overlapping like a hand of playing cards
-  - Each card shows: number, company name (truncated), role title
+- Above input: fanned cards, left-to-right, overlapping like a hand of playing cards (but not fanned)
+  - Each card shows: number, company name (truncated), role title (truncated)
   - Cards start neutral (gray), animate to green/yellow/red as analysis returns
   - Apply cards drift left, No cards drift right, Maybe stays center
-  - Click card number → expand in-place to show full JD
-  - Status dropdown on each card (user can override)
-- Progress indicator: "Analyzing batch 2 of 5..."
+  - Click card number → expand in-place to show full JD - is this better on the right-hand side? it might be better to expand this on left hand side or as a modal popup since I wouldn't want to lose my visual stickiness sense of my main dashboard work area... I think a modal popup because i want the serious review against claude's analysis to be on the next tab anyway... what do you think? Here I just want to sort and get a handle on what you have (4 applies, 6 maybes, ok to go to next phase and have some confidence since this took 2 min of scraping and 5 min of claude analyzing, read the overall analysis on the left and move forward or not... but I'm not sure...). Do you think review belongs here or in next tab or both?
+  - Status dropdown on each card (user can override) - I kinda want the user to do these activities on the review tab with the session+prev matches spreadsheet...
+- Progress indicator: "Analyzing batch 2 of 5..." - this might not be necessary because you see the sorting occuring, but something small is nice. honestly I'd like a spinny or other mark on the 5 cards he's analyzing if that's what he's doing and a done or ready indication on the button they click to analyze or something... waht do you think?
 
 **Session View — Tab 2: Review & Audit (gray by default)**
 
@@ -96,15 +206,25 @@ ApplicationTracker (cross-session, persistent)
 - "I disagree" feedback mechanism (for later prompt tuning)
 - Skippable — most users won't need this
 
-**Session View — Tab 3: Mini Tracker**
+<---
+let's change this to Calibrate and use the design from above - the pull ins of the summary analysis or 1 JD analysis plus the resume used for it and a conversation with claude - free form for now, I'll write a prompt later. There should be a prompt box for this tab that users can edit and save versions of, same as the others. The flow would be by default this is skipped, but there to remind you if you want to go back.
+--->
 
-- Compact table of Apply JDs from this session
-- Columns: number, company, role, status dropdown, app questions (click to paste), cover letter toggle, compare checkbox
-- Shows matches from previous sessions: "You applied to Datadog on 2/14" banner at top
-- Divider, then this week's applications, then this session's
-- Row numbers visible (global count)
+**Session View — Tab 3: Mini Tracker / Review / Enrichment**
+on the left:
+- Compact table of <---
+  - Columns: row number (global JD count), status, date, session (number? metadata?), batch number, number, company, role, status dropdown, app questions (click to paste), cover letter toggle, date, compare checkbox
+  - rows from the merged all sessions tracker table that match current JDs (like an excel filter on if you included matching companies to the current apply group)
+  - Divider
+  - no and maybe JDs grayed out but expandable (do you agree?)
+  - Divider
+  - then this week's DONE or IP applications
+  - Divider
+  - Apply JDs from this session in visible rows where you can click in the cells to enrich the data
 - "Compare" button (Phase 2 — grayed out for now)
 - Link/button: "Open Full Tracker" → main nav
+- this is a busy tab... I'm not sure JD review belongs here now that I'm adding stuff. I think the user should be able to kick a JD to the previous "review/calibrate" tab with a button from the row, then make a decision there (update apply to no or whatever), do wahtever prompt edits they want etc, then kick it back to the table in this tab. Though... they might want to *flag* for review as a batch activity and *then* go through *that list* as they see fit in the previous tab, or just ignore. Yes, they need a checkbox flag for review so that that's what load in the review tab, not all JDs from this session. I think it should still be to the left of the table tab because it is like going back. THen when this table is finalized it's finally resume time.
+--->
 
 **Session View — Tab 4: Tailoring**
 
@@ -113,7 +233,14 @@ ApplicationTracker (cross-session, persistent)
 - Each Apply JD gets a status box: queued → processing → ready for review
 - Click "ready" → opens output view: tailored resume, cover letter, app answers
 - Editable before export/download as docx
+
+<--- this actually needs to also go on the main table as a cell... they will not know if they need to interview prep until later, but I would like that button to very visible to customers potentially paying customers ;) so maybe it's good here to remind them that this tool can do that... but they will mostly likely either click it right after to test the output (let's give them 1 free interview prep markdown doc) or wait until later and click it from the full table after searching for their job they got the interview from. The bundle can give them a certain number of interview preps per month or bundle anyway and that will save our tokens for when they need them. I typically get separate prep docs for each interview even for the same company because they are different focuses so that is really helpful anyway. I keep it in the same chate (context) for me currently, so we'll use the cache and send back through when needed. But it's also a bit... idk how claude saves outside articles etc for re-reading - those are very important claude is able to read a lot of blogs and glassdoor and public releases etc so that context is important to save for later too --->
 - "Continue for Interview Prep" button (appends structured context, opens new prompt)
+let's let them know that they get 1 free on the button itself if they don't have a payed plan
+--->
+
+**Session View — Tab 4: Interviews**
+for later, but holds my interview prep prompt and sends the cached convo back into a new claude chat. no batching here needed.
 
 **Main Nav — Full Tracker**
 
@@ -250,10 +377,9 @@ Cards animate to their positions as results arrive. The Apply cluster is visuall
 
 ### Cost Estimation
 
-- Claude API (Sonnet for batch analysis, Sonnet for tailoring): ~$0.01–0.03 per JD analyzed, ~$0.05–0.15 per tailoring job
-- Per session (25 JDs, 4 Apply tailored, 1 interview): ~$0.50–1.50 in API costs
+- Claude API (Sonnet for batch analysis, Sonnet for tailoring): ~$0.01–0.03 per JD analyzed, ~$0.05–0.15 per tailoring job <--- I'll have to test in the tool and in my manual method if I get good responses from both because I'm using claude opus 4.6 and the extended thinking is quite powerful for certain things. Can I even set the model in the API? Can i let the user do it and pay more for the higher model? I'd rather just use the highest model as long as the margins are acceptable. I'm not looking to make my fortune from this, just to have a real product and say I'm a real developer with a real LLC etc etc if I can... --->
+- Per session (25 JDs, 6 Apply tailored): ~$0.50–1.50 in API costs
 - Railway (Postgres + app): ~$5–10/month at low scale
 - Pricing floor for paid sessions: $3–5 per session to maintain healthy margin
 
-
-*(These are rough estimates — track actual costs from day one.)*
+*(These are rough estimates — track actual costs from day one.)*<--- yeah now I'm gonna need to build observability scripts for the cost of course, and for the funnel conversions, but later I know I know --->
