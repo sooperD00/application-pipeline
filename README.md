@@ -61,6 +61,67 @@ Requires a `.env` with `ANTHROPIC_API_KEY` and `DATABASE_URL`.
 - [Workflow](docs/workflow.md) — the human method this automates
 - [Decisions](docs/decisions.md) — architecture decision records
 
+## Repo Structure
+
+```
+ApplicationPipeline/
+├── README.md
+├── backend/
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py                  # - [ ] FastAPI app, CORS, lifespan
+│   │   ├── config.py                # - [ ] settings, limits, model defaults
+│   │   ├── database.py              # - [ ] engine, session factory
+│   │   ├── models.py                # - [x] SQLModel entities (7 tables)
+│   │   ├── routes/
+│   │   │   ├── __init__.py
+│   │   │   ├── sessions.py          # - [ ] session CRUD, batch analyze (SSE)
+│   │   │   ├── jds.py               # - [ ] JD CRUD, status overrides, enrichment
+│   │   │   ├── resumes.py           # - [ ] paste, edit, list, delete (max 3)
+│   │   │   ├── tailoring.py         # - [ ] single + batch-tailor, status, outputs
+│   │   │   └── activities.py        # - [ ] active list, add/complete, tracker view
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── claude.py            # - [ ] API client, prompt assembly, response parsing
+│   │   │   ├── analysis.py          # - [ ] batch analysis (batches of 5, meta-summary)
+│   │   │   ├── tailoring.py         # - [ ] parallel tailoring (semaphore), docx handling
+│   │   │   ├── activities.py        # - [ ] cascade templates, schedule_activities()
+│   │   │   └── text_cleaning.py     # - [ ] JD ingest pipeline (strip, normalize, collapse)
+│   │   └── prompts/
+│   │       ├── analysis.txt         # - [ ] system default: analysis phase
+│   │       ├── resume_generation.txt # - [ ] system default: resume + docx formatting
+│   │       └── cover_letter.txt     # - [ ] system default: cover letter + app answers
+│   ├── alembic/
+│   │   ├── alembic.ini              # - [ ] 
+│   │   ├── env.py                   # - [ ] 
+│   │   └── versions/                # - [ ] migration scripts
+│   ├── requirements.txt
+│   └── .env                         # - [ ] ANTHROPIC_API_KEY, DATABASE_URL
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx                  # - [ ] 
+│   │   ├── main.jsx                 # - [ ] 
+│   │   ├── components/
+│   │   │   ├── CardFan.jsx          # - [ ] Tab 1: fanned JD cards, color-coded
+│   │   │   ├── MetaAnalysis.jsx     # - [ ] Tab 1: Claude's rolling summary panel
+│   │   │   ├── TailoringStatus.jsx  # - [ ] Tab 4: status boxes, output viewer
+│   │   │   └── ActiveList.jsx       # - [ ] Active Applications: to-do by due date
+│   │   ├── hooks/
+│   │   │   └── useSSE.js            # - [ ] SSE consumption for batch analysis
+│   │   └── api/
+│   │       └── client.js            # - [ ] fetch wrappers for backend routes
+│   ├── index.html                   # - [ ] 
+│   ├── vite.config.js               # - [ ] 
+│   └── package.json                 # - [ ] 
+├── docs/
+│   ├── architecture.md
+│   ├── decisions.md
+│   ├── implementation-plan.md
+│   ├── workflow.md
+│   └── service-layer-notes.md
+└── LICENSE                          # BSL 1.1 → Apache 2.0 (2029-03-01)
+```
+
 ## License
 
 Licensed under the Business Source License 1.1 — see [LICENSE](LICENSE).
