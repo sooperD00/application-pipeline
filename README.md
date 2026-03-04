@@ -79,7 +79,8 @@ ApplicationPipeline/
 │   │   ├── models.py                # - [x] SQLModel entities (7 tables)
 │   │   ├── routers/
 │   │   │   ├── __init__.py
-│   │   │   ├── sessions.py          # - [x] session CRUD, batch analyze (SSE)
+│   │   │   ├── sessions.py          # - [x] session CRUD (POST, POST/jds, GET)
+│   │   │   |                        # - [ ] batch analyze SSE (POST /{id}/analyze)
 │   │   │   ├── jds.py               # - [ ] JD CRUD, status overrides, enrichment
 │   │   │   ├── resumes.py           # - [ ] paste, edit, list, delete (max 3)
 │   │   │   ├── tailoring.py         # - [ ] single + batch-tailor, status, outputs
