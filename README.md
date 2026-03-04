@@ -69,9 +69,9 @@ ApplicationPipeline/
 ├── backend/
 │   ├── app/
 │   │   ├── __init__.py
-│   │   ├── main.py                  # - [ ] FastAPI app, CORS, lifespan
-│   │   ├── config.py                # - [ ] settings, limits, model defaults
-│   │   ├── database.py              # - [ ] engine, session factory
+│   │   ├── main.py                  # - [x] FastAPI app, CORS, lifespan
+│   │   ├── config.py                # - [x] settings, limits, model defaults
+│   │   ├── database.py              # - [x] engine, session factory
 │   │   ├── models.py                # - [x] SQLModel entities (7 tables)
 │   │   ├── routes/
 │   │   │   ├── __init__.py
@@ -91,12 +91,14 @@ ApplicationPipeline/
 │   │       ├── analysis.txt         # - [ ] system default: analysis phase
 │   │       ├── resume_generation.txt # - [ ] system default: resume + docx formatting
 │   │       └── cover_letter.txt     # - [ ] system default: cover letter + app answers
+
 │   ├── alembic/
-│   │   ├── alembic.ini              # - [ ] 
-│   │   ├── env.py                   # - [ ] 
-│   │   └── versions/                # - [ ] migration scripts
+│   │   ├── env.py                   # - [x] 
+│   │   └── versions/                # - [x] migration scripts
+│   ├── alembic.ini                  # - [x] 
 │   ├── requirements.txt
-│   └── .env                         # - [ ] ANTHROPIC_API_KEY, DATABASE_URL
+│   ├── .env.example                 # - [x] example
+│   └── .env                         # - [x] ANTHROPIC_API_KEY, DATABASE_PUBLIC_URL
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx                  # - [ ] 
