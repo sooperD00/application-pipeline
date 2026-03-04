@@ -1,0 +1,9 @@
+# Tell pytest where to find your code
+[tool.pytest.ini_options]
+pythonpath = ["."]
+asyncio_mode = "auto"
+
+# Declares your dependencies
+# TODO: move requirements.txt here
+
+# Configures other tools e.g. ruff, mypy, coverage, all in one file instead of scattered config files

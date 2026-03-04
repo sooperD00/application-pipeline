@@ -67,15 +67,19 @@ Requires a `.env` with `ANTHROPIC_API_KEY` and `DATABASE_URL`.
 ApplicationPipeline/
 ├── README.md
 ├── backend/
+│   ├── tests/
+│   │   ├── test_text_cleaning.py
+│   │   └── test_sessions.py
+│   └── pyproject.toml               # - [x] Python project manifest (replacing setup.[py|cfg])
 │   ├── app/
 │   │   ├── __init__.py
 │   │   ├── main.py                  # - [x] FastAPI app, CORS, lifespan
 │   │   ├── config.py                # - [x] settings, limits, model defaults
 │   │   ├── database.py              # - [x] engine, session factory
 │   │   ├── models.py                # - [x] SQLModel entities (7 tables)
-│   │   ├── routes/
+│   │   ├── routers/
 │   │   │   ├── __init__.py
-│   │   │   ├── sessions.py          # - [ ] session CRUD, batch analyze (SSE)
+│   │   │   ├── sessions.py          # - [x] session CRUD, batch analyze (SSE)
 │   │   │   ├── jds.py               # - [ ] JD CRUD, status overrides, enrichment
 │   │   │   ├── resumes.py           # - [ ] paste, edit, list, delete (max 3)
 │   │   │   ├── tailoring.py         # - [ ] single + batch-tailor, status, outputs
@@ -86,12 +90,11 @@ ApplicationPipeline/
 │   │   │   ├── analysis.py          # - [ ] batch analysis (batches of 5, meta-summary)
 │   │   │   ├── tailoring.py         # - [ ] parallel tailoring (semaphore), docx handling
 │   │   │   ├── activities.py        # - [ ] cascade templates, schedule_activities()
-│   │   │   └── text_cleaning.py     # - [ ] JD ingest pipeline (strip, normalize, collapse)
+│   │   │   └── text_cleaning.py     # - [x] JD ingest pipeline (strip, normalize, collapse)
 │   │   └── prompts/
 │   │       ├── analysis.txt         # - [ ] system default: analysis phase
 │   │       ├── resume_generation.txt # - [ ] system default: resume + docx formatting
 │   │       └── cover_letter.txt     # - [ ] system default: cover letter + app answers
-
 │   ├── alembic/
 │   │   ├── env.py                   # - [x] 
 │   │   └── versions/                # - [x] migration scripts
