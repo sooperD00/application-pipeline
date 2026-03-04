@@ -68,8 +68,8 @@ ApplicationPipeline/
 ├── README.md
 ├── backend/
 │   ├── tests/
-│   │   ├── test_text_cleaning.py
-│   │   └── test_sessions.py
+│   │   ├── test_text_cleaning.py    # - [x] 27 passes!
+│   │   └── test_sessions.py         # - [-] 9 skips (expected until next phase)
 │   └── pyproject.toml               # - [x] Python project manifest (replacing setup.[py|cfg])
 │   ├── app/
 │   │   ├── __init__.py
