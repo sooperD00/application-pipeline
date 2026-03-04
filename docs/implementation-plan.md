@@ -20,13 +20,13 @@ See [architecture.md](architecture.md) for full SQLModel entity definitions.
 
 **Entities** (each is its own SQLModel table with explicit foreign keys):
 
-- **User** — account info, settings
-- **Resume** — up to 3 per user, labeled (e.g. "Technical", "Leadership"), stored file + extracted text
-- **PromptTemplate** — per-phase, per-user, versionable, forkable from defaults
+- **User** — account info, auth token
+- **Resume** — up to 3 per user, labeled (e.g. "Technical", "Leadership"), text-only for Phase 0 (paste and edit in-app)
+- **PromptTemplate** — per-phase, per-user, versionable, forkable from defaults. Phases: `analysis`, `resume_generation`, `cover_letter_app_answers` (composable tailoring pieces assembled into one call), plus `calibrate`, `compare`, `interview_prep` (standalone)
 - **Session** — one metadata set (board, filters, search_term), one batch of up to 25 JDs
 - **JD** — belongs to a Session; holds raw/cleaned text, company, role, compensation, employee_count, link, status, analysis results, app questions, additional JD text, cover letter toggle
 - **TailoringJob** — belongs to a JD (not a Session); holds status, resume used, prompt snapshot, outputs (resume docx, cover letter, app answers), chat context for continuation
-- **TrackerEntry** — cross-session, belongs to a JD; stage enum (application, phone_screen, interview_1 through interview_7, offer, reject), date, outcome, notes, week_number (derived)
+- **Activity** — belongs to a JD; a to-do that happened (or hasn't yet). Pipeline stages (`application`, `phone_screen`, `interview_1` through `interview_7`, `offer`, `reject`) and action items (`follow_up`, `prep_doc`, `prep_time`, `thank_you`, `post_mortem`) live in the same table. `completed_at IS NULL` = still on your to-do list.
 
 Key relationships:
 - User → Sessions (one-to-many)
@@ -34,7 +34,7 @@ Key relationships:
 - User → PromptTemplates (one-to-many)
 - Session → JDs (one-to-many)
 - JD → TailoringJobs (one-to-many)
-- JD → TrackerEntries (one-to-many, the stage chain)
+- JD → Activities (one-to-many, the stage chain + action items)
 
 ---
 
@@ -55,7 +55,8 @@ Key relationships:
 - `POST /sessions/{id}/batch-tailor` — "Apply All", runs up to 4 in parallel (`asyncio.gather`), configurable cap
 - `GET /sessions/{id}` — full session state
 - `GET /jds/{id}/tailoring/{job_id}` — tailoring job status + outputs
-- Resume CRUD (upload, label, list, delete; max 3)
+- Resume CRUD (paste, label, edit, list, delete; max 3)
+- Activities: `GET /api/activities/active` (open to-dos by due date), `POST /api/activities` (log stage, triggers cascade)
 
 ### Frontend — Session View
 
@@ -110,7 +111,7 @@ Left side — compact table:
 
 - All applications across all sessions
 - Stage column: application → phone_screen → interview_1 through interview_7 → offer/reject
-- "Add Stage" button → new entry, same company/role, new date, stage dropdown
+- "Add Stage" button → new Activity row, same JD, new date, stage dropdown (triggers action item cascade)
 - Week groupings with counts
 - Running total visible
 - Status dropdowns, editable
@@ -123,7 +124,7 @@ Left side — compact table:
 2. Text cleaning utility
 3. Claude API integration: batched analysis with meta-summary, parallel tailoring
 4. React app: Tab 1 (card UI + analyze), Tab 4 (tailoring + output review)
-5. Resume upload
+5. Resume paste & edit (text-only)
 6. Deploy to Railway
 
 **Deferred**: Tab 2 Calibrate, Tab 3 Review & Enrich, Full Tracker, compare, analytics, multi-user, auth, payments.
@@ -176,6 +177,7 @@ Left side — compact table:
 ## Phase 4 — "Polish and Grow"
 
 - Resume analysis (which version performs best for which JD types)
+- Resume binary uploader: accepts docx/pdf, analyzes formatting, feeds style preferences into generation prompt
 - Prompt marketplace (users share prompts)
 - Job board-specific metadata templates
 - Mobile-responsive
@@ -196,7 +198,10 @@ Batch Analysis (1 conversation per session):
 
 Tailoring (1 conversation per Apply JD, up to 4 parallel):
   - Context: JD + metadata + resume + Phase 1 analysis + app questions
-  - Output: structured (resume, cover letter, app answers as separate fields)
+  - Prompt assembled from 3 composable templates: analysis + resume_generation
+    + cover_letter_app_answers (if requested)
+  - Output: structured (resume docx, cover letter, app answers as separate fields)
+  - output_resume is extracted from the docx for in-app display — not input to it
   - Conversation persisted for interview prep continuation
   - Model: claude-opus-4-6 (configurable)
 
@@ -209,7 +214,7 @@ Calibrate (1 conversation per flagged JD or meta-summary):
 ## Free Trial Flow
 
 1. User lands, no account. Server creates anonymous session (cookie + server token).
-2. User uploads resume, creates session, pastes JDs — stored server-side.
+2. User pastes resume, creates session, pastes JDs — stored server-side.
 3. Full session runs: analysis, review, tailoring (up to 4 parallel), 1 interview prep.
 4. "Save your results and start a new session — just enter your email."
 5. Data persists 7 days without account, permanently with account.
