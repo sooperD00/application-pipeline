@@ -95,6 +95,12 @@ prompt (with formatting instructions) → Claude → docx bytes → output_resum
 
 ---
 
+## Ownership Chain on TailoringJob
+
+TailoringJob → JD → Session → User is 3 hops. Fine for Phase 0 (always entering through a specific JD). If Phase 1+ adds a listing endpoint like GET /api/tailoring-jobs (all my jobs), consider denormalizing user_id onto TailoringJob or adding a composite index.
+
+---
+
 ## Analytics (derived from Activity, no extra tables needed)
 
 All computable at query time from the activities table:
@@ -104,3 +110,21 @@ All computable at query time from the activities table:
 - **Stage conversion rates**: count of completed activities at stage N vs stage N+1 per JD
 - **Follow-up compliance**: activities where type = 'follow_up' and completed_at <= due_date vs overdue
 - **Search term effectiveness**: join through JD → Session to get search_term, correlate with pipeline depth reached
+
+---
+
+## Free Tier Tailoring Cap (Phase 3)
+
+Cap total tailoring jobs per free session, not just parallelism.
+Semaphore (ADR-008) controls concurrent execution. A separate count-check
+(same pattern as resume cap and JD cap) controls total jobs per session.
+
+Proposed: 6 tailoring jobs per session (free), uncapped (paid).
+Parallelism stays at 4/8.
+
+Cost context: each Opus tailoring call is ~$0.30–0.60. Uncapped free tier
+at 25 JDs = up to $15/session with zero revenue. The cap is both a business
+gate and a cost control.
+
+Phase 1 concern: semaphore is per-session. Multi-user needs a global 
+rate limiter (per API key) to stay within Anthropic's RPM limits.
