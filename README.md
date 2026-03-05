@@ -83,7 +83,7 @@ ApplicationPipeline/
 │   │   ├── routers/
 │   │   │   ├── __init__.py
 │   │   │   ├── sessions.py          # - [x] session CRUD (POST, POST/jds, GET)
-│   │   │   |                        # - [ ] batch analyze SSE (POST /{id}/analyze)
+│   │   │   |                        # - [x] batch analyze SSE (POST /{id}/analyze)
 │   │   │   ├── jds.py               # - [ ] JD CRUD, status overrides, enrichment
 │   │   │   ├── resumes.py           # - [ ] paste, edit, list, delete (max 3)
 │   │   │   ├── tailoring.py         # - [ ] single + batch-tailor, status, outputs
