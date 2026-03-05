@@ -19,17 +19,27 @@ from sqlmodel import Column, Enum, Field, SQLModel, Text
 
 class PromptPhase(str, enum.Enum):
     """
-    The three tailoring phases are composable pieces of a single API call:
-      analysis + resume_generation + (optionally) cover_letter_app_answers
+    The four tailoring phases are composable pieces of a single API call:
+      analysis + resume_generation + (optionally) cover_letter + (optionally) app_answers
     Each gets its own editable text box in the UI and its own PromptTemplate row.
     At tailoring time, they're concatenated in order into one prompt.
 
+    cover_letter and app_answers are toggled independently per JD:
+      - cover_letter: included only if jd.cover_letter_requested
+      - app_answers:  included only if jd.app_questions is populated
+
     The rest (calibrate, compare, interview_prep) are standalone workflow phases.
+
+    History: cover_letter + app_answers were originally one phase
+    (cover_letter_app_answers). Split in ADR-012 for independent toggle
+    conditions and UI separation. The old Postgres enum value is retained
+    (can't DROP VALUE) but never referenced in code.
     """
     # Composable tailoring pieces (assembled into one Claude call)
     analysis = "analysis"
-    resume_generation = "resume_generation"          # includes docx formatting instructions
-    cover_letter_app_answers = "cover_letter_app_answers"  # optional, toggled per JD
+    resume_generation = "resume_generation"          # includes docx formatting instructions (ADR-011)
+    cover_letter = "cover_letter"                    # optional, toggled per JD
+    app_answers = "app_answers"                      # optional, toggled per JD
     # Standalone workflow phases
     calibrate = "calibrate"
     compare = "compare"

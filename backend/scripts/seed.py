@@ -4,6 +4,7 @@ scripts/seed.py
 Dev seed for ApplicationPipeline. Populates:
   - 1 test User
   - 3 Resumes (Nicole's real resume variants)
+  - 4 system-default PromptTemplates (analysis, resume_generation, cover_letter, app_answers)
   - 1 Session (LinkedIn, remote data/backend, keyword "Staff Data Engineer")
   - 7 JDs (batch 1 = JDs 1–5, batch 2 = JDs 6–7 — tests the partial-batch boundary)
 
@@ -22,7 +23,10 @@ from sqlalchemy import text
 from sqlmodel import select
 
 from app.database import AsyncSessionLocal
-from app.models import JD, JDStatus, JDStatusSource, Resume, Session as SessionModel, SessionStatus, User
+from app.models import (
+    JD, JDStatus, JDStatusSource, PromptPhase, PromptTemplate,
+    Resume, Session as SessionModel, SessionStatus, User,
+)
 from app.services.text_cleaning import clean_jd_text
 
 
@@ -434,6 +438,177 @@ Note: ORToothFairy healthcare experience is a genuine mission narrative for this
 
 # ── Seed functions ────────────────────────────────────────────────────────────
 
+# ── Prompt Templates ──────────────────────────────────────────────────────────
+# System defaults (user_id=None). Users can fork and edit these later.
+# These are the composable pieces assembled into one Claude call at tailoring
+# time (see services/tailoring.py and ADR-011/ADR-012).
+#
+# Variables available for substitution: {jd_text}, {resumes}, {company},
+# {role}, {compensation}, {app_questions}
+
+PROMPT_TEMPLATES = [
+    {
+        "phase": PromptPhase.analysis,
+        "name": "Default — Fit Analysis (Tailoring)",
+        "template_text": """\
+Please analyze the following job description against the candidate's resumes.
+
+For this specific role, assess:
+- Overall fit level — count required qualifications the candidate genuinely has \
+production experience in vs. ones they'd be learning on the job.
+- Pay attention to language: "deep expertise" / "advanced" / "5+ years" signals \
+a hard requirement. "Familiar with" / "exposure to" / "nice to have" signals a \
+stretch that's worth attempting.
+- Pain points of the role — why is there an opening like this?
+- Tech stack and what the candidate will do if hired.
+- Is this worth one of the candidate's 10 finely crafted weekly applications?
+
+Job Description:
+Company: {company}
+Role: {role}
+Compensation: {compensation}
+
+{jd_text}
+
+Candidate's Resumes:
+{resumes}
+
+Include your analysis in the "analysis" field and your tailoring strategy in \
+the "strategy" field of the JSON response.\
+""",
+    },
+    {
+        "phase": PromptPhase.resume_generation,
+        "name": "Default — Resume Generation",
+        "template_text": """\
+Based on your analysis above, tailor a resume for this role. Use all of the \
+candidate's resumes as source material — select and adapt the most relevant \
+content for this specific JD.
+
+FORMATTING INSTRUCTIONS:
+These instructions control the generated document's appearance. Adjust these \
+decisions per-JD based on content length, audience, and emphasis needs:
+
+- Use minimum font size of 11 in experience bullets. It's OK to use 10.5 in the \
+summary, skills, or certain headers to de-emphasize comparatively.
+- Hyperlink email and github links.
+- Use paragraph underline for the horizontal bar under HEADER sections.
+- Section headers (SUMMARY, EXPERIENCE, ...) should be plain uppercase with no \
+bold and no character spacing — just regular all-caps text. The underline bar \
+does the structural work.
+- Match the candidate's level at the beginning of PROFESSIONAL SUMMARY to the \
+level of the JD (staff <-> staff-level, senior <-> senior).
+- Bold numbers like 7,000+ and 250%.
+- Use blank lines at intentionally-chosen spacings for vertical space formatting \
+rather than setting paragraph spacing before/after (so the candidate can adjust \
+them easily in Word later).
+- Put IEEE Transactions on Nuclear Science in italics.
+- The candidate will open this document in Word for final review, edits, and \
+formatting.
+
+STRUCTURED OUTPUT — Resume as JSON:
+Return the resume in the "resume" field as an object with an "elements" array. \
+Each element is one of these types:
+
+  {{"type": "contact_name", "text": "FULL NAME", "font_size": <number>}}
+  {{"type": "contact_info", "text": "email | phone | location", "font_size": <number>, \
+"hyperlinks": [{{"text": "visible text", "url": "https://..."}}]}}
+  {{"type": "section_header", "text": "SECTION NAME"}}
+  {{"type": "paragraph", "text": "...", "font_size": <number>, "bold": ["substring1", ...], \
+"italic": ["substring1", ...]}}
+  {{"type": "job_title", "text": "Title, Department", "font_size": <number>}}
+  {{"type": "job_meta", "text": "Company — Location | Dates", "font_size": <number>}}
+  {{"type": "bullet", "text": "Achievement or responsibility...", "font_size": <number>, \
+"bold": ["number or key phrase"], "italic": ["publication name"]}}
+  {{"type": "blank_line"}}
+
+For "bold" and "italic" arrays: list the exact substrings within "text" that \
+should receive that styling. The rendering engine applies these as character-level \
+formatting. Empty array [] means no special formatting.
+
+The elements array defines the document from top to bottom. Your ordering, \
+spacing, and formatting decisions ARE the layout — the renderer executes them \
+exactly as specified.
+
+Take your time. Quality and accuracy over speed.\
+""",
+    },
+    {
+        "phase": PromptPhase.cover_letter,
+        "name": "Default — Cover Letter",
+        "template_text": """\
+Craft a cover letter for the {role} position at {company}. Use the following \
+structure and voice:
+
+Paragraph 1: I'm applying for {role}. The role/team needs/requires these \
+overarching themes. I do/have done/recognize that.
+
+Paragraph 2: Here's proof from my experience.
+
+Paragraph 3: Other soft skills and/or mission alignment. I'd love to bring my \
+skill and experience to work with the team to accomplish these.
+
+Closing.
+
+Return the cover letter as the "cover_letter" field in the JSON response — \
+plain text with paragraph breaks (\\n\\n between paragraphs).
+
+Take your time. Quality and accuracy over speed.\
+""",
+    },
+    {
+        "phase": PromptPhase.app_answers,
+        "name": "Default — Application Questions",
+        "template_text": """\
+These are the application questions:
+
+{app_questions}
+
+Questions marked with * are mandatory. Where the candidate has written answers \
+or notes, incorporate them. This tells us something about what the hiring \
+managers value — let that inform both the answers and the resume/cover letter \
+tailoring above.
+
+Return answers as the "app_answers" field in the JSON response: an array of \
+objects with "question" and "answer" fields.
+
+Take your time. Quality and accuracy over speed.\
+""",
+    },
+]
+
+
+async def seed_prompt_templates(db) -> list[PromptTemplate]:
+    """Seed system-default prompt templates (user_id=None)."""
+    result = await db.execute(
+        select(PromptTemplate).where(PromptTemplate.user_id == None)  # noqa: E711
+    )
+    existing = result.scalars().all()
+    if existing:
+        print(f"  Prompt templates already exist ({len(existing)} found), skipping.")
+        return existing
+
+    created = []
+    for t in PROMPT_TEMPLATES:
+        template = PromptTemplate(
+            user_id=None,  # system default
+            phase=t["phase"],
+            name=t["name"],
+            template_text=t["template_text"],
+            version=1,
+            is_active=True,
+        )
+        db.add(template)
+        created.append(template)
+
+    await db.commit()
+    for t in created:
+        await db.refresh(t)
+    print(f"  Created {len(created)} prompt templates:")
+    for t in created:
+        print(f"    {t.phase.value}: {t.name}")
+    return created
+
 async def reset_tables(db):
     """Truncate all tables in reverse FK order. Dev only."""
     print("Resetting tables...")
@@ -550,6 +725,9 @@ async def main(reset: bool = False):
 
         print("Seeding resumes...")
         await seed_resumes(db, user)
+
+        print("Seeding prompt templates...")
+        await seed_prompt_templates(db)
 
         print("Seeding session...")
         session = await seed_session(db, user)
