@@ -42,11 +42,11 @@ async def health() -> dict:
     return {"status": "ok", "environment": settings.environment}
 
 
-# ── Routers (stub imports — uncomment as you build each) ──────────────────────
-from .routers import sessions
-app.include_router(sessions.router)  # prefix lives in the router itself ("/api/sessions")
-# app.include_router(jds.router,      prefix="/api/jds",      tags=["jds"])
-# app.include_router(resumes.router,  prefix="/api/resumes",  tags=["resumes"])
+# ── Routers ───────────────────────────────────────────────────────────────────
+from .routers import sessions, jds, resumes
+app.include_router(sessions.router)  # prefix: /api/sessions
+app.include_router(jds.router)       # prefix: /api/jds
+app.include_router(resumes.router)   # prefix: /api/resumes
 # app.include_router(activities.router, prefix="/api/activities", tags=["activities"])
 
 

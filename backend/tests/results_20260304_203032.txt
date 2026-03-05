@@ -1,0 +1,76 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.7, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\Barac0da\source\repos\application-pipeline\backend\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Barac0da\source\repos\application-pipeline\backend
+configfile: pyproject.toml
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 51 items
+
+tests/test_resumes.py::test_create_resume_returns_201 PASSED             [  1%]
+tests/test_resumes.py::test_create_resume_strips_whitespace_on_label PASSED [  3%]
+tests/test_resumes.py::test_create_resume_empty_label_returns_422 PASSED [  5%]
+tests/test_resumes.py::test_create_resume_empty_content_returns_422 PASSED [  7%]
+tests/test_resumes.py::test_create_resume_enforces_3_cap PASSED          [  9%]
+tests/test_resumes.py::test_list_resumes_empty PASSED                    [ 11%]
+tests/test_resumes.py::test_list_resumes_returns_all_in_order PASSED     [ 13%]
+tests/test_resumes.py::test_patch_label PASSED                           [ 15%]
+tests/test_resumes.py::test_patch_content PASSED                         [ 17%]
+tests/test_resumes.py::test_patch_wrong_id_returns_404 PASSED            [ 19%]
+tests/test_resumes.py::test_patch_empty_label_returns_422 PASSED         [ 21%]
+tests/test_resumes.py::test_delete_resume_returns_204 PASSED             [ 23%]
+tests/test_resumes.py::test_delete_frees_cap_slot PASSED                 [ 25%]
+tests/test_resumes.py::test_delete_wrong_id_returns_404 PASSED           [ 27%]
+tests/test_resumes.py::test_delete_removes_from_list PASSED              [ 29%]
+tests/test_sessions.py::test_create_session_returns_201 PASSED           [ 31%]
+tests/test_sessions.py::test_create_session_strips_whitespace PASSED     [ 33%]
+tests/test_sessions.py::test_add_jd_returns_201_with_cleaned_text PASSED [ 35%]
+tests/test_sessions.py::test_add_jd_numbers_sequentially PASSED          [ 37%]
+tests/test_sessions.py::test_add_jd_empty_after_cleaning_returns_422 PASSED [ 39%]
+tests/test_sessions.py::test_25_jd_cap_returns_409 PASSED                [ 41%]
+tests/test_sessions.py::test_get_session_wrong_id_returns_404 PASSED     [ 43%]
+tests/test_sessions.py::test_add_jd_to_wrong_session_returns_404 PASSED  [ 45%]
+tests/test_sessions.py::test_get_session_returns_jds_in_order PASSED     [ 47%]
+tests/test_text_cleaning.py::test_strips_leading_and_trailing_whitespace PASSED [ 49%]
+tests/test_text_cleaning.py::test_strips_leading_newlines PASSED         [ 50%]
+tests/test_text_cleaning.py::test_crlf_becomes_lf PASSED                 [ 52%]
+tests/test_text_cleaning.py::test_bare_cr_becomes_lf PASSED              [ 54%]
+tests/test_text_cleaning.py::test_mixed_line_endings_normalized PASSED   [ 56%]
+tests/test_text_cleaning.py::test_three_newlines_collapse_to_two PASSED  [ 58%]
+tests/test_text_cleaning.py::test_ten_newlines_collapse_to_two PASSED    [ 60%]
+tests/test_text_cleaning.py::test_two_newlines_preserved PASSED          [ 62%]
+tests/test_text_cleaning.py::test_single_newline_preserved PASSED        [ 64%]
+tests/test_text_cleaning.py::test_null_byte_removed PASSED               [ 66%]
+tests/test_text_cleaning.py::test_bell_character_removed PASSED          [ 68%]
+tests/test_text_cleaning.py::test_tab_preserved PASSED                   [ 70%]
+tests/test_text_cleaning.py::test_newline_preserved_through_step_4 PASSED [ 72%]
+tests/test_text_cleaning.py::test_non_breaking_space_becomes_regular_space PASSED [ 74%]
+tests/test_text_cleaning.py::test_em_space_becomes_regular_space PASSED  [ 76%]
+tests/test_text_cleaning.py::test_en_space_becomes_regular_space PASSED  [ 78%]
+tests/test_text_cleaning.py::test_em_dash_preserved PASSED               [ 80%]
+tests/test_text_cleaning.py::test_zero_width_space_removed PASSED        [ 82%]
+tests/test_text_cleaning.py::test_bom_removed PASSED                     [ 84%]
+tests/test_text_cleaning.py::test_zero_width_joiner_removed PASSED       [ 86%]
+tests/test_text_cleaning.py::test_soft_hyphen_removed PASSED             [ 88%]
+tests/test_text_cleaning.py::test_idempotent_on_clean_text PASSED        [ 90%]
+tests/test_text_cleaning.py::test_idempotent_on_messy_text PASSED        [ 92%]
+tests/test_text_cleaning.py::test_empty_string_returns_empty PASSED      [ 94%]
+tests/test_text_cleaning.py::test_whitespace_only_returns_empty PASSED   [ 96%]
+tests/test_text_cleaning.py::test_only_zero_width_chars_returns_empty PASSED [ 98%]
+tests/test_text_cleaning.py::test_realistic_linkedin_paste PASSED        [100%]
+
+============================== warnings summary ===============================
+tests/test_resumes.py: 32 warnings
+tests/test_sessions.py: 48 warnings
+  C:\Users\Barac0da\source\repos\application-pipeline\backend\venv\Lib\site-packages\pydantic\fields.py:747: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return fac()
+
+tests/test_resumes.py::test_create_resume_empty_label_returns_422
+tests/test_resumes.py::test_create_resume_empty_content_returns_422
+tests/test_resumes.py::test_patch_empty_label_returns_422
+tests/test_sessions.py::test_add_jd_empty_after_cleaning_returns_422
+  C:\Users\Barac0da\source\repos\application-pipeline\backend\venv\Lib\site-packages\fastapi\routing.py:316: DeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    return await dependant.call(**values)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 51 passed, 84 warnings in 2.19s =======================

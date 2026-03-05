@@ -57,7 +57,6 @@ import pytest
 
 # ── POST /api/sessions ────────────────────────────────────────────────────────
 
-@pytest.mark.skip(reason="wire up conftest.py first")
 @pytest.mark.asyncio
 async def test_create_session_returns_201(client, seeded_user):
     response = await client.post("/api/sessions", json={
@@ -72,7 +71,6 @@ async def test_create_session_returns_201(client, seeded_user):
     assert data["status"] == "active"
 
 
-@pytest.mark.skip(reason="wire up conftest.py first")
 @pytest.mark.asyncio
 async def test_create_session_strips_whitespace(client, seeded_user):
     response = await client.post("/api/sessions", json={
@@ -87,7 +85,6 @@ async def test_create_session_strips_whitespace(client, seeded_user):
 
 # ── POST /api/sessions/{id}/jds ───────────────────────────────────────────────
 
-@pytest.mark.skip(reason="wire up conftest.py first")
 @pytest.mark.asyncio
 async def test_add_jd_returns_201_with_cleaned_text(client, seeded_user):
     session = (await client.post("/api/sessions", json={
@@ -108,7 +105,6 @@ async def test_add_jd_returns_201_with_cleaned_text(client, seeded_user):
     assert data["status_source"] == "ai"
 
 
-@pytest.mark.skip(reason="wire up conftest.py first")
 @pytest.mark.asyncio
 async def test_add_jd_numbers_sequentially(client, seeded_user):
     session = (await client.post("/api/sessions", json={
@@ -122,7 +118,6 @@ async def test_add_jd_numbers_sequentially(client, seeded_user):
         assert r.json()["number"] == i
 
 
-@pytest.mark.skip(reason="wire up conftest.py first")
 @pytest.mark.asyncio
 async def test_add_jd_empty_after_cleaning_returns_422(client, seeded_user):
     session = (await client.post("/api/sessions", json={
@@ -135,7 +130,6 @@ async def test_add_jd_empty_after_cleaning_returns_422(client, seeded_user):
     assert response.status_code == 422
 
 
-@pytest.mark.skip(reason="wire up conftest.py first")
 @pytest.mark.asyncio
 async def test_25_jd_cap_returns_409(client, seeded_user):
     session = (await client.post("/api/sessions", json={
@@ -155,14 +149,12 @@ async def test_25_jd_cap_returns_409(client, seeded_user):
 
 # ── Ownership / auth ──────────────────────────────────────────────────────────
 
-@pytest.mark.skip(reason="wire up conftest.py first")
 @pytest.mark.asyncio
 async def test_get_session_wrong_id_returns_404(client, seeded_user):
     response = await client.get("/api/sessions/00000000-0000-0000-0000-000000000000")
     assert response.status_code == 404
 
 
-@pytest.mark.skip(reason="wire up conftest.py first")
 @pytest.mark.asyncio
 async def test_add_jd_to_wrong_session_returns_404(client, seeded_user):
     response = await client.post(
@@ -174,7 +166,6 @@ async def test_add_jd_to_wrong_session_returns_404(client, seeded_user):
 
 # ── GET /api/sessions/{id} ────────────────────────────────────────────────────
 
-@pytest.mark.skip(reason="wire up conftest.py first")
 @pytest.mark.asyncio
 async def test_get_session_returns_jds_in_order(client, seeded_user):
     session = (await client.post("/api/sessions", json={

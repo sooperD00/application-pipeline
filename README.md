@@ -68,8 +68,10 @@ ApplicationPipeline/
 ├── README.md
 ├── backend/
 │   ├── tests/
-│   │   ├── test_text_cleaning.py    # - [x] 27 passes!
-│   │   └── test_sessions.py         # - [-] 9 skips (expected until next phase)
+│   │   ├── test_text_cleaning.py    # - [x] 27/27 passes
+│   │   ├── test_sessions.py         # - [x] ?/9 passes
+│   │   ├── test_resumes.py          # - [x] ?/15 passes
+│   │   └── conftest.py              # - [ ] ?
 │   └── pyproject.toml               # - [x] Python project manifest (replacing setup.[py|cfg])
 │   ├── scripts/
 │   │   ├── __init__.py
@@ -84,8 +86,8 @@ ApplicationPipeline/
 │   │   │   ├── __init__.py
 │   │   │   ├── sessions.py          # - [x] session CRUD (POST, POST/jds, GET)
 │   │   │   |                        # - [x] batch analyze SSE (POST /{id}/analyze)
-│   │   │   ├── jds.py               # - [ ] JD CRUD, status overrides, enrichment
-│   │   │   ├── resumes.py           # - [ ] paste, edit, list, delete (max 3)
+│   │   │   ├── jds.py               # - [x] JD CRUD, status overrides, enrichment
+│   │   │   ├── resumes.py           # - [x] paste, edit, list, delete (max 3)
 │   │   │   ├── tailoring.py         # - [ ] single + batch-tailor, status, outputs
 │   │   │   └── activities.py        # - [ ] active list, add/complete, tracker view
 │   │   ├── services/
