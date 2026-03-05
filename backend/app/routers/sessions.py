@@ -1,22 +1,21 @@
 """
 routers/sessions.py
 
-Data entry path: create a session, paste JDs into it, read it back out.
-This is the first path that touches Postgres for real.
+Session and JD data entry, plus the analysis kickoff endpoint.
 
 Endpoints:
     POST   /api/sessions              → create session
     POST   /api/sessions/{id}/jds     → add JD (auto-cleans, enforces 25-cap)
     GET    /api/sessions/{id}         → full session state with all JDs
+    POST   /api/sessions/{id}/analyze → kick off batch analysis (SSE stream)
 
 Assumes:
     - database.py exports `get_session` (yields an AsyncSession)
     - models.py is at the package root
-    - text_cleaning.py is at the package root
+    - services/claude.py and services/analysis.py exist
 
 Not here yet (see service-layer-notes.md):
-    - POST /sessions/{id}/analyze  (SSE, separate router)
-    - Activity cascade             (services.py)
+    - Activity cascade (services.py)
 """
 
 from datetime import datetime
@@ -24,6 +23,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
@@ -38,6 +38,7 @@ from ..models import (
     User,
 )
 from ..services.text_cleaning import clean_jd_text
+from ..services.analysis import stream_analysis
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
@@ -235,4 +236,54 @@ async def get_session_with_jds(
         **session.model_dump(),
         jd_count=len(jds),
         jds=[JDRead.model_validate(jd) for jd in jds],
+    )
+
+
+@router.post("/{session_id}/analyze")
+async def analyze_session(
+    session_id: UUID,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Kick off batch analysis for all JDs in a session.
+    Returns a Server-Sent Events stream — keep the connection open.
+
+    Events (in order): batch_start, jd_result (×N), batch_complete,
+    then repeats for each batch of 5, then analysis_complete.
+    On failure after one retry: error event, session reset to active.
+
+    See architecture.md for the full event schema and payload shapes.
+
+    Errors (before streaming starts):
+        404  session not found or doesn't belong to current user
+        409  analysis already in progress for this session
+        422  session has no JDs to analyze
+    """
+    # Validate before starting the stream — once we return 200 and start
+    # streaming we can no longer send HTTP error codes, so catch bad states here.
+    session = await db.get(SessionModel, session_id)
+    if not session or session.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    if session.status == SessionStatus.analyzing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Analysis already in progress for this session.",
+        )
+
+    jd_check = await db.execute(select(JD).where(JD.session_id == session_id))
+    if not jd_check.scalars().first():
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Session has no JDs. Add some JDs before analyzing.",
+        )
+
+    return StreamingResponse(
+        stream_analysis(session_id, db, current_user),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # tells nginx (Railway's proxy) not to buffer the stream
+        },
     )

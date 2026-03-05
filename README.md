@@ -71,6 +71,9 @@ ApplicationPipeline/
 │   │   ├── test_text_cleaning.py    # - [x] 27 passes!
 │   │   └── test_sessions.py         # - [-] 9 skips (expected until next phase)
 │   └── pyproject.toml               # - [x] Python project manifest (replacing setup.[py|cfg])
+│   ├── scripts/
+│   │   ├── __init__.py
+│   │   ├── seed.py                  # - [x] Seed 3 real resumes, 7 real JDs (test mod 5 batches)
 │   ├── app/
 │   │   ├── __init__.py
 │   │   ├── main.py                  # - [x] FastAPI app, CORS, lifespan
@@ -87,8 +90,8 @@ ApplicationPipeline/
 │   │   │   └── activities.py        # - [ ] active list, add/complete, tracker view
 │   │   ├── services/
 │   │   │   ├── __init__.py
-│   │   │   ├── claude.py            # - [ ] API client, prompt assembly, response parsing
-│   │   │   ├── analysis.py          # - [ ] batch analysis (batches of 5, meta-summary)
+│   │   │   ├── claude.py            # - [x] API client, prompt assembly, response parsing
+│   │   │   ├── analysis.py          # - [x] batch analysis (batches of 5, meta-summary)
 │   │   │   ├── tailoring.py         # - [ ] parallel tailoring (semaphore), docx handling
 │   │   │   ├── activities.py        # - [ ] cascade templates, schedule_activities()
 │   │   │   └── text_cleaning.py     # - [x] JD ingest pipeline (strip, normalize, collapse)
@@ -99,7 +102,7 @@ ApplicationPipeline/
 │   ├── alembic/
 │   │   ├── env.py                   # - [x] 
 │   │   └── versions/                # - [x] migration scripts
-│   ├── alembic.ini                  # - [x] 
+│   ├── alembic.ini                  # - [x] boilerplate
 │   ├── requirements.txt
 │   ├── .env.example                 # - [x] example
 │   └── .env                         # - [x] ANTHROPIC_API_KEY, DATABASE_PUBLIC_URL
