@@ -1,16 +1,15 @@
 """
 routers/jds.py
 
-Single-JD read and update. The full session view (list of JDs) lives in
-sessions.py — this router is for working with one JD directly.
+Single-JD read, update, and tailoring. The full session view (list of JDs)
+lives in sessions.py — this router is for working with one JD directly.
 
 Endpoints:
-    GET    /api/jds/{id}  → full JD detail (all fields, richer than the list view)
-    PATCH  /api/jds/{id}  → update user-editable fields; status patch auto-sets status_source=user
-
-Not here yet (future sprints):
-    POST   /api/jds/{id}/tailoring       → kick off single tailoring job
-    GET    /api/jds/{id}/tailoring/{job_id} → tailoring status + outputs
+    GET    /api/jds/{id}                      → full JD detail
+    PATCH  /api/jds/{id}                      → update user-editable fields
+    POST   /api/jds/{id}/tailoring            → kick off single tailoring job (Sprint 5)
+    GET    /api/jds/{id}/tailoring/{job_id}   → tailoring status + outputs (Sprint 5)
+    GET    /api/jds/{id}/tailoring/{job_id}/docx → download generated resume docx (Sprint 5)
 """
 
 from datetime import datetime
@@ -18,6 +17,8 @@ from typing import Any, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.background import BackgroundTasks
+from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
@@ -27,9 +28,13 @@ from ..models import (
     JD,
     JDStatus,
     JDStatusSource,
+    Resume,
     Session as SessionModel,
+    TailoringJob,
+    TailoringStatus,
     User,
 )
+from ..services.tailoring import MAX_RESUMES, run_tailoring_job
 from .sessions import get_current_user  # shared auth stub
 
 router = APIRouter(prefix="/api/jds", tags=["jds"])
@@ -172,3 +177,170 @@ async def update_jd(
     await db.refresh(jd)
 
     return JDDetail.model_validate(jd)
+
+
+# ── Tailoring schemas ─────────────────────────────────────────────────────────
+
+class TailoringJobCreated(BaseModel):
+    id: UUID
+    jd_id: UUID
+    status: TailoringStatus
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class TailoringJobRead(BaseModel):
+    id: UUID
+    jd_id: UUID
+    resume_id: UUID
+    status: TailoringStatus
+    output_resume: Optional[str]
+    output_cover_letter: Optional[str]
+    output_app_answers: Optional[Any]       # [{question, answer}]
+    has_docx: bool                          # True when output_resume_docx is populated
+    model_used: str
+    created_at: datetime
+    completed_at: Optional[datetime]
+
+    model_config = {"from_attributes": True}
+
+
+# ── Tailoring endpoints ───────────────────────────────────────────────────────
+
+@router.post(
+    "/{jd_id}/tailoring",
+    response_model=TailoringJobCreated,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def create_tailoring_job(
+    jd_id: UUID,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> TailoringJobCreated:
+    """
+    Kick off a tailoring job for a single JD.
+
+    All of the user's resumes (up to 3) are sent to Claude — the prompt
+    directs it to select the best source material. The most recent resume
+    is stored as the FK reference on the job row.
+
+    Returns 202 immediately. Poll GET /jds/{id}/tailoring/{job_id} for status.
+
+    Errors:
+        404  JD not found or doesn't belong to current user
+        422  No resumes found, or more than 3 resumes (delete extras first)
+    """
+    jd = await _get_jd_owned_by_user(jd_id, current_user, db)
+
+    # ── Resume cap check (hard limit = 3) ─────────────────────────────
+    result = await db.execute(
+        select(Resume)
+        .where(Resume.user_id == current_user.id)
+        .order_by(Resume.created_at.desc())
+    )
+    resumes = list(result.scalars().all())
+
+    if not resumes:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No resumes found. Create at least one resume before tailoring.",
+        )
+    if len(resumes) > MAX_RESUMES:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                f"Found {len(resumes)} resumes (max {MAX_RESUMES}). "
+                "Delete extras before tailoring."
+            ),
+        )
+
+    # ── Create job row ────────────────────────────────────────────────
+    from ..config import settings  # avoid circular at module level
+
+    job = TailoringJob(
+        jd_id=jd.id,
+        resume_id=resumes[0].id,            # most recent as FK reference
+        prompt_snapshot="",                  # filled by background task
+        status=TailoringStatus.queued,
+        model_used=settings.default_model,
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
+
+    # ── Fire background task ──────────────────────────────────────────
+    background_tasks.add_task(run_tailoring_job, job.id)
+
+    return TailoringJobCreated.model_validate(job)
+
+
+@router.get("/{jd_id}/tailoring/{job_id}", response_model=TailoringJobRead)
+async def get_tailoring_job(
+    jd_id: UUID,
+    job_id: UUID,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> TailoringJobRead:
+    """
+    Poll tailoring job status and outputs.
+
+    Frontend polls this after kicking off a job. Once status is "ready",
+    all output fields are populated.
+
+    Errors:
+        404  JD or tailoring job not found, or doesn't belong to current user
+    """
+    jd = await _get_jd_owned_by_user(jd_id, current_user, db)
+
+    job = await db.get(TailoringJob, job_id)
+    if not job or job.jd_id != jd.id:
+        raise HTTPException(status_code=404, detail="Tailoring job not found")
+
+    return TailoringJobRead(
+        id=job.id,
+        jd_id=job.jd_id,
+        resume_id=job.resume_id,
+        status=job.status,
+        output_resume=job.output_resume,
+        output_cover_letter=job.output_cover_letter,
+        output_app_answers=job.output_app_answers,
+        has_docx=job.output_resume_docx is not None,
+        model_used=job.model_used,
+        created_at=job.created_at,
+        completed_at=job.completed_at,
+    )
+
+
+@router.get("/{jd_id}/tailoring/{job_id}/docx")
+async def download_tailoring_docx(
+    jd_id: UUID,
+    job_id: UUID,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> Response:
+    """
+    Download the generated resume as a .docx file.
+
+    Available once the tailoring job status is "ready" and has_docx is true.
+
+    Errors:
+        404  JD or job not found, or docx not yet generated
+    """
+    jd = await _get_jd_owned_by_user(jd_id, current_user, db)
+
+    job = await db.get(TailoringJob, job_id)
+    if not job or job.jd_id != jd.id:
+        raise HTTPException(status_code=404, detail="Tailoring job not found")
+
+    if not job.output_resume_docx:
+        raise HTTPException(status_code=404, detail="Docx not yet generated")
+
+    filename = f"{jd.company or 'resume'}_{jd.role or 'tailored'}.docx".replace(" ", "_")
+
+    return Response(
+        content=job.output_resume_docx,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

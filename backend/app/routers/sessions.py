@@ -1,21 +1,19 @@
 """
 routers/sessions.py
 
-Session and JD data entry, plus the analysis kickoff endpoint.
+Session and JD data entry, plus the analysis kickoff and batch tailoring.
 
 Endpoints:
     POST   /api/sessions              → create session
     POST   /api/sessions/{id}/jds     → add JD (auto-cleans, enforces 25-cap)
     GET    /api/sessions/{id}         → full session state with all JDs
     POST   /api/sessions/{id}/analyze → kick off batch analysis (SSE stream)
+    POST   /api/sessions/{id}/batch-tailor → tailoring for all Apply JDs (Sprint 5)
 
 Assumes:
     - database.py exports `get_session` (yields an AsyncSession)
     - models.py is at the package root
-    - services/claude.py and services/analysis.py exist
-
-Not here yet (see service-layer-notes.md):
-    - Activity cascade (services.py)
+    - services/claude.py, services/analysis.py, services/tailoring.py exist
 """
 
 from datetime import datetime
@@ -23,22 +21,28 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.background import BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
+from ..config import settings
 from ..database import get_session
 from ..models import (
     JD,
     JDStatus,
     JDStatusSource,
+    Resume,
     Session as SessionModel,
     SessionStatus,
+    TailoringJob,
+    TailoringStatus,
     User,
 )
 from ..services.text_cleaning import clean_jd_text
 from ..services.analysis import stream_analysis
+from ..services.tailoring import MAX_RESUMES, run_batch_tailor
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
@@ -287,3 +291,98 @@ async def analyze_session(
             "X-Accel-Buffering": "no",  # tells nginx (Railway's proxy) not to buffer the stream
         },
     )
+
+
+# ── Batch tailoring ──────────────────────────────────────────────────────────
+
+class BatchTailorResponse(BaseModel):
+    job_ids: list[UUID]
+    jd_count: int
+
+
+@router.post(
+    "/{session_id}/batch-tailor",
+    response_model=BatchTailorResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def batch_tailor_session(
+    session_id: UUID,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> BatchTailorResponse:
+    """
+    Kick off tailoring for all Apply-status JDs in a session.
+
+    All of the user's resumes (up to 3) are sent to Claude for each job.
+    Jobs run in parallel, capped by settings.tailoring_parallelism (ADR-008).
+
+    Returns 202 immediately with the list of job IDs. Frontend polls each
+    via GET /jds/{jd_id}/tailoring/{job_id} for individual status.
+
+    Errors:
+        404  Session not found or doesn't belong to current user
+        422  No resumes, too many resumes, or no Apply-status JDs
+    """
+    session = await db.get(SessionModel, session_id)
+    if not session or session.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # ── Resume cap check (hard limit = 3) ─────────────────────────────
+    result = await db.execute(
+        select(Resume)
+        .where(Resume.user_id == current_user.id)
+        .order_by(Resume.created_at.desc())
+    )
+    resumes = list(result.scalars().all())
+
+    if not resumes:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No resumes found. Create at least one resume before tailoring.",
+        )
+    if len(resumes) > MAX_RESUMES:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                f"Found {len(resumes)} resumes (max {MAX_RESUMES}). "
+                "Delete extras before tailoring."
+            ),
+        )
+
+    # ── Find all Apply JDs ────────────────────────────────────────────
+    result = await db.execute(
+        select(JD)
+        .where(JD.session_id == session_id, JD.status == JDStatus.apply)
+        .order_by(JD.number)
+    )
+    apply_jds = list(result.scalars().all())
+
+    if not apply_jds:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No JDs with 'apply' status in this session.",
+        )
+
+    # ── Create TailoringJob rows ──────────────────────────────────────
+    # All resumes go in the prompt; resume_id FK uses most recent
+    resume_id = resumes[0].id
+    job_ids: list[UUID] = []
+
+    for jd in apply_jds:
+        job = TailoringJob(
+            jd_id=jd.id,
+            resume_id=resume_id,
+            prompt_snapshot="",                  # filled by background task
+            status=TailoringStatus.queued,
+            model_used=settings.default_model,
+        )
+        db.add(job)
+        job_ids.append(job.id)
+
+    await db.commit()
+
+    # ── Fire background task (parallel execution with semaphore) ──────
+    background_tasks.add_task(run_batch_tailor, job_ids)
+
+    return BatchTailorResponse(job_ids=job_ids, jd_count=len(apply_jds))
