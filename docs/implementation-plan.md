@@ -22,7 +22,7 @@ See [architecture.md](architecture.md) for full SQLModel entity definitions.
 
 - **User** — account info, auth token
 - **Resume** — up to 3 per user, labeled (e.g. "Technical", "Leadership"), text-only for Phase 0 (paste and edit in-app)
-- **PromptTemplate** — per-phase, per-user, versionable, forkable from defaults. Phases: `analysis`, `resume_generation`, `cover_letter_app_answers` (composable tailoring pieces assembled into one call), plus `calibrate`, `compare`, `interview_prep` (standalone)
+- **PromptTemplate** — per-phase, per-user, versionable, forkable from defaults. Phases: `analysis`, `resume_generation`, `cover_letter`, `app_answers` (composable tailoring pieces assembled into one call; `cover_letter` and `app_answers` toggled independently per JD — ADR-012), plus `calibrate`, `compare`, `interview_prep` (standalone)
 - **Session** — one metadata set (board, filters, search_term), one batch of up to 25 JDs
 - **JD** — belongs to a Session; holds raw/cleaned text, company, role, compensation, employee_count, link, status, analysis results, app questions, additional JD text, cover letter toggle
 - **TailoringJob** — belongs to a JD (not a Session); holds status, resume used, prompt snapshot, outputs (resume docx, cover letter, app answers), chat context for continuation
@@ -198,8 +198,8 @@ Batch Analysis (1 conversation per session):
 
 Tailoring (1 conversation per Apply JD, up to 4 parallel):
   - Context: JD + metadata + resume + Phase 1 analysis + app questions
-  - Prompt assembled from 3 composable templates: analysis + resume_generation
-    + cover_letter_app_answers (if requested)
+  - Prompt assembled from composable templates: analysis + resume_generation
+    + cover_letter (if requested) + app_answers (if app questions provided)
   - Output: structured (resume docx, cover letter, app answers as separate fields)
   - output_resume is extracted from the docx for in-app display — not input to it
   - Conversation persisted for interview prep continuation

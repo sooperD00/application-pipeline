@@ -69,25 +69,26 @@ ORDER BY due_date ASC NULLS LAST     -- urgent stuff first
 
 ## Prompt Assembly for Tailoring (service layer)
 
-Three PromptTemplate rows composed into one Claude API call:
+Four PromptTemplate rows composed into one Claude API call:
 
 1. **analysis** — always included
-2. **resume_generation** — always included (contains docx formatting instructions)
-3. **cover_letter_app_answers** — included only if `jd.cover_letter_requested` or `jd.app_questions` is populated
+2. **resume_generation** — always included (contains docx formatting instructions, ADR-011)
+3. **cover_letter** — included only if `jd.cover_letter_requested` (ADR-012)
+4. **app_answers** — included only if `jd.app_questions` is populated (ADR-012)
 
 - [ ] `assemble_tailoring_prompt(jd, resume, user)` — fetches active templates for each phase, concatenates in order, substitutes variables ({jd_text}, {resume}, {company}, etc.)
 - [ ] `prompt_snapshot` on TailoringJob stores the assembled result, frozen at kick-off
 
 ---
 
-## Docx Generation (data flow reminder)
+## Docx Generation (data flow reminder — ADR-011)
 
-The prompt tells Claude to produce a docx directly — formatting instructions live in the `resume_generation` prompt, not in a python-docx template layer.
+The prompt tells Claude what formatting to use. Claude returns structured JSON describing each element (font sizes, bold ranges, spacing). `docx_builder.py` is a dumb renderer — it walks the JSON and makes python-docx calls without formatting decisions of its own.
 
 ```
-prompt (with formatting instructions) → Claude → docx bytes → output_resume_docx
-                                                      ↓
-                                               extract text → output_resume (for display/comparison)
+prompt (with formatting instructions) → Claude → structured JSON → docx_builder.py → docx bytes → output_resume_docx
+                                                                                          ↓
+                                                                                   extract text → output_resume (for display/comparison)
 ```
 
 - [ ] `output_resume` is derived FROM the docx, not an input TO it

@@ -52,7 +52,7 @@ npm install
 npm run dev
 ```
 
-Requires a `.env` with `ANTHROPIC_API_KEY` and `DATABASE_URL`.
+Requires a `.env` with `ANTHROPIC_API_KEY` and `DATABASE_PUBLIC_URL`.
 
 ## Docs
 
@@ -87,15 +87,17 @@ ApplicationPipeline/
 │   │   │   ├── __init__.py
 │   │   │   ├── sessions.py          # - [x] session CRUD (POST, POST/jds, GET)
 │   │   │   |                        # - [x] batch analyze SSE (POST /{id}/analyze)
+│   │   │   |                        # - [x] batch-tailor (POST /{id}/batch-tailor)
 │   │   │   ├── jds.py               # - [x] JD CRUD, status overrides, enrichment
+│   │   │   |                        # - [x] single tailor, status, outputs, docx download
 │   │   │   ├── resumes.py           # - [x] paste, edit, list, delete (max 3)
-│   │   │   ├── tailoring.py         # - [ ] single + batch-tailor, status, outputs
 │   │   │   └── activities.py        # - [ ] active list, add/complete, tracker view
 │   │   ├── services/
 │   │   │   ├── __init__.py
 │   │   │   ├── claude.py            # - [x] API client, prompt assembly, response parsing
 │   │   │   ├── analysis.py          # - [x] batch analysis (batches of 5, meta-summary)
 │   │   │   ├── tailoring.py         # - [x] parallel tailoring (semaphore), docx handling
+│   │   │   ├── docx_builder.py      # - [x] dumb renderer: Claude JSON → python-docx (ADR-011)
 │   │   │   ├── activities.py        # - [ ] cascade templates, schedule_activities()
 │   │   │   └── text_cleaning.py     # - [x] JD ingest pipeline (strip, normalize, collapse)
 │   │   └── prompts/
