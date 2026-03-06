@@ -67,11 +67,12 @@ Requires a `.env` with `ANTHROPIC_API_KEY` and `DATABASE_URL`.
 ApplicationPipeline/
 ├── README.md
 ├── backend/
-│   ├── tests/
-│   │   ├── test_text_cleaning.py    # - [x] 27/27 passes
-│   │   ├── test_sessions.py         # - [x] ?/9 passes
-│   │   ├── test_resumes.py          # - [x] ?/15 passes
-│   │   └── conftest.py              # - [ ] ?
+│   ├── tests/                       # - [x]  65/65 pass
+│   │   ├── conftest.py
+│   │   ├── test_resumes.py
+│   │   ├── test_sessions.py
+│   │   ├── test_tailoring.py
+│   │   └── test_text_cleaning.py
 │   └── pyproject.toml               # - [x] Python project manifest (replacing setup.[py|cfg])
 │   ├── scripts/
 │   │   ├── __init__.py
@@ -94,7 +95,7 @@ ApplicationPipeline/
 │   │   │   ├── __init__.py
 │   │   │   ├── claude.py            # - [x] API client, prompt assembly, response parsing
 │   │   │   ├── analysis.py          # - [x] batch analysis (batches of 5, meta-summary)
-│   │   │   ├── tailoring.py         # - [ ] parallel tailoring (semaphore), docx handling
+│   │   │   ├── tailoring.py         # - [x] parallel tailoring (semaphore), docx handling
 │   │   │   ├── activities.py        # - [ ] cascade templates, schedule_activities()
 │   │   │   └── text_cleaning.py     # - [x] JD ingest pipeline (strip, normalize, collapse)
 │   │   └── prompts/

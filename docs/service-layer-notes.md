@@ -115,16 +115,65 @@ All computable at query time from the activities table:
 
 ## Free Tier Tailoring Cap (Phase 3)
 
-Cap total tailoring jobs per free session, not just parallelism.
-Semaphore (ADR-008) controls concurrent execution. A separate count-check
-(same pattern as resume cap and JD cap) controls total jobs per session.
+Cap total tailoring jobs per free session, not just parallelism. Semaphore (ADR-008) controls concurrent execution. A separate count-check (same pattern as resume cap and JD cap) controls total jobs per session.
 
-Proposed: 6 tailoring jobs per session (free), uncapped (paid).
-Parallelism stays at 4/8.
+Proposed: 6 tailoring jobs per session (free), uncapped (paid). Parallelism stays at 4/8.
 
-Cost context: each Opus tailoring call is ~$0.30–0.60. Uncapped free tier
-at 25 JDs = up to $15/session with zero revenue. The cap is both a business
-gate and a cost control.
+Cost context: each Opus tailoring call is ~$0.30–0.60. Uncapped free tier at 25 JDs = up to $15/session with zero revenue. The cap is both a business gate and a cost control.
 
-Phase 1 concern: semaphore is per-session. Multi-user needs a global 
-rate limiter (per API key) to stay within Anthropic's RPM limits.
+Phase 1 concern: semaphore is per-session. Multi-user needs a global rate limiter (per API key) to stay within Anthropic's RPM limits.
+
+---
+
+## Missing Endpoint: GET /api/sessions (list all) - DO IN SPRINT 6
+
+No way to list sessions without knowing the ID. The seed script prints it, but a frontend session picker needs GET /api/sessions → all sessions for current user, ordered by created_at desc. Low effort, add when the frontend
+needs it.
+
+---
+
+## Tailoring Analysis/Strategy Not Surfaced - DO IN SPRINT 6
+
+Claude returns "analysis" and "strategy" fields in the tailoring response. Currently only saved inside chat_context (full conversation JSON). Add dedicated columns or parse them out for display when the frontend needs 
+a "why did Claude make these choices" view per tailoring job. Quick fix when you want it: two lines in run_tailoring_job to pull parsed.get("analysis") and parsed.get("strategy") into new columns or into the existing analysis_text field on the JD.
+
+---
+
+## Batch-Tailor: Skip Already-Tailored JDs? - DO IN SPRINT 6
+
+Currently batch-tailor creates jobs for ALL apply-status JDs, even if they already have a completed tailoring job. This is correct for re-tailoring after prompt/resume changes, but means accidental double-clicks double the API cost. Consider: skip JDs with status=ready unless a force flag is passed. Or surface "already tailored" in the UI and let the user decide.
+
+---
+
+## Batch-Tailor Response Should Pair job_id + jd_id - DONE 3/5/26 Sprint 5 fix
+
+Current response: {"job_ids": [...], "jd_count": N}
+Should be: {"jobs": [{"job_id": "...", "jd_id": "..."}, ...], "jd_count": N}
+
+The docx download endpoint requires both jd_id and job_id. Without pairing them in the batch response, the frontend has to poll each job_id individually just to learn which JD it belongs to. Fix in sessions.py BatchTailorResponse schema and the endpoint return value.
+
+---
+
+## Batch Tailoring Status Endpoints (needed for frontend) - DO IN SPRINT 6
+
+GET /api/sessions/{id}/tailoring-jobs
+  All tailoring jobs across all JDs in a session. The frontend needs this after batch-tailor to show a dashboard of progress without N individual polling calls. Return: [{job_id, jd_id, status, company, role, has_docx}]
+
+GET /api/jds/{id}/tailoring
+  All tailoring jobs for a single JD. Useful for the JD detail view to show re-tailor history. Return: [{job_id, status, created_at, has_docx}]
+
+Neither exists yet. The frontend currently has to poll each job individually via GET /jds/{jd_id}/tailoring/{job_id}. Works but scales badly — a session with 6 apply JDs means 6 polling loops.
+
+
+---
+
+## Router Organization: Tailoring Endpoints
+
+Sprint 5 put tailoring endpoints in the routers that own their URL prefixes:
+  - POST/GET /api/jds/{id}/tailoring/...  → jds.py
+  - POST /api/sessions/{id}/batch-tailor  → sessions.py
+
+The original plan had a separate routers/tailoring.py. Consider splitting 
+if jds.py gets too long or if tailoring grows its own concepts (re-tailor, 
+compare, prompt preview) that don't feel like JD operations anymore.
+services/tailoring.py stays either way — only the router layer would move.

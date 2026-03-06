@@ -295,8 +295,12 @@ async def analyze_session(
 
 # ── Batch tailoring ──────────────────────────────────────────────────────────
 
+class BatchTailorJob(BaseModel):
+    job_id: UUID
+    jd_id: UUID
+
 class BatchTailorResponse(BaseModel):
-    job_ids: list[UUID]
+    jobs: list[BatchTailorJob]
     jd_count: int
 
 
@@ -367,7 +371,8 @@ async def batch_tailor_session(
     # ── Create TailoringJob rows ──────────────────────────────────────
     # All resumes go in the prompt; resume_id FK uses most recent
     resume_id = resumes[0].id
-    job_ids: list[UUID] = []
+
+    jobs: list[BatchTailorJob] = []
 
     for jd in apply_jds:
         job = TailoringJob(
@@ -378,11 +383,11 @@ async def batch_tailor_session(
             model_used=settings.default_model,
         )
         db.add(job)
-        job_ids.append(job.id)
+        jobs.append(BatchTailorJob(job_id=job.id, jd_id=jd.id))
 
     await db.commit()
 
     # ── Fire background task (parallel execution with semaphore) ──────
-    background_tasks.add_task(run_batch_tailor, job_ids)
+    background_tasks.add_task(run_batch_tailor, [j.job_id for j in jobs])
 
-    return BatchTailorResponse(job_ids=job_ids, jd_count=len(apply_jds))
+    return BatchTailorResponse(jobs=jobs, jd_count=len(apply_jds))

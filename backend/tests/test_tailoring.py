@@ -300,7 +300,9 @@ async def test_batch_tailor_creates_jobs_for_apply_jds(
 
     data = response.json()
     assert data["jd_count"] == 1  # only the apply JD
-    assert len(data["job_ids"]) == 1
+    assert len(data["jobs"]) == 1
+    assert "job_id" in data["jobs"][0]
+    assert "jd_id" in data["jobs"][0]
 
 
 @pytest.mark.asyncio
