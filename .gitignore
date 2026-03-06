@@ -1,6 +1,9 @@
 # for the dev
 DEVLOG/
 
+# test results
+backend/tests/results_*.txt
+
 # this project
 backend/venv/
 frontend/node_modules/
@@ -8,7 +11,7 @@ frontend/node_modules/
 __pycache__/
 .env
 
-
+# boilerplate
 # === Prompts (private IP) ===
 prompts/
 
