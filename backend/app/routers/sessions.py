@@ -4,11 +4,14 @@ routers/sessions.py
 Session and JD data entry, plus the analysis kickoff and batch tailoring.
 
 Endpoints:
+    GET    /api/sessions              → list all sessions for current user (Sprint 6)
     POST   /api/sessions              → create session
     POST   /api/sessions/{id}/jds     → add JD (auto-cleans, enforces 25-cap)
     GET    /api/sessions/{id}         → full session state with all JDs
     POST   /api/sessions/{id}/analyze → kick off batch analysis (SSE stream)
     POST   /api/sessions/{id}/batch-tailor → tailoring for all Apply JDs (Sprint 5)
+                                         + skip-completed logic (Sprint 6)
+    GET    /api/sessions/{id}/tailoring-jobs → batch status dashboard (Sprint 6)
 
 Assumes:
     - database.py exports `get_session` (yields an AsyncSession)
@@ -17,14 +20,15 @@ Assumes:
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.background import BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func
 from sqlmodel import select
 
 from ..config import settings
@@ -118,6 +122,31 @@ class SessionWithJDs(SessionRead):
     jds: list[JDRead]
 
 
+class TailoringJobDashboardRead(BaseModel):
+    """
+    Tailoring job with JD context for the batch status dashboard (Sprint 6).
+    Richer than TailoringJobRead — includes company and role so the frontend
+    can label cards without a second round-trip.
+    """
+    id: UUID
+    jd_id: UUID
+    resume_id: UUID
+    status: TailoringStatus
+    output_resume: Optional[str]
+    output_cover_letter: Optional[str]
+    output_app_answers: Optional[Any] = None
+    has_docx: bool
+    model_used: str
+    created_at: datetime
+    completed_at: Optional[datetime]
+    # JD context for dashboard labeling
+    company: str
+    role: str
+    jd_number: int
+
+    model_config = {"from_attributes": True}
+
+
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
 @router.post("", response_model=SessionRead, status_code=status.HTTP_201_CREATED)
@@ -146,6 +175,39 @@ async def create_session(
         **session.model_dump(),
         jd_count=0,
     )
+
+
+@router.get("", response_model=list[SessionRead])
+async def list_sessions(
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> list[SessionRead]:
+    """
+    List all sessions for the current user, newest first.
+
+    Each entry includes jd_count so the session picker can show how many
+    JDs are in each session without loading them all. This is the
+    prerequisite for the frontend session picker (Sprint 7).
+    """
+    # Scalar subquery: count JDs per session without N+1
+    jd_count_subq = (
+        select(func.count(JD.id))
+        .where(JD.session_id == SessionModel.id)
+        .correlate(SessionModel)
+        .scalar_subquery()
+    )
+
+    result = await db.execute(
+        select(SessionModel, jd_count_subq.label("jd_count"))
+        .where(SessionModel.user_id == current_user.id)
+        .order_by(SessionModel.created_at.desc())
+    )
+    rows = result.all()
+
+    return [
+        SessionRead(**s.model_dump(), jd_count=cnt)
+        for s, cnt in rows
+    ]
 
 
 @router.post(
@@ -293,6 +355,62 @@ async def analyze_session(
     )
 
 
+# ── Tailoring dashboard ─────────────────────────────────────────────────────
+
+@router.get(
+    "/{session_id}/tailoring-jobs",
+    response_model=list[TailoringJobDashboardRead],
+)
+async def list_session_tailoring_jobs(
+    session_id: UUID,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> list[TailoringJobDashboardRead]:
+    """
+    All tailoring jobs across every JD in a session — the batch status dashboard.
+
+    Returns jobs with JD company/role/number so the frontend can render
+    status cards without a second round-trip. Ordered by JD number, then
+    by job created_at desc (most recent attempt first within each JD).
+
+    Tab 4 prerequisite (Sprint 9).
+
+    Errors:
+        404  Session not found or doesn't belong to current user
+    """
+    session = await db.get(SessionModel, session_id)
+    if not session or session.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    result = await db.execute(
+        select(TailoringJob, JD.company, JD.role, JD.number)
+        .join(JD, TailoringJob.jd_id == JD.id)
+        .where(JD.session_id == session_id)
+        .order_by(JD.number, TailoringJob.created_at.desc())
+    )
+    rows = result.all()
+
+    return [
+        TailoringJobDashboardRead(
+            id=job.id,
+            jd_id=job.jd_id,
+            resume_id=job.resume_id,
+            status=job.status,
+            output_resume=job.output_resume,
+            output_cover_letter=job.output_cover_letter,
+            output_app_answers=job.output_app_answers,
+            has_docx=job.output_resume_docx is not None,
+            model_used=job.model_used,
+            created_at=job.created_at,
+            completed_at=job.completed_at,
+            company=company,
+            role=role,
+            jd_number=number,
+        )
+        for job, company, role, number in rows
+    ]
+
+
 # ── Batch tailoring ──────────────────────────────────────────────────────────
 
 class BatchTailorJob(BaseModel):
@@ -312,6 +430,11 @@ class BatchTailorResponse(BaseModel):
 async def batch_tailor_session(
     session_id: UUID,
     background_tasks: BackgroundTasks,
+    force: bool = Query(
+        False,
+        description="Re-tailor JDs that already have a completed job. "
+                    "Default: skip them.",
+    ),
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ) -> BatchTailorResponse:
@@ -320,6 +443,10 @@ async def batch_tailor_session(
 
     All of the user's resumes (up to 3) are sent to Claude for each job.
     Jobs run in parallel, capped by settings.tailoring_parallelism (ADR-008).
+
+    Sprint 6: JDs that already have a completed tailoring job (status=ready)
+    are skipped unless force=true. This prevents accidental re-runs from
+    burning API credits. The response only lists newly-created jobs.
 
     Returns 202 immediately with the list of job IDs. Frontend polls each
     via GET /jds/{jd_id}/tailoring/{job_id} for individual status.
@@ -367,6 +494,23 @@ async def batch_tailor_session(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="No JDs with 'apply' status in this session.",
         )
+
+    # ── Skip JDs that already have a completed job (Sprint 6) ─────────
+    # Unless force=true, don't re-tailor JDs that already succeeded.
+    if not force:
+        already_done = await db.execute(
+            select(TailoringJob.jd_id)
+            .where(
+                TailoringJob.jd_id.in_([jd.id for jd in apply_jds]),
+                TailoringJob.status == TailoringStatus.ready,
+            )
+        )
+        done_jd_ids = set(already_done.scalars().all())
+        apply_jds = [jd for jd in apply_jds if jd.id not in done_jd_ids]
+
+    if not apply_jds:
+        # All JDs already have completed jobs — nothing to do
+        return BatchTailorResponse(jobs=[], jd_count=0)
 
     # ── Create TailoringJob rows ──────────────────────────────────────
     # All resumes go in the prompt; resume_id FK uses most recent

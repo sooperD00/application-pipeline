@@ -7,6 +7,7 @@ lives in sessions.py — this router is for working with one JD directly.
 Endpoints:
     GET    /api/jds/{id}                      → full JD detail
     PATCH  /api/jds/{id}                      → update user-editable fields
+    GET    /api/jds/{id}/tailoring            → per-JD tailoring history (Sprint 6)
     POST   /api/jds/{id}/tailoring            → kick off single tailoring job (Sprint 5)
     GET    /api/jds/{id}/tailoring/{job_id}   → tailoring status + outputs (Sprint 5)
     GET    /api/jds/{id}/tailoring/{job_id}/docx → download generated resume docx (Sprint 5)
@@ -207,6 +208,48 @@ class TailoringJobRead(BaseModel):
 
 
 # ── Tailoring endpoints ───────────────────────────────────────────────────────
+
+@router.get("/{jd_id}/tailoring", response_model=list[TailoringJobRead])
+async def list_tailoring_jobs(
+    jd_id: UUID,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> list[TailoringJobRead]:
+    """
+    All tailoring jobs for a single JD, newest first.
+
+    This is the per-JD tailoring history — shows every attempt, including
+    superseded ones. Tab 4 prerequisite (Sprint 9).
+
+    Errors:
+        404  JD not found or doesn't belong to current user
+    """
+    jd = await _get_jd_owned_by_user(jd_id, current_user, db)
+
+    result = await db.execute(
+        select(TailoringJob)
+        .where(TailoringJob.jd_id == jd.id)
+        .order_by(TailoringJob.created_at.desc())
+    )
+    jobs = result.scalars().all()
+
+    return [
+        TailoringJobRead(
+            id=job.id,
+            jd_id=job.jd_id,
+            resume_id=job.resume_id,
+            status=job.status,
+            output_resume=job.output_resume,
+            output_cover_letter=job.output_cover_letter,
+            output_app_answers=job.output_app_answers,
+            has_docx=job.output_resume_docx is not None,
+            model_used=job.model_used,
+            created_at=job.created_at,
+            completed_at=job.completed_at,
+        )
+        for job in jobs
+    ]
+
 
 @router.post(
     "/{jd_id}/tailoring",
