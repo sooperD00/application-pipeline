@@ -60,8 +60,14 @@ Requires a `.env` with `ANTHROPIC_API_KEY` and `DATABASE_PUBLIC_URL`.
 - [Architecture](docs/architecture.md) — data model, API contracts, integration patterns
 - [Workflow](docs/workflow.md) — the human method this automates
 - [Decisions](docs/decisions.md) — architecture decision records
+- [Service Layer Notes](docs/service-layer-notes.md) — implementation TODOs and design notes
+- [Completed Sprints](docs/completed-sprints.md) — what shipped and when
+- [Remaining Sprints](docs/remaining-sprints.md) — what's next (Phase 0)
+- [Original Prompts](docs/original-prompts.md) — the manual Claude prompts this automates
 
 ## Repo Structure
+
+> `[x]` = implemented and on disk. `[ ]` = planned — the file doesn't exist yet but its location is part of the design. This tree is both a map and a roadmap.
 
 ```
 ApplicationPipeline/
@@ -129,10 +135,13 @@ ApplicationPipeline/
 │   └── package.json                 # - [ ] 
 ├── docs/
 │   ├── architecture.md
+│   ├── completed-sprints.md
 │   ├── decisions.md
 │   ├── implementation-plan.md
-│   ├── workflow.md
-│   └── service-layer-notes.md
+│   ├── original-prompts.md
+│   ├── remaining-sprints.md
+│   ├── service-layer-notes.md
+│   └── workflow.md
 └── LICENSE                          # BSL 1.1 → Apache 2.0 (2029-03-01)
 ```
 

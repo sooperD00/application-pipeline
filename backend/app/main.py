@@ -1,8 +1,10 @@
 """
 ApplicationPipeline — FastAPI entry point.
 
-Phase 0: skeleton with health check and stub routers.
-Nothing works yet, but you have a live endpoint and a real database.
+Phase 0, Sprint 6+. Backend is functional: session/JD CRUD, resume CRUD,
+Claude batch analysis (SSE), parallel tailoring with docx generation,
+skip-already-tailored logic, and batch status dashboards. 71 tests passing.
+Frontend is scaffolded but not yet wired.
 """
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator

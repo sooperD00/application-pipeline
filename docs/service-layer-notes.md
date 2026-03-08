@@ -8,11 +8,11 @@ Decisions made during models.py review that need implementation outside the data
 
 All limits enforced at the API layer, not the DB. Same 3-line pattern everywhere. Put values in a config YAML when you implement.
 
-- [ ] **Resume**: max 3 per user
+- [x] **Resume**: max 3 per user — `MAX_RESUMES_PER_USER = 3` in resumes.py (Sprint 5)
 - [ ] **PromptTemplate**: max N versions per user+phase+name (pick N when you see usage; 10 is fine for now)
-- [ ] **Session**: uncapped for Phase 0 (free tier caps in Phase 3)
-- [ ] **JD**: max 25 per session
-- [ ] **TailoringJob**: no row limit, but semaphore caps concurrent execution (4 free, 8 paid)
+- [x] **Session**: uncapped for Phase 0 (free tier caps in Phase 3)
+- [x] **JD**: max 25 per session — enforced in `add_jd`, sessions.py (Sprint 2)
+- [x] **TailoringJob**: no row limit, but semaphore caps concurrent execution (4 free, 8 paid) — `settings.tailoring_parallelism` (Sprint 5)
 
 ---
 
@@ -76,8 +76,8 @@ Four PromptTemplate rows composed into one Claude API call:
 3. **cover_letter** — included only if `jd.cover_letter_requested` (ADR-012)
 4. **app_answers** — included only if `jd.app_questions` is populated (ADR-012)
 
-- [ ] `assemble_tailoring_prompt(jd, resume, user)` — fetches active templates for each phase, concatenates in order, substitutes variables ({jd_text}, {resume}, {company}, etc.)
-- [ ] `prompt_snapshot` on TailoringJob stores the assembled result, frozen at kick-off
+- [x] `assemble_tailoring_prompt(jd, resumes, templates)` — in tailoring.py. Fetches active templates for each phase, concatenates in order, substitutes variables (Sprint 5)
+- [x] `prompt_snapshot` on TailoringJob stores the assembled result, frozen at kick-off — `job.prompt_snapshot = assembled` in `run_tailoring_job` (Sprint 5)
 
 ---
 
@@ -91,7 +91,7 @@ prompt (with formatting instructions) → Claude → structured JSON → docx_bu
                                                                                    extract text → output_resume (for display/comparison)
 ```
 
-- [ ] `output_resume` is derived FROM the docx, not an input TO it
+- [x] `output_resume` is derived FROM the docx, not an input TO it — `_extract_text_from_elements()` in tailoring.py (Sprint 5)
 - [ ] Phase N: resume uploader tab analyzes user's existing docx for style preferences, feeds into prompt
 
 ---
@@ -126,23 +126,22 @@ Phase 1 concern: semaphore is per-session. Multi-user needs a global rate limite
 
 ---
 
-## Missing Endpoint: GET /api/sessions (list all) - DO IN SPRINT 6
+## ~~Missing Endpoint: GET /api/sessions (list all)~~ — DONE Sprint 6
 
-No way to list sessions without knowing the ID. The seed script prints it, but a frontend session picker needs GET /api/sessions → all sessions for current user, ordered by created_at desc. Low effort, add when the frontend
-needs it.
+Implemented in sessions.py. Returns all sessions for current user, ordered by `created_at` desc, with `jd_count` per session (scalar subquery, no N+1). Frontend session picker prerequisite.
 
 ---
 
-## Tailoring Analysis/Strategy Not Surfaced - DO IN SPRINT 6
+## Tailoring Analysis/Strategy Not Surfaced — TODO
 
 Claude returns "analysis" and "strategy" fields in the tailoring response. Currently only saved inside chat_context (full conversation JSON). Add dedicated columns or parse them out for display when the frontend needs 
 a "why did Claude make these choices" view per tailoring job. Quick fix when you want it: two lines in run_tailoring_job to pull parsed.get("analysis") and parsed.get("strategy") into new columns or into the existing analysis_text field on the JD.
 
 ---
 
-## Batch-Tailor: Skip Already-Tailored JDs? - DO IN SPRINT 6
+## ~~Batch-Tailor: Skip Already-Tailored JDs~~ — DONE Sprint 6
 
-Currently batch-tailor creates jobs for ALL apply-status JDs, even if they already have a completed tailoring job. This is correct for re-tailoring after prompt/resume changes, but means accidental double-clicks double the API cost. Consider: skip JDs with status=ready unless a force flag is passed. Or surface "already tailored" in the UI and let the user decide.
+Implemented via `force` query parameter on `POST /sessions/{id}/batch-tailor`. Default behavior: skip JDs that already have a `status=ready` tailoring job. Pass `force=true` to re-tailor after prompt/resume changes.
 
 ---
 
@@ -155,15 +154,11 @@ The docx download endpoint requires both jd_id and job_id. Without pairing them 
 
 ---
 
-## Batch Tailoring Status Endpoints (needed for frontend) - DO IN SPRINT 6
+## ~~Batch Tailoring Status Endpoints~~ — DONE Sprint 6
 
-GET /api/sessions/{id}/tailoring-jobs
-  All tailoring jobs across all JDs in a session. The frontend needs this after batch-tailor to show a dashboard of progress without N individual polling calls. Return: [{job_id, jd_id, status, company, role, has_docx}]
+`GET /api/sessions/{id}/tailoring-jobs` — all tailoring jobs across all JDs in a session, with JD company/role/number for dashboard labeling. Ordered by JD number, then job `created_at` desc. In sessions.py.
 
-GET /api/jds/{id}/tailoring
-  All tailoring jobs for a single JD. Useful for the JD detail view to show re-tailor history. Return: [{job_id, status, created_at, has_docx}]
-
-Neither exists yet. The frontend currently has to poll each job individually via GET /jds/{jd_id}/tailoring/{job_id}. Works but scales badly — a session with 6 apply JDs means 6 polling loops.
+`GET /api/jds/{id}/tailoring` — all tailoring jobs for a single JD (re-tailor history). In jds.py.
 
 
 ---
