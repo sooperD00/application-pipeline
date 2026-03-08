@@ -19,9 +19,8 @@ SSE consumer hook. Cards animating green/yellow/red in real time as analysis ret
 Sprint 7 — Frontend Tab 1: Session + JD Flow
 Stand up the React app for real (routing, API client wiring). Session creation form. JD paste flow with card display. Done when you can create a session and paste JDs through the UI.
 
-Sprint 6 — Backend Catchup
-- `GET /api/sessions` — list all sessions for current user (session picker prerequisite)
-- `GET /api/sessions/{id}/tailoring-jobs` — batch status dashboard (Tab 4 prerequisite)
-- `GET /api/jds/{id}/tailoring` — per-JD tailoring history (Tab 4 prerequisite)
-- Batch-tailor: skip JDs that already have a completed tailoring job unless `force=true`
-- One targeted integration test for the tailoring pipeline (prompt assembly → Claude mock → docx_builder → valid docx bytes). Silent failures here are harder to catch by eye than a bad SSE stream.
+Consider if any of this housekeeping will fit in this sprint context and add it if it will:
+- [ ] datetime.utcnow() deprecation warnings — switch to datetime.now(datetime.UTC) across models.py and tailoring.py (housekeeping, any sprint)
+- [ ] HTTP_422_UNPROCESSABLE_ENTITY deprecation — FastAPI renamed to HTTP_422_UNPROCESSABLE_CONTENT (housekeeping, any sprint)
+- [ ] batch-tailor skip logic doesn't account for processing/queued jobs (could create duplicates if you double-click "Apply All" fast) — Sprint 9 when Tab 4 UI makes this a real concern
+- [ ] timestamps are showing up 1 day ahead of what day it actually is. Today is 3/7/2026 in Oregon. Swagger output gives: "created_at": "2026-03-08T00:25:15.133465", "completed_at": "2026-03-08T00:26:21.237301". Not important for MVP (Nicole is only user).

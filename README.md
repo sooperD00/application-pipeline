@@ -67,7 +67,7 @@ Requires a `.env` with `ANTHROPIC_API_KEY` and `DATABASE_PUBLIC_URL`.
 ApplicationPipeline/
 ├── README.md
 ├── backend/
-│   ├── tests/                       # - [x]  65/65 pass
+│   ├── tests/                       # - [x]  71/71 pass
 │   │   ├── conftest.py
 │   │   ├── test_resumes.py
 │   │   ├── test_sessions.py
