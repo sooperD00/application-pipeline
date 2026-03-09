@@ -119,20 +119,30 @@ ApplicationPipeline/
 │   └── .env                         # - [x] ANTHROPIC_API_KEY, DATABASE_PUBLIC_URL
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx                  # - [ ] 
-│   │   ├── main.jsx                 # - [ ] 
+│   │   ├── App.jsx                     # - [x] 
+|   |   ├── __tests__
+|   │   │   ├── App.test.jsx            # - [x] shell/routing tests (all static)
+│   │   │   ├── CardFan.test.jsx        # - [ ] components / feature tests: tests fanned JD cards - take props and render, no API awareness at alltogether and mock the API — they're integration tests
+│   │   │   ├── SessionsPage.test.jsx   # - [ ] ← mocking, async, API stuff lives here, wire components 
+│   │   ├── pages/
+│   │   │   ├── CalibratePage.jsx       # - [x] stub
+│   │   │   ├── ResumesPage.jsx         # - [x] stub
+│   │   │   ├── ReviewPage.jsx          # - [x] stub
+│   │   │   ├── SessionsPage.jsx        # - [x] stub
+│   │   │   ├── TailoringPage.jsx       # - [x] stub
+│   │   ├── main.jsx                    # - [x] 
 │   │   ├── components/
-│   │   │   ├── CardFan.jsx          # - [ ] Tab 1: fanned JD cards, color-coded
-│   │   │   ├── MetaAnalysis.jsx     # - [ ] Tab 1: Claude's rolling summary panel
-│   │   │   ├── TailoringStatus.jsx  # - [ ] Tab 4: status boxes, output viewer
-│   │   │   └── ActiveList.jsx       # - [ ] Active Applications: to-do by due date
+│   │   │   ├── CardFan.jsx             # - [ ] Tab 1: fanned JD cards, color-coded
+│   │   │   ├── MetaAnalysis.jsx        # - [ ] Tab 1: Claude's rolling summary panel
+│   │   │   ├── TailoringStatus.jsx     # - [ ] Tab 4: status boxes, output viewer
+│   │   │   └── ActiveList.jsx          # - [ ] Active Applications: to-do by due date
 │   │   ├── hooks/
-│   │   │   └── useSSE.js            # - [ ] SSE consumption for batch analysis
+│   │   │   └── useSSE.js               # - [ ] SSE consumption for batch analysis
 │   │   └── api/
-│   │       └── client.js            # - [ ] fetch wrappers for backend routes
-│   ├── index.html                   # - [ ] 
-│   ├── vite.config.js               # - [ ] 
-│   └── package.json                 # - [ ] 
+│   │       └── client.js               # - [x] fetch wrappers for backend routes
+│   ├── index.html                      # - [x] 
+│   ├── vite.config.js                  # - [x] 
+│   └── package.json                    # - [x] 
 ├── docs/
 │   ├── architecture.md
 │   ├── completed-sprints.md

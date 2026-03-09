@@ -4,18 +4,6 @@
 
 ---
 
-## Sprint 7 — Frontend Shell
-
-Stand up the React app for real. This is all scaffolding, no features — done when there's a working app shell with routing, an API client, and a CSS framework decision made.
-
-- App layout: top nav (or sidebar), tab container, placeholder routes
-- `api/client.js`: fetch wrappers for all existing backend routes (sessions, JDs, resumes, tailoring)
-- CSS framework decision (Tailwind? plain CSS modules? something else?) — commit to one
-- Dev proxy: Vite → FastAPI (so `/api/*` calls work without CORS in dev)
-- Done when: `npm run dev` shows a real app shell that can `fetch` the backend
-
-Why this is its own sprint: the frontend is stock Vite counter demo right now. Every dependency decision (router, styling, fetch patterns) happens here. Mixing that with feature work creates a sprint that's half plumbing debates and half UI — bad for focus and bad for the context window.
-
 
 ## Sprint 8 — Frontend: Session + JD Flow
 
@@ -39,6 +27,8 @@ Simple page: list of resume cards, "Add Resume" button → text area + label fie
 ## Sprint 11 — Frontend: Tab 4 (Tailoring)
 
 Tailoring kickoff UI per JD. Status polling (queued → processing → ready) using `GET /sessions/{id}/tailoring-jobs`. Output view: resume text, cover letter, app answers. Download button for docx.
+
+- Zip download: `GET /api/jds/{id}/tailoring/{job_id}/package` — bundles resume.docx + jd.txt + cover_letter.txt + app_questions.txt + analysis.txt + notes.txt into one zip (ADR-014). ~40 lines in jds.py, no new deps. Add `downloadTailoringPackage` to api/client.js.
 
 Housekeeping that fits naturally here:
 - [ ] batch-tailor skip logic doesn't account for processing/queued jobs (could create duplicates if you double-click "Apply All" fast) — real concern now that there's a UI button
@@ -72,3 +62,8 @@ Audit test coverage, fill gaps. Priority: `test_analysis.py` (batching logic, er
 - [ ] `datetime.utcnow()` deprecation warnings — switch to `datetime.now(datetime.UTC)` across models.py and tailoring.py
 - [ ] `HTTP_422_UNPROCESSABLE_ENTITY` deprecation — FastAPI renamed to `HTTP_422_UNPROCESSABLE_CONTENT`
 - [ ] Timestamps showing 1 day ahead in Oregon (UTC storage, no timezone conversion). Not important for MVP (Nicole is only user), but will confuse anyone else.
+- [ ] assets/react.svg and public/vite.svg still in tree — harmless, clean up whenever
+- [ ] Nav doesn't show session-scoped tabs (1-4) vs global tabs (Resumes) differently — Sprint 8 will restructure when session context exists
+- [ ] No 404 catch-all route — add in Sprint 8 when there's a real page to show
+- [ ] api/client.js has no retry logic or token refresh — Phase 1 (auth)
+- [ ] Tailwind @theme uses Inter/JetBrains Mono but doesn't load them from Google Fonts — add <link> to index.html when you care about typography (Sprint 8+, or never if system fonts are fine)

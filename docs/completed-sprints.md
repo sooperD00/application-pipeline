@@ -4,6 +4,19 @@
 
 ---
 
+## Sprint 7 — Frontend Shell
+
+Stand up the React app for real. This is all scaffolding, no features — done when there's a working app shell with routing, an API client, and a CSS framework decision made.
+
+- App layout: top nav (or sidebar), tab container, placeholder routes
+- `api/client.js`: fetch wrappers for all existing backend routes (sessions, JDs, resumes, tailoring)
+- CSS framework decision (Tailwind? plain CSS modules? something else?) — commit to one
+- Dev proxy: Vite → FastAPI (so `/api/*` calls work without CORS in dev)
+- Done when: `npm run dev` shows a real app shell that can `fetch` the backend
+
+Why this is its own sprint: the frontend is stock Vite counter demo right now. Every dependency decision (router, styling, fetch patterns) happens here. Mixing that with feature work creates a sprint that's half plumbing debates and half UI — bad for focus and bad for the context window.
+
+
 # Sprint 6 — Backend Catchup 3/6/2026 11:08a
 `application-pipeline-20260306-1110`
 - `GET /api/sessions` — list all sessions for current user (session picker prerequisite)

@@ -3,6 +3,7 @@ DEVLOG/
 
 # test results
 backend/tests/results_*.txt
+frontend/src/__tests__/results_*.txt
 
 # this project
 backend/venv/
