@@ -1,0 +1,209 @@
+/**
+ * api/client.js — fetch wrappers for all existing backend routes.
+ *
+ * Sprint 7 scaffolding. Thin functions, no abstraction astronautics.
+ * The Vite dev proxy handles /api → localhost:8000, so no CORS issues.
+ *
+ * Convention:
+ *   - All functions return parsed JSON (or a Response for SSE streams).
+ *   - Errors throw with the status code and detail from FastAPI's error body.
+ *   - No auth headers yet — the backend stub grabs the first User row.
+ */
+
+const BASE = ''  // empty = same origin, proxy handles it in dev
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+class ApiError extends Error {
+  constructor(status, detail) {
+    super(detail || `API error ${status}`)
+    this.status = status
+    this.detail = detail
+  }
+}
+
+async function request(path, options = {}) {
+  const url = `${BASE}${path}`
+  const res = await fetch(url, {
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+    ...options,
+  })
+  if (!res.ok) {
+    let detail
+    try {
+      const body = await res.json()
+      detail = body.detail || JSON.stringify(body)
+    } catch {
+      detail = res.statusText
+    }
+    throw new ApiError(res.status, detail)
+  }
+  // 204 No Content (e.g. DELETE) — nothing to parse
+  if (res.status === 204) return null
+  return res.json()
+}
+
+function get(path) {
+  return request(path)
+}
+
+function post(path, body) {
+  return request(path, { method: 'POST', body: JSON.stringify(body) })
+}
+
+function patch(path, body) {
+  return request(path, { method: 'PATCH', body: JSON.stringify(body) })
+}
+
+function del(path) {
+  return request(path, { method: 'DELETE' })
+}
+
+// ── Sessions ─────────────────────────────────────────────────────────────────
+
+/** GET /api/sessions — list all sessions for current user */
+export function listSessions() {
+  return get('/api/sessions')
+}
+
+/** POST /api/sessions — create session with metadata */
+export function createSession({ board, filters, search_term }) {
+  return post('/api/sessions', { board, filters, search_term })
+}
+
+/** GET /api/sessions/{id} — full session state with all JDs */
+export function getSession(sessionId) {
+  return get(`/api/sessions/${sessionId}`)
+}
+
+/** POST /api/sessions/{id}/jds — add a JD (auto-cleans on ingest) */
+export function addJD(sessionId, { raw_text, company = '', role = '', compensation, employee_count, link }) {
+  return post(`/api/sessions/${sessionId}/jds`, {
+    raw_text, company, role, compensation, employee_count, link,
+  })
+}
+
+/**
+ * POST /api/sessions/{id}/analyze — kick off batch analysis.
+ *
+ * Returns a raw Response (SSE stream). The caller consumes it with
+ * a ReadableStream reader or an EventSource wrapper in Sprint 9.
+ *
+ * Important!: this function is the only one so far that calls fetch() directly
+ *  it returns the raw response instead of parsed JSON becasue the analyze endpoint 
+ *  streams results back via SSE — it doesn't send one JSON blob, it sends a series of 
+ *  events over time. Next script needs the raw response to read that stream incrementally.
+ * 
+ * Usage:
+ *   const res = await analyzeSession(id, resumeId)
+ *   const reader = res.body.getReader()
+ */
+export async function analyzeSession(sessionId, resumeId) {
+  const url = `${BASE}/api/sessions/${sessionId}/analyze`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ resume_id: resumeId }),
+  })
+  if (!res.ok) {
+    let detail
+    try {
+      const body = await res.json()
+      detail = body.detail || JSON.stringify(body)
+    } catch {
+      detail = res.statusText
+    }
+    throw new ApiError(res.status, detail)
+  }
+  return res  // raw Response — caller reads the SSE stream
+}
+
+/** GET /api/sessions/{id}/tailoring-jobs — batch status dashboard */
+export function listSessionTailoringJobs(sessionId) {
+  return get(`/api/sessions/${sessionId}/tailoring-jobs`)
+}
+
+/** POST /api/sessions/{id}/batch-tailor — Apply All (up to 4 parallel) */
+export function batchTailor(sessionId, { resume_id, force = false }) {
+  const qs = force ? '?force=true' : ''
+  return post(`/api/sessions/${sessionId}/batch-tailor${qs}`, { resume_id })
+}
+
+// ── JDs ──────────────────────────────────────────────────────────────────────
+
+/** GET /api/jds/{id} — single JD with all relations */
+export function getJD(jdId) {
+  return get(`/api/jds/${jdId}`)
+}
+
+/** PATCH /api/jds/{id} — update status, app_questions, etc. 
+ *  
+ * Note: updateJD takes fields without destructuring — intentionally 
+ * loose so you can pass any subset of fields to patch.
+*/
+export function updateJD(jdId, fields) {
+  return patch(`/api/jds/${jdId}`, fields)
+}
+
+/** GET /api/jds/{id}/tailoring — per-JD tailoring history */
+export function listJDTailoringJobs(jdId) {
+  return get(`/api/jds/${jdId}/tailoring`)
+}
+
+/** POST /api/jds/{id}/tailoring — kick off single tailoring job */
+export function createTailoringJob(jdId, { resume_id }) {
+  return post(`/api/jds/${jdId}/tailoring`, { resume_id })
+}
+
+/** GET /api/jds/{id}/tailoring/{jobId} — tailoring status + outputs */
+export function getTailoringJob(jdId, jobId) {
+  return get(`/api/jds/${jdId}/tailoring/${jobId}`)
+}
+
+/**
+ * GET /api/jds/{id}/tailoring/{jobId}/docx — download generated resume docx.
+ *
+ * Returns a Blob. Caller can create an object URL for download.
+ *
+ * Usage:
+ *   const blob = await downloadTailoringDocx(jdId, jobId)
+ *   const url = URL.createObjectURL(blob)
+ *   window.open(url)  // browser opens/downloads the file
+ */
+export async function downloadTailoringDocx(jdId, jobId) {
+  const url = `${BASE}/api/jds/${jdId}/tailoring/${jobId}/docx`
+  const res = await fetch(url)
+  if (!res.ok) {
+    throw new ApiError(res.status, res.statusText)
+  }
+  return res.blob()
+}
+
+// ── Resumes ──────────────────────────────────────────────────────────────────
+
+/** GET /api/resumes — list user's resumes */
+export function listResumes() {
+  return get('/api/resumes')
+}
+
+/** POST /api/resumes — create resume (label + pasted text) */
+export function createResume({ label, content }) {
+  return post('/api/resumes', { label, content })
+}
+
+/** PATCH /api/resumes/{id} — edit label or content */
+export function updateResume(resumeId, fields) {
+  return patch(`/api/resumes/${resumeId}`, fields)
+}
+
+/** DELETE /api/resumes/{id} */
+export function deleteResume(resumeId) {
+  return del(`/api/resumes/${resumeId}`)
+}
+
+// ── Health ────────────────────────────────────────────────────────────────────
+
+/** GET /health — backend liveness check */
+export function healthCheck() {
+  return get('/health')
+}
