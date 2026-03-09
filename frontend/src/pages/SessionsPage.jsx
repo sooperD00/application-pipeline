@@ -2,7 +2,7 @@
  * Tab 1: Scrape & Analyze
  *
  * Sprint 8 adds: session creation form, JD paste flow, card display.
- * Sprint 9 adds: SSE consumer, card animations, meta-analysis panel.
+ * Sprint 10 adds: SSE consumer, card animations, meta-analysis panel.
  */
 export default function SessionsPage() {
   return (
