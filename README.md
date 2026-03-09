@@ -119,18 +119,20 @@ ApplicationPipeline/
 │   └── .env                         # - [x] ANTHROPIC_API_KEY, DATABASE_PUBLIC_URL
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx                     # - [x] 
-|   |   ├── __tests__
-|   │   │   ├── App.test.jsx            # - [x] shell/routing tests (all static)
-│   │   │   ├── CardFan.test.jsx        # - [ ] components / feature tests: tests fanned JD cards - take props and render, no API awareness at alltogether and mock the API — they're integration tests
-│   │   │   ├── SessionsPage.test.jsx   # - [ ] ← mocking, async, API stuff lives here, wire components 
+│   │   ├── App.jsx                     # - [x] nav bar + routes (react-router-dom v7)
+│   │   ├── __tests__/
+│   │   │   ├── App.test.jsx            # - [x] shell/routing tests (all static)
+│   │   │   ├── CardFan.test.jsx        # - [ ] components / feature tests: tests fanned JD cards - take props and render, no API awareness at all
+│   │   │   ├── SessionsPage.test.jsx   # - [ ] ← mocking, async, API stuff lives here, wire components together and mock the API — they're integration tests
 │   │   ├── pages/
 │   │   │   ├── CalibratePage.jsx       # - [x] stub
 │   │   │   ├── ResumesPage.jsx         # - [x] stub
 │   │   │   ├── ReviewPage.jsx          # - [x] stub
 │   │   │   ├── SessionsPage.jsx        # - [x] stub
 │   │   │   ├── TailoringPage.jsx       # - [x] stub
-│   │   ├── main.jsx                    # - [x] 
+│   │   ├── main.jsx                    # - [x] BrowserRouter entry point
+│   │   ├── index.css                   # - [x] Tailwind v4 @import + @theme (custom pipeline-* palette)
+│   │   ├── test-setup.js               # - [x] Vitest setup (jest-dom matchers)
 │   │   ├── components/
 │   │   │   ├── CardFan.jsx             # - [ ] Tab 1: fanned JD cards, color-coded
 │   │   │   ├── MetaAnalysis.jsx        # - [ ] Tab 1: Claude's rolling summary panel
@@ -141,8 +143,9 @@ ApplicationPipeline/
 │   │   └── api/
 │   │       └── client.js               # - [x] fetch wrappers for backend routes
 │   ├── index.html                      # - [x] 
-│   ├── vite.config.js                  # - [x] 
-│   └── package.json                    # - [x] 
+│   ├── vite.config.js                  # - [x] dev proxy (/api, /health → FastAPI), Vitest config
+│   ├── eslint.config.js                # - [x]
+│   └── package.json                    # - [x] React 19, Tailwind v4, Vitest
 ├── docs/
 │   ├── architecture.md
 │   ├── completed-sprints.md

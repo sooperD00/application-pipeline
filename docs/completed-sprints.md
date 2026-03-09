@@ -4,17 +4,17 @@
 
 ---
 
-## Sprint 7 — Frontend Shell
+## Sprint 7 — Frontend Shell 3/8/2026
+`application-pipeline-20260309`
 
-Stand up the React app for real. This is all scaffolding, no features — done when there's a working app shell with routing, an API client, and a CSS framework decision made.
+Stood up the React app for real. All scaffolding, no features — working app shell with routing, an API client, and Tailwind v4 for styling.
 
-- App layout: top nav (or sidebar), tab container, placeholder routes
+- CSS framework decision: **Tailwind v4** (CSS-first config via `@theme` in index.css, `@tailwindcss/vite` plugin — no tailwind.config.js)
+- App layout: top nav with tab links, routed page stubs (Sessions, Calibrate, Review, Tailoring, Resumes)
 - `api/client.js`: fetch wrappers for all existing backend routes (sessions, JDs, resumes, tailoring)
-- CSS framework decision (Tailwind? plain CSS modules? something else?) — commit to one
-- Dev proxy: Vite → FastAPI (so `/api/*` calls work without CORS in dev)
-- Done when: `npm run dev` shows a real app shell that can `fetch` the backend
-
-Why this is its own sprint: the frontend is stock Vite counter demo right now. Every dependency decision (router, styling, fetch patterns) happens here. Mixing that with feature work creates a sprint that's half plumbing debates and half UI — bad for focus and bad for the context window.
+- Dev proxy: Vite → FastAPI (`/api/*` and `/health` proxied, no CORS in dev)
+- Vitest + Testing Library + jsdom: 3 shell/routing tests in `App.test.jsx`
+- react-router-dom v7, React 19
 
 
 # Sprint 6 — Backend Catchup 3/6/2026 11:08a
