@@ -16,7 +16,18 @@ Simple page: list of resume cards, "Add Resume" button → text area + label fie
 
 ## Sprint 10 — Frontend: SSE + Cards
 
-SSE consumer hook (`useSSE.js`). Cards animate green/yellow/red as analysis returns. Meta-analysis panel updates after each batch. The "show a non-engineer" moment.
+The first sprint where the app *does the thing* in the browser. Three pieces: the analyze trigger, the SSE consumer, and the card animations.
+
+**Analyze button on Tab 1.** SessionDetailPage currently has paste-and-display only — no way to kick off analysis from the UI. Add an "Analyze" button that calls `analyzeSession()` and handles the 422 "no resumes" error gracefully (directs user to /resumes). The button should disable during analysis (session status = `analyzing`) and re-enable on completion or error.
+
+**SSE consumer hook** (`useSSE.js`). Reads the `text/event-stream` response from `analyzeSession()`. Dispatches `batch_start`, `jd_result`, `batch_complete`, and `analysis_complete` events to update JD state and meta-analysis in real time.
+
+**Card animations.** Cards start gray (pending), animate to green/yellow/red as `jd_result` events arrive. Meta-analysis panel (`MetaAnalysis.jsx`) updates after each `batch_complete`. The "show a non-engineer" moment.
+
+Context load: `sessions.py` (537 lines — analyze endpoint + SSE streaming), `analysis.py` (330 lines — batch generator), `client.js` (~210 lines), plus existing SessionDetailPage/JDCard (~130 lines). ~1,200 lines of backend reference alongside new frontend work: useSSE.js, MetaAnalysis.jsx, analyze button, card transitions. Comparable weight to Sprint 11.
+
+Housekeeping that fits naturally here:
+- [ ] `analyzeSession()` in client.js sends a phantom `resume_id` body param that the backend ignores (the endpoint takes no body — it fetches all user resumes internally). Fix: `analyzeSession(sessionId)` with no second argument, drop the `JSON.stringify` body. First sprint where this function is actually called from UI, so this is the natural place to catch it.
 
 
 ## Sprint 11 — Frontend: Tab 4 (Tailoring)
@@ -25,10 +36,12 @@ Tailoring kickoff UI per JD. Status polling (queued → processing → ready) us
 
 - Zip download: `GET /api/jds/{id}/tailoring/{job_id}/package` — bundles resume.docx + jd.txt + cover_letter.txt + app_questions.txt + analysis.txt + notes.txt into one zip (ADR-014). ~40 lines in jds.py, no new deps. Add `downloadTailoringPackage` to api/client.js.
 
-Context load for this sprint: `jds.py` (389 lines), `tailoring.py` (362 lines), `client.js` (209 lines), plus the new TailoringPage — ~1000 lines of backend reference alongside new frontend work. Fits one context window but it's the heaviest sprint in the plan.
+Context load for this sprint: `jds.py` (389 lines), `tailoring.py` (362 lines), `client.js` (~210 lines), plus the new TailoringPage — ~1,000 lines of backend reference alongside new frontend work. Fits one context window but it's the heaviest sprint in the plan.
 
 Housekeeping that fits naturally here:
 - [ ] batch-tailor skip logic doesn't account for processing/queued jobs (could create duplicates if you double-click "Apply All" fast) — real concern now that there's a UI button
+- [ ] `batchTailor()` in client.js sends a phantom `resume_id` body param, same issue as `analyzeSession()` (see Sprint 10). The backend's `batch_tailor_session` takes no body model — it fetches all user resumes internally and picks `resumes[0].id` for the FK. Fix: drop the body, simplify to `batchTailor(sessionId, { force })`.
+- [ ] `sessions.py` line 376 and `jds.py` line 222 both say "Tab 4 prerequisite (Sprint 9)" — should be Sprint 11 after the reshuffle. Fix while you're already in those files.
 
 
 ## Sprint 12 — Deploy to Railway
@@ -51,6 +64,12 @@ Audit test coverage, fill gaps. Priority: `test_analysis.py` (batching logic, er
 **Activities** (`routers/activities.py`, `services/activities.py`): The data model is in place (Activity table, ActivityType enum, cascade templates designed in service-layer-notes.md), but no router, service, or frontend exists. The README tree and architecture.md list these as Phase 0 scope, but they aren't needed for the core flow (paste → analyze → tailor → download). Deferring to Phase 1 when the Full Tracker makes them visible and useful.
 
 **Prompts directory** (`backend/app/prompts/`): Placeholder for extracting system prompts from hardcoded strings in `services/analysis.py` and `services/tailoring.py` to files. See ADR-013 — this is about IP protection before the repo gets public attention, not about functionality. Deferred past MVP.
+
+**Resume selection for tailoring.** Phase 0 sends all of the user's resumes (up to 3) to Claude for every analysis and tailoring call. Claude sees all versions and decides what to emphasize, blend, or draw from based on the JD — this is the intended default behavior and should remain the default in all phases. Claude is better and faster at picking the right resume emphasis for a given role than a human skimming three documents, and blending across versions is something a human can't do at all.
+
+Phase 1+ adds an optional override: per-JD resume picker in the Tab 4 kickoff modal where the user can select a single resume or a subset instead of sending all three. Backend changes: add an optional `resume_ids` body param to the analyze and batch-tailor endpoints, filter the resume query when present, fall back to "all resumes" when absent. Frontend: resume chip selector in the tailoring kickoff UI, default state = "All (Claude picks)". The `resume_id` FK on TailoringJob already exists for tracking which resume was primary — Phase 1 makes it meaningful by letting the user constrain the input set.
+
+(Note: `analyzeSession()` and `batchTailor()` in client.js were scaffolded with a `resume_id` parameter anticipating this feature. The backend endpoints never accepted it — they fetch all resumes internally. The phantom params are cleaned up in Sprints 10 and 11 respectively. When resume selection is implemented, the parameter comes back with real plumbing behind it.)
 
 ---
 
