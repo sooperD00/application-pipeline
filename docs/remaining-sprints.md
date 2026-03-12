@@ -5,28 +5,6 @@
 ---
 
 
-## Sprint 8 — Frontend: Session + JD Flow
-
-Session context lives in the URL (`/sessions/:id`); tabs 1–4 become nested routes under `:id`, Resumes stays global at `/resumes`.
-
-Route structure:
-
-```
-/sessions                     ← picker/list (global)
-/sessions/:id                 ← session detail/dashboard (Tab 1)
-/sessions/:id/calibrate       ← Tab 2
-/sessions/:id/review          ← Tab 3
-/sessions/:id/tailor          ← Tab 4
-/resumes                      ← stays global, no session prefix
-```
-
-Why URL params over a context provider: (1) state survives refresh, bookmarks, and Cmd+click to new tab — table stakes for a daily-use productivity tool; (2) react-router-dom v7 nested routes are purpose-built for this, so session-scoped components just call `useParams()` with no prop drilling or null-context guards; (3) every downstream sprint that adds a session-scoped feature just reads `useParams().sessionId` instead of handling the "no session selected" edge case in component code. The session picker dropdown can still live in the nav — it just navigates to `/sessions/:id/...` on select instead of setting state.
-
-Deliverables: session creation form (board, filters, search_term). JD paste flow: text area, submit, card appears. Card display: number, company, role, gray (pending). Session picker using `GET /api/sessions`. Restructure App.jsx routing from flat routes to nested layout. 404 catch-all route.
-
-Done when: you can create a session, paste JDs through the UI, see them as cards, and refresh the page without losing your place.
-
-
 ## Sprint 9 — Frontend: Resume Management
 
 Resume paste, edit, label, delete. The `GET/POST/PATCH/DELETE /api/resumes` backend is done (Sprint 5) — this is just the UI. Prerequisite for Tab 4: tailoring needs at least one resume to exist, and right now the only way to create one is Swagger or the seed script.
@@ -84,3 +62,14 @@ Audit test coverage, fill gaps. Priority: `test_analysis.py` (batching logic, er
 - [ ] assets/react.svg and public/vite.svg still in tree — harmless, clean up whenever
 - [ ] api/client.js has no retry logic or token refresh — Phase 1 (auth)
 - [ ] Tailwind @theme uses Inter/JetBrains Mono but doesn't load them from Google Fonts — add <link> to index.html when you care about typography (Sprint 8+, or never if system fonts are fine)
+- [ ] add press enter to submit form on SessionsPage.jsx (a simple wrap that Claude can do)
+- [ ] Tailwind @theme references Inter/JetBrains Mono but doesn't load them from Google Fonts — add <link> to index.html when typography matters (Sprint 8+ housekeeping item, already tracked in remaining-sprints.md)
+
+
+## Tech Debt
+- [ ] Phase 1+: extract repeated Tailwind class strings into shared component styles.
+- [ ] Phase 1+: extract shared test factories and mocks once data models stabilize, espcially if same factory/mock appears in 3+ test files and the shape is identical. `__tests__/factories.js` and `__tests__/mocks.js`
+- [ ] tooltip "Select or create a session to unlock this step" appears after 1s delay = browser-native `title` attribute behavior (delay hardcoded in the browser, not my app). Add a custom tooltip component to make it ~instant (polish)
+- [ ] Phase 1: SessionLayout fetch has no retry/error-retry UX — user must manually navigate away and back on transient errors. Fine for single-user MVP; Phase 1 adds retry button.
+- [ ] Phase 1: The session picker is the /sessions list page (click a row to enter). A nav dropdown picker was mentioned in sprint spec — deferred; the list page approach is simpler and sufficient. If dropdown is wanted later, it reads from the same listSessions() endpoint.
+- [ ] Phase 1: No loading skeleton / optimistic UI on addJD — the card grid waits for refreshSession() to resolve. Acceptable latency for local dev; may want optimistic insert for prod. Phase 1.

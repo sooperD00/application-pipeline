@@ -4,7 +4,29 @@
 
 ---
 
-## Sprint 7 — Frontend Shell 3/8/2026
+## Sprint 8 — Frontend: Session + JD Flow
+
+Session context lives in the URL (`/sessions/:id`); tabs 1–4 become nested routes under `:id`, Resumes stays global at `/resumes`.
+
+Route structure:
+
+```
+/sessions                     ← picker/list (global)
+/sessions/:id                 ← session detail/dashboard (Tab 1)
+/sessions/:id/calibrate       ← Tab 2
+/sessions/:id/review          ← Tab 3
+/sessions/:id/tailor          ← Tab 4
+/resumes                      ← stays global, no session prefix
+```
+
+Why URL params over a context provider: (1) state survives refresh, bookmarks, and Cmd+click to new tab — table stakes for a daily-use productivity tool; (2) react-router-dom v7 nested routes are purpose-built for this, so session-scoped components just call `useParams()` with no prop drilling or null-context guards; (3) every downstream sprint that adds a session-scoped feature just reads `useParams().sessionId` instead of handling the "no session selected" edge case in component code. The session picker dropdown can still live in the nav — it just navigates to `/sessions/:id/...` on select instead of setting state.
+
+Deliverables: session creation form (board, filters, search_term). JD paste flow: text area, submit, card appears. Card display: number, company, role, gray (pending). Session picker using `GET /api/sessions`. Restructure App.jsx routing from flat routes to nested layout. 404 catch-all route.
+
+Done when: you can create a session, paste JDs through the UI, see them as cards, and refresh the page without losing your place.
+
+
+## Sprint 7 — Frontend Shell 3/9/2026 4:00p
 `application-pipeline-20260309`
 
 Stood up the React app for real. All scaffolding, no features — working app shell with routing, an API client, and Tailwind v4 for styling.

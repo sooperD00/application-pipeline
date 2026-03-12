@@ -7,6 +7,14 @@
  * not in a tailwind.config.js. Add @theme blocks to extend.
  */
 
+ /*
+ * Tailwind v4 color convention: defining --color-pipeline-900 here
+ * automatically generates text-pipeline-900, bg-pipeline-900,
+ * border-pipeline-900, ring-pipeline-900, etc. The --color- prefix
+ * is the signal/trigger word — one definition, all utility classes for free.
+ * Same applies to --color-status-* below.
+ */
+
 @theme {
   /* neutral scale — 900 (darkest) to 50 (lightest) */
   --color-pipeline-900: #0f172a;

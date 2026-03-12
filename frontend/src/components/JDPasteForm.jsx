@@ -30,9 +30,10 @@ export default function JDPasteForm({ sessionId, onAdded }) {  // importable by 
         company: company.trim(),
         role: role.trim(),
       })
-      // Clear the paste area; keep company/role in case the user is
-      // pasting from the same board listing (same company, different role)
+      // Clear the paste area (decided not to keep Company/Role - too easy to tag a job wrong)
       setRawText('')
+      setCompany('')
+      setRole('')
       setError(null)
       await onAdded()
     } catch (err) {
@@ -99,9 +100,10 @@ export default function JDPasteForm({ sessionId, onAdded }) {  // importable by 
   return (
     <div className="p-4 rounded-lg bg-pipeline-800 border border-pipeline-700/50">
 
-      {/* Paste a Job Description */}
+      {/* Title: "Paste a Job Description" */}
       <h2 className="text-sm font-medium text-pipeline-300 mb-3">Paste a Job Description</h2>
 
+      {/* Job Description Large Paste Box */}
       <textarea
         value={rawText}
         onChange={(e) => setRawText(e.target.value)}
@@ -124,7 +126,8 @@ export default function JDPasteForm({ sessionId, onAdded }) {  // importable by 
             type="text"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            placeholder="Gargoyle Labs"
+            onKeyDown={handleKeyDown}
+            placeholder="Acme Corp"
             className="w-full px-3 py-2 rounded bg-pipeline-900 border border-pipeline-600 text-pipeline-100 text-sm placeholder:text-pipeline-600 focus:outline-none focus:border-pipeline-400"
           />
         </div>
@@ -139,6 +142,7 @@ export default function JDPasteForm({ sessionId, onAdded }) {  // importable by 
             type="text"
             value={role}
             onChange={(e) => setRole(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Independent Developer"
             className="w-full px-3 py-2 rounded bg-pipeline-900 border border-pipeline-600 text-pipeline-100 text-sm placeholder:text-pipeline-600 focus:outline-none focus:border-pipeline-400"
           />
