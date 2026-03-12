@@ -63,7 +63,6 @@ Audit test coverage, fill gaps. Priority: `test_analysis.py` (batching logic, er
 - [ ] api/client.js has no retry logic or token refresh — Phase 1 (auth)
 - [ ] Tailwind @theme uses Inter/JetBrains Mono but doesn't load them from Google Fonts — add <link> to index.html when you care about typography (Sprint 8+, or never if system fonts are fine)
 - [ ] add press enter to submit form on SessionsPage.jsx (a simple wrap that Claude can do)
-- [ ] Tailwind @theme references Inter/JetBrains Mono but doesn't load them from Google Fonts — add <link> to index.html when typography matters (Sprint 8+ housekeeping item, already tracked in remaining-sprints.md)
 
 
 ## Tech Debt

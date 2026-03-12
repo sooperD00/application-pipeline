@@ -119,22 +119,29 @@ ApplicationPipeline/
 │   └── .env                         # - [x] ANTHROPIC_API_KEY, DATABASE_PUBLIC_URL
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx                     # - [x] nav bar + routes (react-router-dom v7)
+│   │   ├── App.jsx                     # - [x] nav bar (ADR-015) + nested routes (react-router-dom v7)
 │   │   ├── __tests__/
 │   │   │   ├── App.test.jsx            # - [x] shell/routing tests (all static)
-│   │   │   ├── CardFan.test.jsx        # - [ ] components / feature tests: tests fanned JD cards - take props and render, no API awareness at all
-│   │   │   ├── SessionsPage.test.jsx   # - [ ] ← mocking, async, API stuff lives here, wire components together and mock the API — they're integration tests
+│   │   │   ├── JDCard.test.jsx         # - [x] component test: card renders props, no API awareness
+│   │   │   ├── SessionDetailPage.test.jsx # - [x] integration: session fetch, JD paste flow, card grid
+│   │   │   ├── CardFan.test.jsx        # - [ ] fanned layout tests (once CardFan container exists)
 │   │   ├── pages/
-│   │   │   ├── CalibratePage.jsx       # - [x] stub
-│   │   │   ├── ResumesPage.jsx         # - [x] stub
-│   │   │   ├── ReviewPage.jsx          # - [x] stub
-│   │   │   ├── SessionsPage.jsx        # - [x] stub
-│   │   │   ├── TailoringPage.jsx       # - [x] stub
+│   │   │   ├── CalibratePage.jsx       # - [x] stub (session-scoped)
+│   │   │   ├── NotFoundPage.jsx        # - [x] 404 catch-all
+│   │   │   ├── ResumesPage.jsx         # - [x] stub (global)
+│   │   │   ├── ReviewPage.jsx          # - [x] stub (session-scoped)
+│   │   │   ├── SessionDetailPage.jsx   # - [x] Tab 1: JD paste form + card grid
+│   │   │   ├── SessionLayout.jsx       # - [x] useParams → fetch session → Outlet context
+│   │   │   ├── SessionsPage.jsx        # - [x] session list + create form
+│   │   │   ├── TailoringPage.jsx       # - [x] stub (session-scoped)
 │   │   ├── main.jsx                    # - [x] BrowserRouter entry point
 │   │   ├── index.css                   # - [x] Tailwind v4 @import + @theme (custom pipeline-* palette)
 │   │   ├── test-setup.js               # - [x] Vitest setup (jest-dom matchers)
 │   │   ├── components/
-│   │   │   ├── CardFan.jsx             # - [ ] Tab 1: fanned JD cards, color-coded
+│   │   │   ├── JDCard.jsx              # - [x] single JD card (number, company, role, status color)
+│   │   │   ├── JDPasteForm.jsx         # - [x] text area + company/role fields, submit
+│   │   │   ├── SessionCreateForm.jsx   # - [x] board, filters, search_term
+│   │   │   ├── CardFan.jsx             # - [ ] Tab 1: fanned card layout, color-coded sort
 │   │   │   ├── MetaAnalysis.jsx        # - [ ] Tab 1: Claude's rolling summary panel
 │   │   │   ├── TailoringStatus.jsx     # - [ ] Tab 4: status boxes, output viewer
 │   │   │   └── ActiveList.jsx          # - [ ] Active Applications: to-do by due date

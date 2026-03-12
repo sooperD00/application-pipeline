@@ -87,7 +87,7 @@ export function addJD(sessionId, { raw_text, company = '', role = '', compensati
  * POST /api/sessions/{id}/analyze — kick off batch analysis.
  *
  * Returns a raw Response (SSE stream). The caller consumes it with
- * a ReadableStream reader or an EventSource wrapper in Sprint 9.
+ * a ReadableStream reader or an EventSource wrapper in Sprint 10.
  *
  * Important!: this function is the only one so far that calls fetch() directly
  *  it returns the raw response instead of parsed JSON becasue the analyze endpoint 
