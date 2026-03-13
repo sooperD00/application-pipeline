@@ -34,7 +34,7 @@ Built around a real workflow that increased callback rates during a real job sea
 
 🟡 **Phase 0 — In Development**
 
-Building the core single-user flow: paste JDs, get analysis, kick off tailoring. See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap.
+The core loop works end-to-end: paste JDs, kick off AI analysis, watch cards sort themselves green/yellow/red in real time. Tailoring UI and deployment are next. See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap.
 
 ## Quick Start
 

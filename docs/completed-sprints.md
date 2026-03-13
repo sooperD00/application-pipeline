@@ -4,20 +4,23 @@
 
 ---
 
-## Sprint 10 — Frontend: SSE + Cards
+## Sprint 10 — Frontend: SSE + Cards 3/13/2026
+`application-pipeline-20260313-1544`
 
-The first sprint where the app *does the thing* in the browser. Three pieces: the analyze trigger, the SSE consumer, and the card animations.
+The first sprint where the app *does the thing* in the browser. Three pieces shipped: the analyze trigger, the SSE consumer, and the card animations.
 
-**Analyze button on Tab 1.** SessionDetailPage currently has paste-and-display only — no way to kick off analysis from the UI. Add an "Analyze" button that calls `analyzeSession()` and handles the 422 "no resumes" error gracefully (directs user to /resumes). The button should disable during analysis (session status = `analyzing`) and re-enable on completion or error.
+**Analyze button on Tab 1.** SessionDetailPage gained an "Analyze" button that calls `analyzeSession()` and disables during analysis. Error handling: 422 "no resumes" shows an amber banner with a link to /resumes; API/SSE failures show a red banner with a retry button.
 
-**SSE consumer hook** (`useSSE.js`). Reads the `text/event-stream` response from `analyzeSession()`. Dispatches `batch_start`, `jd_result`, `batch_complete`, and `analysis_complete` events to update JD state and meta-analysis in real time.
+**SSE consumer hook** (`useSSE.js`). Reads the `text/event-stream` response from `analyzeSession()`. Dispatches `batch_start`, `jd_result`, `batch_complete`, and `analysis_complete` events to update JD state and meta-analysis in real time. Stateless — owns zero `useState`, all mutation lives in the caller's callbacks. Buffer-splits on `\n\n` with the classic split/pop pattern for chunked network reads.
 
-**Card animations.** Cards start gray (pending), animate to green/yellow/red as `jd_result` events arrive. Meta-analysis panel (`MetaAnalysis.jsx`) updates after each `batch_complete`. The "show a non-engineer" moment.
+**Card animations.** Cards start gray (pending), animate to green/yellow/red as `jd_result` events arrive via CSS `transition-all duration-500`. Status-dependent glow on Apply and Maybe cards; No cards recede. Meta-analysis panel (`MetaAnalysis.jsx`) updates live after each `batch_complete` — collapsible, whitespace-pre-wrap. Summary chips (N apply · N maybe · N no) appear after `analysis_complete`. The "show a non-engineer" moment.
 
-Context load: `sessions.py` (537 lines — analyze endpoint + SSE streaming), `analysis.py` (330 lines — batch generator), `client.js` (~210 lines), plus existing SessionDetailPage/JDCard (~130 lines). ~1,200 lines of backend reference alongside new frontend work: useSSE.js, MetaAnalysis.jsx, analyze button, card transitions. Comparable weight to Sprint 11.
+**State layering.** During streaming, `jdOverrides` holds partial updates from `jd_result` events, merged on top of context jds for rendering. After `analysis_complete`, `refreshSession()` pulls canonical state from the backend and the overrides become redundant (harmless — same data).
 
-Housekeeping that fits naturally here:
-- [ ] `analyzeSession()` in client.js sends a phantom `resume_id` body param that the backend ignores (the endpoint takes no body — it fetches all user resumes internally). Fix: `analyzeSession(sessionId)` with no second argument, drop the `JSON.stringify` body. First sprint where this function is actually called from UI, so this is the natural place to catch it.
+**Tests**: SessionDetailPage.test.jsx expanded — integration tests covering session fetch, JD paste flow, card grid, analyze button states, error/warning banners. useSSE.test.js — parseSSEMessage unit tests + consume integration test against a fake readable stream.
+
+Housekeeping shipped:
+- [x] `analyzeSession()` in client.js had a phantom `resume_id` body param the backend ignores. Fixed: `analyzeSession(sessionId)` with no body, raw `fetch()` returning the Response for SSE consumption. (First sprint where this function is called from UI — natural place to catch it.)
 
 
 ## Sprint 9 — Frontend: Resume Management + Nullable resume_id Fix 3/12/2026
