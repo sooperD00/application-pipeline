@@ -71,6 +71,10 @@ Phase 1+ adds an optional override: per-JD resume picker in the Tab 4 kickoff mo
 
 (Note: `analyzeSession()` and `batchTailor()` in client.js were scaffolded with a `resume_id` parameter anticipating this feature. The backend endpoints never accepted it — they fetch all resumes internally. The phantom params are cleaned up in Sprints 10 and 11 respectively. When resume selection is implemented, the parameter comes back with real plumbing behind it.)
 
+**Resume snapshot architechture** see ADR-017
+session_resume_snapshots table, session locking, clone session. Phase 1+.
+ADR, a new table, migrations, service changes, and frontend work - a full context window (large sprint).
+
 ---
 
 ## Housekeeping (any sprint)
@@ -91,3 +95,5 @@ Phase 1+ adds an optional override: per-JD resume picker in the Tab 4 kickoff mo
 - [ ] Phase 1: SessionLayout fetch has no retry/error-retry UX — user must manually navigate away and back on transient errors. Fine for single-user MVP; Phase 1 adds retry button.
 - [ ] Phase 1: The session picker is the /sessions list page (click a row to enter). A nav dropdown picker was mentioned in sprint spec — deferred; the list page approach is simpler and sufficient. If dropdown is wanted later, it reads from the same listSessions() endpoint.
 - [ ] Phase 1: No loading skeleton / optimistic UI on addJD — the card grid waits for refreshSession() to resolve. Acceptable latency for local dev; may want optimistic insert for prod. Phase 1.
+- [ ] Phase 1: No "unsaved changes" guard on the form — if you click Edit while mid-create, the form overwrites silently. Acceptable for single-user MVP; revisit in Phase 1 multi-user.
+- [ ] Phase N. line-clamp-3 depends on -webkit-line-clamp which is non-standard but supported in all modern browsers. If it ever breaks, fall back to a JS truncation.
