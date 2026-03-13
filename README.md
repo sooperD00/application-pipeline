@@ -73,7 +73,7 @@ Requires a `.env` with `ANTHROPIC_API_KEY` and `DATABASE_PUBLIC_URL`.
 ApplicationPipeline/
 ├── README.md
 ├── backend/
-│   ├── tests/                       # - [x]  71/71 pass
+│   ├── tests/                       # - [x]  71/71 BE Tests Pass
 │   │   ├── conftest.py
 │   │   ├── test_resumes.py
 │   │   ├── test_sessions.py
@@ -119,12 +119,13 @@ ApplicationPipeline/
 │   └── .env                         # - [x] ANTHROPIC_API_KEY, DATABASE_PUBLIC_URL
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx                     # - [x] nav bar (ADR-015) + nested routes (react-router-dom v7)
-│   │   ├── __tests__/
+│   │   ├── App.jsx                  # - [x] nav bar (ADR-015) + nested routes (react-router-dom v7)
+│   │   ├── __tests__/               # 39/39 FE Tests Pass
 │   │   │   ├── App.test.jsx            # - [x] shell/routing tests (all static)
 │   │   │   ├── JDCard.test.jsx         # - [x] component test: card renders props, no API awareness
-│   │   │   ├── SessionDetailPage.test.jsx # - [x] integration: session fetch, JD paste flow, card grid
-│   │   │   ├── ResumesPage.test.jsx      # - [x] resume CRUD flow, 3-resume cap UI, error states
+│   │   │   ├── ResumesPage.test.jsx    # - [x] resume CRUD flow, 3-resume cap UI, error states
+│   │   │   ├── SessionDetailPage.test.jsx  # - [x] integration: session fetch, JD paste flow, card grid
+│   │   │   ├── useSSE.test.jsx         # - [x] parseSSEMessage, consume integration (fake readable stream)
 │   │   │   ├── CardFan.test.jsx        # - [ ] fanned layout tests (once CardFan container exists)
 │   │   ├── pages/
 │   │   │   ├── CalibratePage.jsx       # - [x] stub (session-scoped)
@@ -141,15 +142,15 @@ ApplicationPipeline/
 │   │   ├── components/
 │   │   │   ├── JDCard.jsx              # - [x] single JD card (number, company, role, status color)
 │   │   │   ├── JDPasteForm.jsx         # - [x] text area + company/role fields, submit
+│   │   │   ├── MetaAnalysis.jsx        # - [x] Tab 1: Claude's rolling summary panel
+│   │   │   ├── ResumeCard.jsx          # - [x] label, preview, edit/delete buttons
+│   │   │   ├── ResumeForm.jsx          # - [x] create + edit mode, text area + label
 │   │   │   ├── SessionCreateForm.jsx   # - [x] board, filters, search_term
-│   │   │   ├── ResumeCard.jsx         # - [x] label, preview, edit/delete buttons
-│   │   │   ├── ResumeForm.jsx         # - [x] create + edit mode, text area + label
 │   │   │   ├── CardFan.jsx             # - [ ] Tab 1: fanned card layout, color-coded sort
-│   │   │   ├── MetaAnalysis.jsx        # - [ ] Tab 1: Claude's rolling summary panel
 │   │   │   ├── TailoringStatus.jsx     # - [ ] Tab 4: status boxes, output viewer
 │   │   │   └── ActiveList.jsx          # - [ ] Active Applications: to-do by due date
 │   │   ├── hooks/
-│   │   │   └── useSSE.js               # - [ ] SSE consumption for batch analysis
+│   │   │   └── useSSE.js               # - [x] SSE consumption for batch analysis
 │   │   └── api/
 │   │       └── client.js               # - [x] fetch wrappers for backend routes
 │   ├── index.html                      # - [x] 

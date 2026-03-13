@@ -5,22 +5,6 @@
 ---
 
 
-## Sprint 10 — Frontend: SSE + Cards
-
-The first sprint where the app *does the thing* in the browser. Three pieces: the analyze trigger, the SSE consumer, and the card animations.
-
-**Analyze button on Tab 1.** SessionDetailPage currently has paste-and-display only — no way to kick off analysis from the UI. Add an "Analyze" button that calls `analyzeSession()` and handles the 422 "no resumes" error gracefully (directs user to /resumes). The button should disable during analysis (session status = `analyzing`) and re-enable on completion or error.
-
-**SSE consumer hook** (`useSSE.js`). Reads the `text/event-stream` response from `analyzeSession()`. Dispatches `batch_start`, `jd_result`, `batch_complete`, and `analysis_complete` events to update JD state and meta-analysis in real time.
-
-**Card animations.** Cards start gray (pending), animate to green/yellow/red as `jd_result` events arrive. Meta-analysis panel (`MetaAnalysis.jsx`) updates after each `batch_complete`. The "show a non-engineer" moment.
-
-Context load: `sessions.py` (537 lines — analyze endpoint + SSE streaming), `analysis.py` (330 lines — batch generator), `client.js` (~210 lines), plus existing SessionDetailPage/JDCard (~130 lines). ~1,200 lines of backend reference alongside new frontend work: useSSE.js, MetaAnalysis.jsx, analyze button, card transitions. Comparable weight to Sprint 11.
-
-Housekeeping that fits naturally here:
-- [ ] `analyzeSession()` in client.js sends a phantom `resume_id` body param that the backend ignores (the endpoint takes no body — it fetches all user resumes internally). Fix: `analyzeSession(sessionId)` with no second argument, drop the `JSON.stringify` body. First sprint where this function is actually called from UI, so this is the natural place to catch it.
-
-
 ## Sprint 11 — Frontend: Tab 4 (Tailoring)
 
 Tailoring kickoff UI per JD. Status polling (queued → processing → ready) using `GET /sessions/{id}/tailoring-jobs`. Output view: resume text, cover letter, app answers. Download button for docx.
@@ -79,6 +63,12 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 - [ ] api/client.js has no retry logic or token refresh — Phase 1 (auth)
 - [ ] Tailwind @theme uses Inter/JetBrains Mono but doesn't load them from Google Fonts — add <link> to index.html when you care about typography (or never if system fonts are fine)
 - [ ] add press enter to submit form on SessionsPage.jsx (a simple wrap that Claude can do)
+- [ ] ability to Edit/Delete JD cards in sessions/:id (use same implementation as for edit/delete resume cards)
+- [ ] Card grid sort: after analysis starts, sort by [status_priority, number] instead of just number. Apply cards float to top after each batch_complete, giving the user real-time feedback on which JDs survived. Toggle: sort by number when status=active (paste order matters during data entry), sort by status when analyzing/complete. Small change in SessionDetailPage's mergedJds sort comparator.
+- [ ] make the JD cards have an aspect ratio like an actual playing card (right now it's longer horizontally); then, make them in a ribbon spread instead of currently they don't overalp at all. Use ~generous and equal spacing at first (before analysis) so user can see beginning of title/subtitle. But then after analysis, make the "Apply" cards trickled to the left not overlapping, then ribbon spread the "maybe" results in the middle with medium overlap, and ribon spred the "no" results with very tight spacing / high overlap on the right.
+- [ ] analyzeSession() currently has no AbortController integration — if the user navigates away mid-stream, useSSE.abort() cancels the reader but doesn't abort the fetch itself. The backend stream_analysis generator will continue running until it finishes or the connection drops. Harmless for single-user MVP (the results still write to DB correctly), but wasteful. Add AbortController to the fetch call in Sprint 12 or Phase 1.
+- [ ] MetaAnalysis text is rendered as whitespace-pre-wrap plain text. If Claude's meta_analysis includes markdown formatting (bold, lists), it won't render. Could add a lightweight markdown renderer later, but plain text is fine for MVP — the analysis prompt doesn't ask for markdown.
+- [ ] The Analyze button always says "Analyze" even for re-analysis. Could say "Re-analyze" when session.status === 'complete'. Polish, not function.
 
 
 ## Tech Debt
@@ -90,3 +80,6 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 - [ ] Phase 1: No loading skeleton / optimistic UI on addJD — the card grid waits for refreshSession() to resolve. Acceptable latency for local dev; may want optimistic insert for prod. Phase 1.
 - [ ] Phase 1: No "unsaved changes" guard on the form — if you click Edit while mid-create, the form overwrites silently. Acceptable for single-user MVP; revisit in Phase 1 multi-user.
 - [ ] Phase N. line-clamp-3 depends on -webkit-line-clamp which is non-standard but supported in all modern browsers. If it ever breaks, fall back to a JS truncation.
+- [ ] Phase N: observe behavior post-launch. The Analyze button re-enables immediately on error via `finally { setIsAnalyzing(false) }`. No retry budget or rate limiting exists yet. Monitor real usage for repeated error-retry loops before deciding whether to add a retry counter, cooldown timer, or backend cost cap. Backend concern to gate at the API/billing layer? or also on the button? Precedent: Sprint 3 batch analysis already has per-session cost tracking that
+could be extended. Status: Acceptable risk for MVP. Revisit after first real-user sessions.
+- [ ] PhaseN: The jdOverrides state overlay pattern works but creates a brief window where context jds and overrides can disagree (between stream end and refreshSession resolving). This is harmless — the override data matches what the backend wrote — but a more robust pattern would be to optimistically update the context itself. Phase 1 if it causes issues.

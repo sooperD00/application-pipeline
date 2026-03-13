@@ -4,6 +4,22 @@
 
 ---
 
+## Sprint 10 — Frontend: SSE + Cards
+
+The first sprint where the app *does the thing* in the browser. Three pieces: the analyze trigger, the SSE consumer, and the card animations.
+
+**Analyze button on Tab 1.** SessionDetailPage currently has paste-and-display only — no way to kick off analysis from the UI. Add an "Analyze" button that calls `analyzeSession()` and handles the 422 "no resumes" error gracefully (directs user to /resumes). The button should disable during analysis (session status = `analyzing`) and re-enable on completion or error.
+
+**SSE consumer hook** (`useSSE.js`). Reads the `text/event-stream` response from `analyzeSession()`. Dispatches `batch_start`, `jd_result`, `batch_complete`, and `analysis_complete` events to update JD state and meta-analysis in real time.
+
+**Card animations.** Cards start gray (pending), animate to green/yellow/red as `jd_result` events arrive. Meta-analysis panel (`MetaAnalysis.jsx`) updates after each `batch_complete`. The "show a non-engineer" moment.
+
+Context load: `sessions.py` (537 lines — analyze endpoint + SSE streaming), `analysis.py` (330 lines — batch generator), `client.js` (~210 lines), plus existing SessionDetailPage/JDCard (~130 lines). ~1,200 lines of backend reference alongside new frontend work: useSSE.js, MetaAnalysis.jsx, analyze button, card transitions. Comparable weight to Sprint 11.
+
+Housekeeping that fits naturally here:
+- [ ] `analyzeSession()` in client.js sends a phantom `resume_id` body param that the backend ignores (the endpoint takes no body — it fetches all user resumes internally). Fix: `analyzeSession(sessionId)` with no second argument, drop the `JSON.stringify` body. First sprint where this function is actually called from UI, so this is the natural place to catch it.
+
+
 ## Sprint 9 — Frontend: Resume Management + Nullable resume_id Fix 3/12/2026
 `application-pipeline-20260312-2108`
 
