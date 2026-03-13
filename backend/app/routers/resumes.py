@@ -171,10 +171,10 @@ async def delete_resume(
     """
     Delete a resume. Frees up a slot (cap is 3).
 
-    Note: does not cascade-delete TailoringJobs that reference this resume —
-    those records are kept for historical output review. resume_id on the
-    tailoring job becomes a dangling FK, which is acceptable in Phase 0.
-    Phase N: soft-delete pattern (is_deleted flag) to preserve history cleanly.
+    TailoringJobs that referenced this resume keep their outputs intact —
+    the FK has ondelete=SET NULL so resume_id becomes NULL, but
+    prompt_snapshot, output_resume, and output_resume_docx are
+    self-contained. See ADR-017 for the snapshot design direction.
 
     Errors:
         404  resume not found or doesn't belong to current user

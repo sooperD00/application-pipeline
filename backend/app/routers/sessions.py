@@ -130,7 +130,7 @@ class TailoringJobDashboardRead(BaseModel):
     """
     id: UUID
     jd_id: UUID
-    resume_id: UUID
+    resume_id: UUID | None  # NULL after source resume deleted (ondelete SET NULL)
     status: TailoringStatus
     output_resume: Optional[str]
     output_cover_letter: Optional[str]

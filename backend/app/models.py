@@ -11,7 +11,7 @@ from datetime import date, datetime
 from typing import Any, Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON
+from sqlalchemy import ForeignKey, JSON, Uuid
 from sqlmodel import Column, Enum, Field, SQLModel, Text
 
 
@@ -225,7 +225,12 @@ class TailoringJob(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     jd_id: UUID = Field(foreign_key="jds.id", index=True)
-    resume_id: UUID = Field(foreign_key="resumes.id")
+    resume_id: UUID | None = Field(
+        default=None,
+        sa_column=Column(
+            Uuid, ForeignKey("resumes.id", ondelete="SET NULL"), nullable=True
+        ),
+    )  # nullable: resume deletion sets this to NULL, outputs remain accessible
     prompt_snapshot: str = Field(sa_column=Column(Text))  # frozen at kick-off
 
     status: TailoringStatus = Field(
