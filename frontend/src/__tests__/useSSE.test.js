@@ -89,6 +89,7 @@ describe('useSSE — consume', () => {
       'event: analysis_complete',
       'data: {"session_id":"sess-1","summary":{"apply":1,"maybe":0,"no":1}}',
       '',
+      '',  // ← last message terminates with \n\n
     ].join('\n')
 
     const { result } = renderHook(() => useSSE())
@@ -186,6 +187,7 @@ describe('useSSE — consume', () => {
       'event: jd_result',
       'data: {"jd_id":"x","number":1,"status":"maybe"}',
       '',
+      '',  // ← last message terminates with \n\n
     ].join('\n')
 
     const { result } = renderHook(() => useSSE())

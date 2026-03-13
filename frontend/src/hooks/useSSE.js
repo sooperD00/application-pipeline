@@ -82,6 +82,13 @@ export default function useSSE() {
           callbacks[parsed.event]?.(parsed.data)
         }
       }
+      // Flush any remaining buffered message after stream closes.
+      // The backend always terminates with \n\n, but a dropped connection
+      // might not — parse whatever's left.
+      if (buffer.trim()) {
+        const parsed = parseSSEMessage(buffer)
+        if (parsed) callbacks[parsed.event]?.(parsed.data)
+      }
     } catch (err) {
       // Stream read error (network drop, etc.) — surface it as an SSE error
       if (!abortedRef.current) {
