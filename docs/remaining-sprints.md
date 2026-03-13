@@ -33,6 +33,8 @@ Housekeeping that fits naturally here:
 - [ ] batch-tailor skip logic doesn't account for processing/queued jobs (could create duplicates if you double-click "Apply All" fast) — real concern now that there's a UI button
 - [ ] `batchTailor()` in client.js sends a phantom `resume_id` body param, same issue as `analyzeSession()` (see Sprint 10). The backend's `batch_tailor_session` takes no body model — it fetches all user resumes internally and picks `resumes[0].id` for the FK. Fix: drop the body, simplify to `batchTailor(sessionId, { force })`.
 - [ ] `sessions.py` line 376 and `jds.py` line 222 both say "Tab 4 prerequisite (Sprint 9)" — should be Sprint 11 after the reshuffle. Fix while you're already in those files.
+- [ ] `resume_id` on tailoring jobs can now be null (Sprint 9 — source resume deleted after tailoring ran). `TailoringJobRead` and `TailoringJobDashboardRead` both expose `UUID | None`. TailoringPage needs to handle this gracefully — show "Source resume deleted" or omit the label. One-liner but easy to miss if it's not in the spec.
+- [ ] **Add `failed` to `TailoringStatus` enum.** Currently only `queued`, `processing`, `ready`, `reviewed` — no failure state. If the Claude API errors out or the `resume_generation` PromptTemplate is missing, `run_tailoring_job` silently returns and the job sits at `queued` forever. With a polling UI, "perpetually queued" is indistinguishable from "dead." Fix: add `failed` value (one-line Alembic migration), set it in the error paths in tailoring.py, show it in the TailoringPage UI. This is the sprint where the stuck-job UX becomes visible, so this is where it belongs.
 
 
 ## Sprint 12 — Deploy to Railway
@@ -75,7 +77,7 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 - [ ] Timestamps showing 1 day ahead in Oregon (UTC storage, no timezone conversion). Not important for MVP (Nicole is only user), but will confuse anyone else.
 - [ ] assets/react.svg and public/vite.svg still in tree — harmless, clean up whenever
 - [ ] api/client.js has no retry logic or token refresh — Phase 1 (auth)
-- [ ] Tailwind @theme uses Inter/JetBrains Mono but doesn't load them from Google Fonts — add <link> to index.html when you care about typography (Sprint 8+, or never if system fonts are fine)
+- [ ] Tailwind @theme uses Inter/JetBrains Mono but doesn't load them from Google Fonts — add <link> to index.html when you care about typography (or never if system fonts are fine)
 - [ ] add press enter to submit form on SessionsPage.jsx (a simple wrap that Claude can do)
 
 
