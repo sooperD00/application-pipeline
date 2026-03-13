@@ -103,7 +103,7 @@ One session = one metadata set. New metadata = new session. Keeps funnel analyti
 |-------|------|-------|
 | id | UUID | PK |
 | jd_id | UUID | FK → JD |
-| resume_id | UUID | FK → Resume |
+| resume_id | UUID, nullable | FK → Resume (ondelete SET NULL). Null after resume deletion; outputs survive via prompt_snapshot. See ADR-017. |
 | prompt_snapshot | text | exact assembled prompt, frozen at kick-off |
 | status | enum | queued, processing, ready, reviewed |
 | output_resume | text, nullable | tailored resume text, extracted from the generated docx for in-app display |

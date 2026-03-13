@@ -4,6 +4,20 @@
 
 ---
 
+## Sprint 9 — Frontend: Resume Management + Nullable resume_id Fix 3/12/2026
+`application-pipeline-20260312-2108`
+
+Two things shipped together: the Resumes page UI and a backend schema fix for resume deletion safety.
+
+**Frontend — ResumesPage.jsx** (no longer a stub): list of resume cards with create/edit/delete. ResumeForm.jsx (text area + label, handles both create and edit modes). ResumeCard.jsx (label, preview, edit/delete buttons with confirmation). 3-resume cap enforced visually (disabled button, "3/3" counter). All state lives in ResumesPage; child components call back up via props.
+
+**Backend — nullable resume_id on TailoringJob**: `resume_id` changed from `UUID` (required) to `UUID | None` with `ondelete=SET NULL`. Migration `b30f639f830c`. Deleting a resume no longer breaks tailoring job FK constraints — the FK goes null but `prompt_snapshot`, `output_resume`, and `output_resume_docx` remain intact. Response models in jds.py and sessions.py updated to `UUID | None`. See ADR-017 for the full snapshot architecture this feeds into (Phase 1+).
+
+**Tests**: ResumesPage.test.jsx — 8 tests covering load/display, create flow, edit flow, delete with confirmation, 3-resume cap UI, error states.
+
+Done when: you can manage resumes entirely through the UI, and deleting a resume doesn't cascade-break existing tailoring jobs.
+
+
 ## Sprint 8 — Frontend: Session + JD Flow
 
 Session context lives in the URL (`/sessions/:id`); tabs 1–4 become nested routes under `:id`, Resumes stays global at `/resumes`.

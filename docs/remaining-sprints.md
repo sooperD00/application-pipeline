@@ -5,15 +5,6 @@
 ---
 
 
-## Sprint 9 — Frontend: Resume Management
-
-Resume paste, edit, label, delete. The `GET/POST/PATCH/DELETE /api/resumes` backend is done (Sprint 5) — this is just the UI. Prerequisite for Tab 4: tailoring needs at least one resume to exist, and right now the only way to create one is Swagger or the seed script.
-
-Simple page: list of resume cards, "Add Resume" button → text area + label field, inline edit, delete with confirmation. Enforce the 3-resume cap visually (disable the button, show "3/3").
-
-(Moved ahead of SSE sprint so the full paste-JDs → pick-resume → analyze flow is testable end-to-end the moment SSE lands.)
-
-
 ## Sprint 10 — Frontend: SSE + Cards
 
 The first sprint where the app *does the thing* in the browser. Three pieces: the analyze trigger, the SSE consumer, and the card animations.

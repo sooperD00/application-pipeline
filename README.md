@@ -124,11 +124,12 @@ ApplicationPipeline/
 │   │   │   ├── App.test.jsx            # - [x] shell/routing tests (all static)
 │   │   │   ├── JDCard.test.jsx         # - [x] component test: card renders props, no API awareness
 │   │   │   ├── SessionDetailPage.test.jsx # - [x] integration: session fetch, JD paste flow, card grid
+│   │   │   ├── ResumesPage.test.jsx      # - [x] resume CRUD flow, 3-resume cap UI, error states
 │   │   │   ├── CardFan.test.jsx        # - [ ] fanned layout tests (once CardFan container exists)
 │   │   ├── pages/
 │   │   │   ├── CalibratePage.jsx       # - [x] stub (session-scoped)
 │   │   │   ├── NotFoundPage.jsx        # - [x] 404 catch-all
-│   │   │   ├── ResumesPage.jsx         # - [x] stub (global)
+│   │   │   ├── ResumesPage.jsx         # - [x] resume list + create/edit/delete (3-resume cap)
 │   │   │   ├── ReviewPage.jsx          # - [x] stub (session-scoped)
 │   │   │   ├── SessionDetailPage.jsx   # - [x] Tab 1: JD paste form + card grid
 │   │   │   ├── SessionLayout.jsx       # - [x] useParams → fetch session → Outlet context
@@ -141,6 +142,8 @@ ApplicationPipeline/
 │   │   │   ├── JDCard.jsx              # - [x] single JD card (number, company, role, status color)
 │   │   │   ├── JDPasteForm.jsx         # - [x] text area + company/role fields, submit
 │   │   │   ├── SessionCreateForm.jsx   # - [x] board, filters, search_term
+│   │   │   ├── ResumeCard.jsx         # - [x] label, preview, edit/delete buttons
+│   │   │   ├── ResumeForm.jsx         # - [x] create + edit mode, text area + label
 │   │   │   ├── CardFan.jsx             # - [ ] Tab 1: fanned card layout, color-coded sort
 │   │   │   ├── MetaAnalysis.jsx        # - [ ] Tab 1: Claude's rolling summary panel
 │   │   │   ├── TailoringStatus.jsx     # - [ ] Tab 4: status boxes, output viewer
