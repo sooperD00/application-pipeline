@@ -87,23 +87,26 @@ export function addJD(sessionId, { raw_text, company = '', role = '', compensati
  * POST /api/sessions/{id}/analyze — kick off batch analysis.
  *
  * Returns a raw Response (SSE stream). The caller consumes it with
- * a ReadableStream reader or an EventSource wrapper in Sprint 10.
+ * the useSSE hook (Sprint 10).
  *
- * Important!: this function is the only one so far that calls fetch() directly
- *  it returns the raw response instead of parsed JSON becasue the analyze endpoint 
- *  streams results back via SSE — it doesn't send one JSON blob, it sends a series of 
- *  events over time. Next script needs the raw response to read that stream incrementally.
- * 
+ * This is the only client function that calls fetch() directly and returns
+ * the raw Response — the analyze endpoint streams results via SSE, not a
+ * single JSON blob. The caller reads that stream incrementally.
+ *
+ * Note: the endpoint takes no body. It fetches all of the user's resumes
+ * internally (up to 3). The Sprint 7 scaffold had a phantom resume_id
+ * param here — removed in Sprint 10 (first sprint where this is called
+ * from UI). See remaining-sprints.md deferred section for the Phase 1+
+ * resume selection feature that will re-add it with real plumbing.
+ *
  * Usage:
- *   const res = await analyzeSession(id, resumeId)
- *   const reader = res.body.getReader()
+ *   const res = await analyzeSession(id)
+ *   // pass res to useSSE.consume()
  */
-export async function analyzeSession(sessionId, resumeId) {
+export async function analyzeSession(sessionId) {
   const url = `${BASE}/api/sessions/${sessionId}/analyze`
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ resume_id: resumeId }),
   })
   if (!res.ok) {
     let detail
