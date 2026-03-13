@@ -187,3 +187,128 @@ describe('SessionDetailPage — JD paste flow', () => {
     })
   })
 })
+
+
+// ── Sprint 10: Analyze button ────────────────────────────────────────────────
+
+describe('SessionDetailPage — Analyze button', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('renders Analyze button when JDs exist', async () => {
+    client.getSession.mockResolvedValue(makeSessionResponse(existingJDs))
+
+    renderSessionDetail()
+
+    await waitFor(() => {
+      expect(screen.getByTestId('analyze-button')).toBeInTheDocument()
+    })
+    expect(screen.getByTestId('analyze-button')).toHaveTextContent('Analyze')
+    expect(screen.getByTestId('analyze-button')).not.toBeDisabled()
+  })
+
+  it('does not render Analyze button when no JDs exist', async () => {
+    client.getSession.mockResolvedValue(makeSessionResponse([]))
+
+    renderSessionDetail()
+
+    await waitFor(() => {
+      expect(screen.getByText(/no jds yet/i)).toBeInTheDocument()
+    })
+    expect(screen.queryByTestId('analyze-button')).not.toBeInTheDocument()
+  })
+
+  it('disables Analyze button when session status is analyzing', async () => {
+    const analyzingSession = makeSessionResponse(existingJDs)
+    analyzingSession.status = 'analyzing'
+    client.getSession.mockResolvedValue(analyzingSession)
+
+    renderSessionDetail()
+
+    await waitFor(() => {
+      expect(screen.getByTestId('analyze-button')).toBeInTheDocument()
+    })
+    expect(screen.getByTestId('analyze-button')).toBeDisabled()
+  })
+
+  it('shows warning banner with link to /resumes on 422 no-resumes error', async () => {
+    const user = userEvent.setup()
+    client.getSession.mockResolvedValue(makeSessionResponse(existingJDs))
+
+    // analyzeSession throws an error shaped like ApiError (status + detail)
+    client.analyzeSession.mockRejectedValue(
+      Object.assign(new Error('No resumes'), {
+        status: 422,
+        detail: 'No resumes found. Create at least one resume before analyzing.',
+      })
+    )
+
+    renderSessionDetail()
+
+    await waitFor(() => {
+      expect(screen.getByTestId('analyze-button')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByTestId('analyze-button'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('warning-banner')).toBeInTheDocument()
+    })
+    expect(screen.getByText(/no resumes found/i)).toBeInTheDocument()
+    expect(screen.getByText(/go to resumes/i)).toBeInTheDocument()
+  })
+
+  it('shows warning banner on 409 conflict (analysis already running)', async () => {
+    const user = userEvent.setup()
+    client.getSession.mockResolvedValue(makeSessionResponse(existingJDs))
+
+    client.analyzeSession.mockRejectedValue(
+      Object.assign(new Error('Conflict'), {
+        status: 409,
+        detail: 'Analysis already in progress for this session.',
+      })
+    )
+
+    renderSessionDetail()
+
+    await waitFor(() => {
+      expect(screen.getByTestId('analyze-button')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByTestId('analyze-button'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('warning-banner')).toBeInTheDocument()
+    })
+    expect(screen.getByText(/already in progress/i)).toBeInTheDocument()
+  })
+
+  it('shows red error banner with retry on unexpected errors', async () => {
+    const user = userEvent.setup()
+    client.getSession.mockResolvedValue(makeSessionResponse(existingJDs))
+
+    client.analyzeSession.mockRejectedValue(
+      Object.assign(new Error('Server error'), {
+        status: 500,
+        detail: 'Internal server error',
+      })
+    )
+
+    renderSessionDetail()
+
+    await waitFor(() => {
+      expect(screen.getByTestId('analyze-button')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByTestId('analyze-button'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('error-banner')).toBeInTheDocument()
+    })
+    expect(screen.getByText(/internal server error/i)).toBeInTheDocument()
+    // Retry button should be present
+    expect(screen.getByText('Retry')).toBeInTheDocument()
+  })
+})
+
