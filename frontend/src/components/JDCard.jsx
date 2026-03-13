@@ -5,15 +5,37 @@
  * Status colors map to the CSS theme variables:
  *   apply → green, maybe → yellow, no → red, pending → gray.
  *
- * Sprint 10 will add CSS transitions on status changes (SSE-driven).
- * For now this is a static display component with no interactivity.
+ * Sprint 10: CSS transitions on status changes (SSE-driven). When a
+ * jd_result event arrives, the card's border, dot, and label animate
+ * from gray → color over 500ms. The "show a non-engineer" moment:
+ * watch 5 gray cards light up green/yellow/red in sequence.
  */
 
 const STATUS_STYLES = {
-  apply:   { dot: 'bg-status-apply',   label: 'Apply',   bg: 'border-status-apply/30' },
-  maybe:   { dot: 'bg-status-maybe',   label: 'Maybe',   bg: 'border-status-maybe/30' },
-  no:      { dot: 'bg-status-no',      label: 'No',      bg: 'border-status-no/30' },
-  pending: { dot: 'bg-status-pending', label: 'Pending', bg: 'border-pipeline-700' },
+  apply: {
+    dot: 'bg-status-apply',
+    label: 'Apply',
+    border: 'border-status-apply/30',
+    glow: 'shadow-[0_0_8px_rgba(22,163,74,0.15)]',  // subtle green glow
+  },
+  maybe: {
+    dot: 'bg-status-maybe',
+    label: 'Maybe',
+    border: 'border-status-maybe/30',
+    glow: 'shadow-[0_0_8px_rgba(202,138,4,0.15)]',
+  },
+  no: {
+    dot: 'bg-status-no',
+    label: 'No',
+    border: 'border-status-no/30',
+    glow: '',  // no glow for rejections — they should recede, not draw attention
+  },
+  pending: {
+    dot: 'bg-status-pending',
+    label: 'Pending',
+    border: 'border-pipeline-700',
+    glow: '',
+  },
 }
 
 export default function JDCard({ jd }) {
@@ -35,9 +57,9 @@ export default function JDCard({ jd }) {
       └── p (role, dimmer)
   */
   return (
-    /* border, background, padding */
+    /* border, background, padding — transition-all 500ms for the SSE color animation */
     <div
-      className={`p-3 rounded-lg bg-pipeline-800 border ${style.bg} transition-colors`}
+      className={`p-3 rounded-lg bg-pipeline-800 border ${style.border} ${style.glow} transition-all duration-500 ease-out`}
       data-testid="jd-card"
       data-status={jd.status}
     >
@@ -49,7 +71,7 @@ export default function JDCard({ jd }) {
 
         {/* Status dot + label */}
         <span className="flex items-center gap-1.5 text-xs text-pipeline-400">
-          <span className={`w-2 h-2 rounded-full ${style.dot}`} />
+          <span className={`w-2 h-2 rounded-full ${style.dot} transition-colors duration-500`} />
           {style.label}
         </span>
       </div>
