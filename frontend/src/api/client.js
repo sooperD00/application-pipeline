@@ -126,10 +126,17 @@ export function listSessionTailoringJobs(sessionId) {
   return get(`/api/sessions/${sessionId}/tailoring-jobs`)
 }
 
-/** POST /api/sessions/{id}/batch-tailor — Apply All (up to 4 parallel) */
-export function batchTailor(sessionId, { resume_id, force = false }) {
+/**
+ * POST /api/sessions/{id}/batch-tailor — Apply All (up to 4 parallel).
+ *
+ * No body — the backend fetches all user resumes internally.
+ * Sprint 11: removed phantom resume_id param (same fix as analyzeSession
+ * in Sprint 10). See remaining-sprints.md deferred section for Phase 1+
+ * resume selection that will re-add it with real plumbing.
+ */
+export function batchTailor(sessionId, { force = false } = {}) {
   const qs = force ? '?force=true' : ''
-  return post(`/api/sessions/${sessionId}/batch-tailor${qs}`, { resume_id })
+  return request(`/api/sessions/${sessionId}/batch-tailor${qs}`, { method: 'POST' })
 }
 
 // ── JDs ──────────────────────────────────────────────────────────────────────
@@ -153,9 +160,15 @@ export function listJDTailoringJobs(jdId) {
   return get(`/api/jds/${jdId}/tailoring`)
 }
 
-/** POST /api/jds/{id}/tailoring — kick off single tailoring job */
-export function createTailoringJob(jdId, { resume_id }) {
-  return post(`/api/jds/${jdId}/tailoring`, { resume_id })
+/**
+ * POST /api/jds/{id}/tailoring — kick off single tailoring job.
+ *
+ * No body — the backend fetches all user resumes internally.
+ * Sprint 11: removed phantom resume_id param (same fix pattern as
+ * analyzeSession in Sprint 10 and batchTailor above).
+ */
+export function createTailoringJob(jdId) {
+  return request(`/api/jds/${jdId}/tailoring`, { method: 'POST' })
 }
 
 /** GET /api/jds/{id}/tailoring/{jobId} — tailoring status + outputs */
@@ -175,6 +188,20 @@ export function getTailoringJob(jdId, jobId) {
  */
 export async function downloadTailoringDocx(jdId, jobId) {
   const url = `${BASE}/api/jds/${jdId}/tailoring/${jobId}/docx`
+  const res = await fetch(url)
+  if (!res.ok) {
+    throw new ApiError(res.status, res.statusText)
+  }
+  return res.blob()
+}
+
+/**
+ * GET /api/jds/{id}/tailoring/{jobId}/package — download zip bundle (ADR-014).
+ *
+ * Returns a Blob. Same download pattern as downloadTailoringDocx.
+ */
+export async function downloadTailoringPackage(jdId, jobId) {
+  const url = `${BASE}/api/jds/${jdId}/tailoring/${jobId}/package`
   const res = await fetch(url)
   if (!res.ok) {
     throw new ApiError(res.status, res.statusText)
