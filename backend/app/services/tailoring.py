@@ -241,15 +241,15 @@ async def run_tailoring_job(job_id: UUID) -> None:
     (background tasks outlive the request that spawned them).
 
     Lifecycle: queued → processing → ready
-    On error: logs and returns (job stays in processing — a future sprint
-    adds error status, retry logic, and dead-letter handling).
+    On error: sets status to failed and returns. The polling UI shows
+    the failure and offers a retry button.
     """
     async with AsyncSessionLocal() as db:
         # ── Load the job ──────────────────────────────────────────────
         job = await db.get(TailoringJob, job_id)
         if not job:
             logger.error("TailoringJob %s not found", job_id)
-            return
+            return  # no job row to mark failed
 
         job.status = TailoringStatus.processing
         db.add(job)
@@ -259,10 +259,16 @@ async def run_tailoring_job(job_id: UUID) -> None:
         jd = await db.get(JD, job.jd_id)
         if not jd:
             logger.error("JD %s not found for job %s", job.jd_id, job_id)
+            job.status = TailoringStatus.failed
+            db.add(job)
+            await db.commit()
             return
 
         session_model = await db.get(SessionModel, jd.session_id)
         if not session_model:
+            job.status = TailoringStatus.failed
+            db.add(job)
+            await db.commit()
             return
 
         user_id = session_model.user_id
@@ -277,6 +283,9 @@ async def run_tailoring_job(job_id: UUID) -> None:
 
         if not resumes:
             logger.error("No resumes for user %s, job %s", user_id, job_id)
+            job.status = TailoringStatus.failed
+            db.add(job)
+            await db.commit()
             return
 
         # ── Fetch active templates ────────────────────────────────────
@@ -290,6 +299,9 @@ async def run_tailoring_job(job_id: UUID) -> None:
 
         if PromptPhase.resume_generation not in templates:
             logger.error("No resume_generation template found for job %s", job_id)
+            job.status = TailoringStatus.failed
+            db.add(job)
+            await db.commit()
             return
 
         # ── Assemble prompt and snapshot it ────────────────────────────
@@ -306,6 +318,9 @@ async def run_tailoring_job(job_id: UUID) -> None:
             raw_response, _tokens = await conversation.send(assembled)
         except Exception as exc:
             logger.exception("Claude API error for job %s: %s", job_id, exc)
+            job.status = TailoringStatus.failed
+            db.add(job)
+            await db.commit()
             return
 
         # ── Parse structured response ─────────────────────────────────
@@ -313,6 +328,9 @@ async def run_tailoring_job(job_id: UUID) -> None:
             parsed = _parse_claude_json(raw_response)
         except json.JSONDecodeError as exc:
             logger.error("Unparseable JSON from Claude for job %s: %s", job_id, exc)
+            job.status = TailoringStatus.failed
+            db.add(job)
+            await db.commit()
             return
 
         # ── Generate docx ─────────────────────────────────────────────
