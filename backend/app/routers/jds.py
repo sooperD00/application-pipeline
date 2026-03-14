@@ -10,12 +10,15 @@ Endpoints:
     GET    /api/jds/{id}/tailoring            → per-JD tailoring history (Sprint 6)
     POST   /api/jds/{id}/tailoring            → kick off single tailoring job (Sprint 5)
     GET    /api/jds/{id}/tailoring/{job_id}   → tailoring status + outputs (Sprint 5)
-    GET    /api/jds/{id}/tailoring/{job_id}/docx → download generated resume docx (Sprint 5)
+    GET    /api/jds/{id}/tailoring/{job_id}/docx     → download generated resume docx (Sprint 5)
+    GET    /api/jds/{id}/tailoring/{job_id}/package  → download zip bundle (ADR-014, Sprint 11)
 """
 
 from datetime import datetime
+from io import BytesIO
 from typing import Any, Optional
 from uuid import UUID
+import zipfile
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.background import BackgroundTasks
@@ -219,7 +222,7 @@ async def list_tailoring_jobs(
     All tailoring jobs for a single JD, newest first.
 
     This is the per-JD tailoring history — shows every attempt, including
-    superseded ones. Tab 4 prerequisite (Sprint 9).
+    superseded ones. Tab 4 prerequisite (Sprint 11).
 
     Errors:
         404  JD not found or doesn't belong to current user
@@ -386,4 +389,92 @@ async def download_tailoring_docx(
         content=job.output_resume_docx,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/{jd_id}/tailoring/{job_id}/package")
+async def download_tailoring_package(
+    jd_id: UUID,
+    job_id: UUID,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> Response:
+    """
+    Download a zip bundle of all tailoring outputs for one job (ADR-014).
+
+    Contents:
+        CompanyName_RoleName/
+            resume.docx           — the tailored resume
+            jd.txt                — cleaned JD text + metadata
+            cover_letter.txt      — omitted if not requested
+            app_questions.txt     — omitted if no questions
+            analysis.txt          — Claude's fit assessment
+            notes.txt             — empty placeholder for the human
+
+    Available once the tailoring job status is "ready".
+
+    Errors:
+        404  JD/job not found, or job not yet ready
+    """
+    jd = await _get_jd_owned_by_user(jd_id, current_user, db)
+
+    job = await db.get(TailoringJob, job_id)
+    if not job or job.jd_id != jd.id:
+        raise HTTPException(status_code=404, detail="Tailoring job not found")
+
+    if job.status != TailoringStatus.ready:
+        raise HTTPException(status_code=404, detail="Tailoring job not yet ready")
+
+    # ── Build zip in memory ──────────────────────────────────────────
+    company = (jd.company or "Company").replace(" ", "_")
+    role = (jd.role or "Role").replace(" ", "_")
+    folder = f"{company}_{role}"
+
+    buf = BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        # resume.docx
+        if job.output_resume_docx:
+            zf.writestr(f"{folder}/resume.docx", job.output_resume_docx)
+
+        # jd.txt — cleaned text + metadata header
+        jd_header = (
+            f"Company: {jd.company or 'Unknown'}\n"
+            f"Role: {jd.role or 'Unknown'}\n"
+            f"Compensation: {jd.compensation or 'Not specified'}\n"
+            f"Link: {jd.link or 'N/A'}\n"
+            f"---\n\n"
+        )
+        zf.writestr(f"{folder}/jd.txt", jd_header + jd.cleaned_text)
+
+        # cover_letter.txt (optional)
+        if job.output_cover_letter:
+            zf.writestr(f"{folder}/cover_letter.txt", job.output_cover_letter)
+
+        # app_questions.txt (optional)
+        if job.output_app_answers:
+            lines = []
+            for qa in job.output_app_answers:
+                lines.append(f"Q: {qa.get('question', '')}")
+                lines.append(f"A: {qa.get('answer', '')}")
+                lines.append("")
+            zf.writestr(f"{folder}/app_questions.txt", "\n".join(lines))
+
+        # analysis.txt
+        analysis_text = jd.analysis_text or "(No analysis available)"
+        zf.writestr(f"{folder}/analysis.txt", analysis_text)
+
+        # notes.txt — empty placeholder
+        notes_header = (
+            f"# {jd.company or 'Company'} — {jd.role or 'Role'}\n"
+            f"# Downloaded: {datetime.utcnow().strftime('%Y-%m-%d')}\n"
+            f"# ---\n\n"
+        )
+        zf.writestr(f"{folder}/notes.txt", notes_header)
+
+    zip_filename = f"{folder}.zip"
+
+    return Response(
+        content=buf.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{zip_filename}"'},
     )

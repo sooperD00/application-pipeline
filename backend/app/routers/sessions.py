@@ -373,7 +373,7 @@ async def list_session_tailoring_jobs(
     status cards without a second round-trip. Ordered by JD number, then
     by job created_at desc (most recent attempt first within each JD).
 
-    Tab 4 prerequisite (Sprint 9).
+    Tab 4 prerequisite (Sprint 11).
 
     Errors:
         404  Session not found or doesn't belong to current user
@@ -495,18 +495,26 @@ async def batch_tailor_session(
             detail="No JDs with 'apply' status in this session.",
         )
 
-    # ── Skip JDs that already have a completed job (Sprint 6) ─────────
-    # Unless force=true, don't re-tailor JDs that already succeeded.
+    # ── Skip JDs that already have an active or completed job (Sprint 6, 11) ──
+    # Unless force=true, don't re-tailor JDs that already have a job in
+    # any non-terminal-failure state. Prevents double-click duplicates
+    # (queued/processing) and accidental re-runs (ready/reviewed).
+    # Only `failed` jobs are retryable without force.
     if not force:
-        already_done = await db.execute(
+        already_active = await db.execute(
             select(TailoringJob.jd_id)
             .where(
                 TailoringJob.jd_id.in_([jd.id for jd in apply_jds]),
-                TailoringJob.status == TailoringStatus.ready,
+                TailoringJob.status.in_([
+                    TailoringStatus.queued,
+                    TailoringStatus.processing,
+                    TailoringStatus.ready,
+                    TailoringStatus.reviewed,
+                ]),
             )
         )
-        done_jd_ids = set(already_done.scalars().all())
-        apply_jds = [jd for jd in apply_jds if jd.id not in done_jd_ids]
+        active_jd_ids = set(already_active.scalars().all())
+        apply_jds = [jd for jd in apply_jds if jd.id not in active_jd_ids]
 
     if not apply_jds:
         # All JDs already have completed jobs — nothing to do
