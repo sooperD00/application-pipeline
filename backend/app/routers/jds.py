@@ -400,7 +400,7 @@ async def download_tailoring_package(
     current_user: User = Depends(get_current_user),
 ) -> Response:
     """
-    Download a zip bundle of all tailoring outputs for one job (ADR-014).
+    Download a zip bundle of all tailoring outputs for one job (ADR-014).   
 
     Contents:
         CompanyName_RoleName/
