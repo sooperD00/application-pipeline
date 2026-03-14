@@ -69,6 +69,7 @@ class TailoringStatus(str, enum.Enum):
     processing = "processing"
     ready = "ready"
     reviewed = "reviewed"
+    failed = "failed"
 
 
 class ActivityType(str, enum.Enum):
