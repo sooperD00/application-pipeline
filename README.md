@@ -34,7 +34,7 @@ Built around a real workflow that increased callback rates during a real job sea
 
 🟡 **Phase 0 — In Development**
 
-The core loop works end-to-end: paste JDs, kick off AI analysis, watch cards sort themselves green/yellow/red in real time. Tailoring UI and deployment are next. See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap.
+The core loop works end-to-end in the browser: paste JDs, kick off AI analysis, watch cards sort themselves green/yellow/red in real time, then kick off tailoring and download zip packages of tailored resumes, cover letters, and app answers. Deployment is next. See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap.
 
 ## Quick Start
 
@@ -96,6 +96,7 @@ ApplicationPipeline/
 │   │   │   |                        # - [x] batch-tailor (POST /{id}/batch-tailor)
 │   │   │   ├── jds.py               # - [x] JD CRUD, status overrides, enrichment
 │   │   │   |                        # - [x] single tailor, status, outputs, docx download
+│   │   │   |                        # - [x] zip package download (ADR-014, Sprint 11)
 │   │   │   ├── resumes.py           # - [x] paste, edit, list, delete (max 3)
 │   │   │   └── activities.py        # - [ ] active list, add/complete, tracker view
 │   │   ├── services/
@@ -120,12 +121,13 @@ ApplicationPipeline/
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx                  # - [x] nav bar (ADR-015) + nested routes (react-router-dom v7)
-│   │   ├── __tests__/               # 51/51 FE Tests Pass
+│   │   ├── __tests__/               # 47/47 FE Tests Pass
 │   │   │   ├── App.test.jsx            # - [x] shell/routing tests (all static)
 │   │   │   ├── JDCard.test.jsx         # - [x] component test: card renders props, no API awareness
 │   │   │   ├── ResumesPage.test.jsx    # - [x] resume CRUD flow, 3-resume cap UI, error states
 │   │   │   ├── SessionDetailPage.test.jsx  # - [x] integration: session fetch, JD paste flow, card grid
-│   │   │   ├── useSSE.test.jsx         # - [x] parseSSEMessage, consume integration (fake readable stream)
+│   │   │   ├── TailoringPage.test.jsx  # - [x] polling lifecycle, status transitions, output display, zip download
+│   │   │   ├── useSSE.test.js          # - [x] parseSSEMessage, consume integration (fake readable stream)
 │   │   │   ├── CardFan.test.jsx        # - [ ] fanned layout tests (once CardFan container exists)
 │   │   ├── pages/
 │   │   │   ├── CalibratePage.jsx       # - [x] stub (session-scoped)
@@ -135,7 +137,7 @@ ApplicationPipeline/
 │   │   │   ├── SessionDetailPage.jsx   # - [x] Tab 1: JD paste form + card grid
 │   │   │   ├── SessionLayout.jsx       # - [x] useParams → fetch session → Outlet context
 │   │   │   ├── SessionsPage.jsx        # - [x] session list + create form
-│   │   │   ├── TailoringPage.jsx       # - [x] stub (session-scoped)
+│   │   │   ├── TailoringPage.jsx       # - [x] Tab 4: status polling, output viewer, zip download (Sprint 11)
 │   │   ├── main.jsx                    # - [x] BrowserRouter entry point
 │   │   ├── index.css                   # - [x] Tailwind v4 @import + @theme (custom pipeline-* palette)
 │   │   ├── test-setup.js               # - [x] Vitest setup (jest-dom matchers)
@@ -147,12 +149,12 @@ ApplicationPipeline/
 │   │   │   ├── ResumeForm.jsx          # - [x] create + edit mode, text area + label
 │   │   │   ├── SessionCreateForm.jsx   # - [x] board, filters, search_term
 │   │   │   ├── CardFan.jsx             # - [ ] Tab 1: fanned card layout, color-coded sort
-│   │   │   ├── TailoringStatus.jsx     # - [x] Tab 4: status boxes, output viewer
+│   │   │   ├── TailoringStatus.jsx     # - [ ] Tab 4: extract from TailoringPage when complexity warrants
 │   │   │   └── ActiveList.jsx          # - [ ] Active Applications: to-do by due date
 │   │   ├── hooks/
 │   │   │   └── useSSE.js               # - [x] SSE consumption for batch analysis
 │   │   └── api/
-│   │       └── client.js               # - [x] fetch wrappers for backend routes
+│   │       └── client.js               # - [x] fetch wrappers for backend routes + zip download (Sprint 11)
 │   ├── index.html                      # - [x] 
 │   ├── vite.config.js                  # - [x] dev proxy (/api, /health → FastAPI), Vitest config
 │   ├── eslint.config.js                # - [x]

@@ -139,9 +139,9 @@ a "why did Claude make these choices" view per tailoring job. Quick fix when you
 
 ---
 
-## ~~Batch-Tailor: Skip Already-Tailored JDs~~ — DONE Sprint 6
+## ~~Batch-Tailor: Skip Already-Tailored JDs~~ — DONE Sprint 6, extended Sprint 11
 
-Implemented via `force` query parameter on `POST /sessions/{id}/batch-tailor`. Default behavior: skip JDs that already have a `status=ready` tailoring job. Pass `force=true` to re-tailor after prompt/resume changes.
+Implemented via `force` query parameter on `POST /sessions/{id}/batch-tailor`. Default behavior: skip JDs that already have a `status=ready` tailoring job. Pass `force=true` to re-tailor after prompt/resume changes. Sprint 11 extended skip logic to also account for `processing` and `queued` jobs (prevents duplicates from double-clicking "Apply All").
 
 ---
 

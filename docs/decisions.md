@@ -207,7 +207,7 @@ The distinction matters because the repo is public. The PromptTemplate content i
 ## ADR-014: Application Package — Zip Download per Tailoring Job
 
 **Date**: 2026-03-07
-**Status**: Proposed
+**Status**: Accepted (shipped Sprint 11)
 
 **Decision**: Add a zip download endpoint that bundles all outputs for a single tailoring job into one file. The user gets a ready-to-use folder they can open in their file manager and work from.
 
@@ -231,7 +231,7 @@ The txt files are plain text, not markdown or docx, because the user is pasting 
 
 **Endpoint**: `GET /api/jds/{id}/tailoring/{job_id}/package` — returns a zip. Sits next to the existing `/docx` endpoint. Backend assembles the zip in memory using Python's `zipfile` module (no temp files, no disk writes). The zip is small (~50-100KB for text + one docx).
 
-**What this needs**: One new endpoint in `jds.py`, ~40 lines. No new models, no migrations, no new services. All data is already in TailoringJob + JD rows. Fits in a Sprint 11 sub-task or a small standalone commit.
+**What this needs**: One new endpoint in `jds.py`, ~40 lines. No new models, no migrations, no new services. All data is already in TailoringJob + JD rows. Shipped in Sprint 11.
 
 **Alternatives considered**:
 - Frontend-assembled zip (JSZip library, multiple fetch calls): works but slower, adds a JS dependency, and the frontend has to know the file layout. Backend already has all the data in one query.
