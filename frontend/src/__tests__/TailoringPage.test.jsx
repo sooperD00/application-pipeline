@@ -154,9 +154,10 @@ describe('TailoringPage', () => {
     // prevent mock leakage between tests
     vi.restoreAllMocks()
     
-    // Suppress setInterval from polling in tests
-    // so tests don't flake from real setTimeout races
-    vi.useFakeTimers({ shouldAdvanceTime: false })  
+    // Fake timers intercept setInterval (polling) so it doesn't fire
+    // uncontrolled during tests. shouldAdvanceTime: true lets Testing
+    // Library's internal setTimeout still work for waitFor retries.
+    vi.useFakeTimers({ shouldAdvanceTime: true })  
   })
 
   afterEach(() => {
