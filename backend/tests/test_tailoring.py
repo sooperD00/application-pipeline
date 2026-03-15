@@ -7,6 +7,11 @@ Tests the endpoint wiring, DB state transitions, and prompt assembly logic.
 Claude API is mocked — no real API calls.
 
 Run with: pytest tests/test_tailoring.py -v
+
+Note: folder = "Acme_Corp_Senior_Data_Engineer" in all 3 zip tests comes from 
+`seeded_session_with_jds` fixture. If fixture is changed, confusing error will be 
+"key not found in zip" error. Could extract but don't want to couple naming logic 
+to the tests. So FYI.
 """
 
 import json
@@ -853,3 +858,221 @@ async def test_tailoring_pipeline_prompt_to_docx():
     async with test_engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.drop_all)
     await test_engine.dispose()
+
+
+# ── Sprint 11: GET /api/jds/{id}/tailoring/{job_id}/package ──────────────────
+
+@pytest.mark.asyncio
+async def test_download_package_returns_valid_zip(
+    client, db_session, seeded_user, seeded_resume, seeded_session_with_jds,
+):
+    """A ready job should return a zip bundle per ADR-014."""
+    _, jd_apply, _ = seeded_session_with_jds
+
+    # Give the JD analysis text so analysis.txt isn't just the placeholder
+    jd_apply.analysis_text = "Strong fit — Kafka experience."
+    db_session.add(jd_apply)
+    await db_session.commit()
+
+    job = TailoringJob(
+        jd_id=jd_apply.id,
+        resume_id=seeded_resume.id,
+        prompt_snapshot="test prompt",
+        status=TailoringStatus.ready,
+        model_used="claude-opus-4-6",
+        output_resume="Nicole L. Rowsey\nStaff engineer...",
+        output_resume_docx=b"PK\x03\x04fake-docx-content",
+        output_cover_letter="Dear Hiring Manager...",
+        output_app_answers=[{"question": "Why us?", "answer": "Mission alignment."}],
+        completed_at=datetime.utcnow(),
+    )
+    db_session.add(job)
+    await db_session.commit()
+    await db_session.refresh(job)
+
+    response = await client.get(f"/api/jds/{jd_apply.id}/tailoring/{job.id}/package")
+    assert response.status_code == 200
+    assert "application/zip" in response.headers["content-type"]
+
+    # Validate zip contents
+    import zipfile as zf
+    from io import BytesIO
+
+    buf = BytesIO(response.content)
+    assert zf.is_zipfile(buf)
+
+    buf.seek(0)
+    with zf.ZipFile(buf) as z:
+        names = z.namelist()
+        folder = "Acme_Corp_Senior_Data_Engineer"
+        assert f"{folder}/resume.docx" in names
+        assert f"{folder}/jd.txt" in names
+        assert f"{folder}/cover_letter.txt" in names
+        assert f"{folder}/app_questions.txt" in names
+        assert f"{folder}/analysis.txt" in names
+        assert f"{folder}/notes.txt" in names
+
+        # Verify content
+        jd_txt = z.read(f"{folder}/jd.txt").decode()
+        assert "Acme Corp" in jd_txt  # metadata header
+        assert "senior data engineer" in jd_txt.lower()  # cleaned text
+
+        analysis_txt = z.read(f"{folder}/analysis.txt").decode()
+        assert "Kafka" in analysis_txt
+
+        cl_txt = z.read(f"{folder}/cover_letter.txt").decode()
+        assert "Dear Hiring Manager" in cl_txt
+
+        qa_txt = z.read(f"{folder}/app_questions.txt").decode()
+        assert "Why us?" in qa_txt
+        assert "Mission alignment" in qa_txt
+
+
+@pytest.mark.asyncio
+async def test_download_package_not_ready_returns_404(
+    client, db_session, seeded_user, seeded_resume, seeded_session_with_jds,
+):
+    """Package download should fail for non-ready jobs."""
+    _, jd_apply, _ = seeded_session_with_jds
+
+    job = TailoringJob(
+        jd_id=jd_apply.id,
+        resume_id=seeded_resume.id,
+        prompt_snapshot="test",
+        status=TailoringStatus.queued,
+        model_used="claude-opus-4-6",
+    )
+    db_session.add(job)
+    await db_session.commit()
+    await db_session.refresh(job)
+
+    response = await client.get(f"/api/jds/{jd_apply.id}/tailoring/{job.id}/package")
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_download_package_omits_optional_files(
+    client, db_session, seeded_user, seeded_resume, seeded_session_with_jds,
+):
+    """No cover letter or app answers → those files are omitted from the zip."""
+    _, jd_apply, _ = seeded_session_with_jds
+
+    job = TailoringJob(
+        jd_id=jd_apply.id,
+        resume_id=seeded_resume.id,
+        prompt_snapshot="test",
+        status=TailoringStatus.ready,
+        model_used="claude-opus-4-6",
+        output_resume="Nicole L. Rowsey",
+        output_resume_docx=b"PK\x03\x04fake",
+        # no cover letter, no app answers
+        completed_at=datetime.utcnow(),
+    )
+    db_session.add(job)
+    await db_session.commit()
+    await db_session.refresh(job)
+
+    response = await client.get(f"/api/jds/{jd_apply.id}/tailoring/{job.id}/package")
+    assert response.status_code == 200
+
+    import zipfile as zf
+    from io import BytesIO
+
+    buf = BytesIO(response.content)
+    with zf.ZipFile(buf) as z:
+        names = z.namelist()
+        folder = "Acme_Corp_Senior_Data_Engineer"
+        # Required files present
+        assert f"{folder}/resume.docx" in names
+        assert f"{folder}/jd.txt" in names
+        assert f"{folder}/analysis.txt" in names
+        assert f"{folder}/notes.txt" in names
+        # Optional files absent
+        assert f"{folder}/cover_letter.txt" not in names
+        assert f"{folder}/app_questions.txt" not in names
+
+
+# ── Sprint 11: failed status ────────────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_get_tailoring_job_failed_status(
+    client, db_session, seeded_user, seeded_resume, seeded_session_with_jds,
+):
+    """A failed job should poll as 'failed'."""
+    _, jd_apply, _ = seeded_session_with_jds
+
+    job = TailoringJob(
+        jd_id=jd_apply.id,
+        resume_id=seeded_resume.id,
+        prompt_snapshot="test prompt",
+        status=TailoringStatus.failed,
+        model_used="claude-opus-4-6",
+    )
+    db_session.add(job)
+    await db_session.commit()
+    await db_session.refresh(job)
+
+    response = await client.get(f"/api/jds/{jd_apply.id}/tailoring/{job.id}")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["status"] == "failed"
+    assert data["output_resume"] is None
+    assert data["has_docx"] is False
+
+
+@pytest.mark.asyncio
+async def test_batch_tailor_skips_queued_and_processing_jobs(
+    client, db_session, seeded_user, seeded_resume, seeded_session_with_jds, seeded_templates,
+):
+    """Sprint 11: skip logic should also skip queued/processing (not just ready)."""
+    session, jd_apply, _ = seeded_session_with_jds
+
+    # Create a queued job — batch-tailor should skip this JD
+    queued_job = TailoringJob(
+        jd_id=jd_apply.id,
+        resume_id=seeded_resume.id,
+        prompt_snapshot="in progress",
+        status=TailoringStatus.queued,
+        model_used="claude-opus-4-6",
+    )
+    db_session.add(queued_job)
+    await db_session.commit()
+
+    with patch("app.routers.sessions.run_batch_tailor", new_callable=AsyncMock):
+        response = await client.post(f"/api/sessions/{session.id}/batch-tailor")
+
+    assert response.status_code == 202
+
+    data = response.json()
+    # jd_apply already has a queued job → skipped → 0 new jobs
+    assert data["jd_count"] == 0
+    assert len(data["jobs"]) == 0
+
+
+@pytest.mark.asyncio
+async def test_batch_tailor_does_not_skip_failed_jobs(
+    client, db_session, seeded_user, seeded_resume, seeded_session_with_jds, seeded_templates,
+):
+    """Sprint 11: failed jobs should NOT be skipped — user wants a retry."""
+    session, jd_apply, _ = seeded_session_with_jds
+
+    failed_job = TailoringJob(
+        jd_id=jd_apply.id,
+        resume_id=seeded_resume.id,
+        prompt_snapshot="broke",
+        status=TailoringStatus.failed,
+        model_used="claude-opus-4-6",
+    )
+    db_session.add(failed_job)
+    await db_session.commit()
+
+    with patch("app.routers.sessions.run_batch_tailor", new_callable=AsyncMock):
+        response = await client.post(f"/api/sessions/{session.id}/batch-tailor")
+
+    assert response.status_code == 202
+
+    data = response.json()
+    # failed job doesn't block a new attempt
+    assert data["jd_count"] == 1
+    assert len(data["jobs"]) == 1
