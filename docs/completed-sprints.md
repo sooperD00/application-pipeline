@@ -4,6 +4,23 @@
 
 ---
 
+## Sprint 11 — Frontend: Tab 4 (Tailoring) 3/15/2026
+
+Tailoring kickoff UI per JD. Status polling (queued → processing → ready) using `GET /sessions/{id}/tailoring-jobs`. Output view: resume text, cover letter, app answers. Download button for docx.
+
+- Zip download: `GET /api/jds/{id}/tailoring/{job_id}/package` — bundles resume.docx + jd.txt + cover_letter.txt + app_questions.txt + analysis.txt + notes.txt into one zip (ADR-014). ~40 lines in jds.py, no new deps. Add `downloadTailoringPackage` to api/client.js.
+
+Context load for this sprint: `jds.py` (389 lines), `tailoring.py` (362 lines), `sessions.py` (538 lines — dashboard endpoint, batch-tailor phantom fix, stale Sprint 9 comment), `models.py` (291 lines — `failed` enum addition), `client.js` (~210 lines), plus the new TailoringPage — ~1,800 lines of existing reference alongside new frontend work. Fits one Opus 4.6 context window but it's the heaviest sprint in the plan.
+
+Housekeeping that fits naturally here:
+- [x] batch-tailor skip logic doesn't account for processing/queued jobs (could create duplicates if you double-click "Apply All" fast) — real concern now that there's a UI button
+- [x] `batchTailor()` in client.js sends a phantom `resume_id` body param, same issue `analyzeSession()` had (fixed in Sprint 10). The backend's `batch_tailor_session` takes no body model — it fetches all user resumes internally and picks `resumes[0].id` for the FK. Fix: drop the body, simplify to `batchTailor(sessionId, { force })`.
+- [x] `createTailoringJob()` in client.js sends `{ resume_id }` but the backend endpoint (jds.py line 259) takes no body — same phantom pattern. First sprint where single-JD tailoring is called from UI. Fix: `createTailoringJob(jdId)` with no body.
+- [x] `sessions.py` line 376 and `jds.py` line 222 both say "Tab 4 prerequisite (Sprint 9)" — should be Sprint 11 after the reshuffle. Fix while you're already in those files.
+- [x] `resume_id` on tailoring jobs can now be null (Sprint 9 — source resume deleted after tailoring ran). `TailoringJobRead` and `TailoringJobDashboardRead` both expose `UUID | None`. TailoringPage needs to handle this gracefully — show "Source resume deleted" or omit the label. One-liner but easy to miss if it's not in the spec.
+- [x] **Add `failed` to `TailoringStatus` enum.** Currently only `queued`, `processing`, `ready`, `reviewed` — no failure state. If the Claude API errors out or the `resume_generation` PromptTemplate is missing, `run_tailoring_job` silently returns and the job sits at `queued` forever. With a polling UI, "perpetually queued" is indistinguishable from "dead." Fix: add `failed` value (one-line Alembic migration), set it in the error paths in tailoring.py, show it in the TailoringPage UI. This is the sprint where the stuck-job UX becomes visible, so this is where it belongs.
+
+
 ## Sprint 10 — Frontend: SSE + Cards 3/13/2026
 `application-pipeline-20260313-1544`
 

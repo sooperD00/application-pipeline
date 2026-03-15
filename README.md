@@ -73,7 +73,7 @@ Requires a `.env` with `ANTHROPIC_API_KEY` and `DATABASE_PUBLIC_URL`.
 ApplicationPipeline/
 ├── README.md
 ├── backend/
-│   ├── tests/                       # - [x]  71/71 BE Tests Pass
+│   ├── tests/                       # - [x]  77/77 BE Tests Pass
 │   │   ├── conftest.py
 │   │   ├── test_resumes.py
 │   │   ├── test_sessions.py
@@ -120,7 +120,7 @@ ApplicationPipeline/
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx                  # - [x] nav bar (ADR-015) + nested routes (react-router-dom v7)
-│   │   ├── __tests__/               # 39/39 FE Tests Pass
+│   │   ├── __tests__/               # 51/51 FE Tests Pass
 │   │   │   ├── App.test.jsx            # - [x] shell/routing tests (all static)
 │   │   │   ├── JDCard.test.jsx         # - [x] component test: card renders props, no API awareness
 │   │   │   ├── ResumesPage.test.jsx    # - [x] resume CRUD flow, 3-resume cap UI, error states
@@ -147,7 +147,7 @@ ApplicationPipeline/
 │   │   │   ├── ResumeForm.jsx          # - [x] create + edit mode, text area + label
 │   │   │   ├── SessionCreateForm.jsx   # - [x] board, filters, search_term
 │   │   │   ├── CardFan.jsx             # - [ ] Tab 1: fanned card layout, color-coded sort
-│   │   │   ├── TailoringStatus.jsx     # - [ ] Tab 4: status boxes, output viewer
+│   │   │   ├── TailoringStatus.jsx     # - [x] Tab 4: status boxes, output viewer
 │   │   │   └── ActiveList.jsx          # - [ ] Active Applications: to-do by due date
 │   │   ├── hooks/
 │   │   │   └── useSSE.js               # - [x] SSE consumption for batch analysis

@@ -5,23 +5,6 @@
 ---
 
 
-## Sprint 11 — Frontend: Tab 4 (Tailoring)
-
-Tailoring kickoff UI per JD. Status polling (queued → processing → ready) using `GET /sessions/{id}/tailoring-jobs`. Output view: resume text, cover letter, app answers. Download button for docx.
-
-- Zip download: `GET /api/jds/{id}/tailoring/{job_id}/package` — bundles resume.docx + jd.txt + cover_letter.txt + app_questions.txt + analysis.txt + notes.txt into one zip (ADR-014). ~40 lines in jds.py, no new deps. Add `downloadTailoringPackage` to api/client.js.
-
-Context load for this sprint: `jds.py` (389 lines), `tailoring.py` (362 lines), `sessions.py` (538 lines — dashboard endpoint, batch-tailor phantom fix, stale Sprint 9 comment), `models.py` (291 lines — `failed` enum addition), `client.js` (~210 lines), plus the new TailoringPage — ~1,800 lines of existing reference alongside new frontend work. Fits one Opus 4.6 context window but it's the heaviest sprint in the plan.
-
-Housekeeping that fits naturally here:
-- [ ] batch-tailor skip logic doesn't account for processing/queued jobs (could create duplicates if you double-click "Apply All" fast) — real concern now that there's a UI button
-- [ ] `batchTailor()` in client.js sends a phantom `resume_id` body param, same issue `analyzeSession()` had (fixed in Sprint 10). The backend's `batch_tailor_session` takes no body model — it fetches all user resumes internally and picks `resumes[0].id` for the FK. Fix: drop the body, simplify to `batchTailor(sessionId, { force })`.
-- [ ] `createTailoringJob()` in client.js sends `{ resume_id }` but the backend endpoint (jds.py line 259) takes no body — same phantom pattern. First sprint where single-JD tailoring is called from UI. Fix: `createTailoringJob(jdId)` with no body.
-- [ ] `sessions.py` line 376 and `jds.py` line 222 both say "Tab 4 prerequisite (Sprint 9)" — should be Sprint 11 after the reshuffle. Fix while you're already in those files.
-- [ ] `resume_id` on tailoring jobs can now be null (Sprint 9 — source resume deleted after tailoring ran). `TailoringJobRead` and `TailoringJobDashboardRead` both expose `UUID | None`. TailoringPage needs to handle this gracefully — show "Source resume deleted" or omit the label. One-liner but easy to miss if it's not in the spec.
-- [ ] **Add `failed` to `TailoringStatus` enum.** Currently only `queued`, `processing`, `ready`, `reviewed` — no failure state. If the Claude API errors out or the `resume_generation` PromptTemplate is missing, `run_tailoring_job` silently returns and the job sits at `queued` forever. With a polling UI, "perpetually queued" is indistinguishable from "dead." Fix: add `failed` value (one-line Alembic migration), set it in the error paths in tailoring.py, show it in the TailoringPage UI. This is the sprint where the stuck-job UX becomes visible, so this is where it belongs.
-
-
 ## Sprint 12 — Deploy to Railway
 
 Environment variables, Alembic migration on prod DB, CORS for prod domain. Half-session if nothing is on fire.
@@ -34,6 +17,10 @@ Critical: **run the seed script** (or equivalent migration) on first deploy. `ru
 ## Sprint 13 — Tests
 
 Audit test coverage, fill gaps. Priority: `test_analysis.py` (batching logic, error/retry with mocked Claude client), then anything needed for multi-user safety in Phase 1.
+
+## Sprint 14 - Multi-Auth options for my beta testers?
+The cheapest path is separate Railway instances per user — each gets their own DB, their own environment. Ugly, doesn't scale, but it's zero sprints and you could charge for it tomorrow.
+Real multi-tenant auth (user model, foreign keys on every table, login flow, protected routes) is probably 2-3 sprints depending on how tangled the default user assumption is through the codebase. The database migration is the scariest part — adding user_id foreign keys to sessions, resumes, jobs, tailoring outputs, all of it.
 
 ---
 
@@ -70,6 +57,11 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 - [ ] analyzeSession() currently has no AbortController integration — if the user navigates away mid-stream, useSSE.abort() cancels the reader but doesn't abort the fetch itself. The backend stream_analysis generator will continue running until it finishes or the connection drops. Harmless for single-user MVP (the results still write to DB correctly), but wasteful. Add AbortController to the fetch call in Sprint 11 (already in client.js) or Phase 1.
 - [ ] MetaAnalysis text is rendered as whitespace-pre-wrap plain text. If Claude's meta_analysis includes markdown formatting (bold, lists), it won't render. Could add a lightweight markdown renderer later, but plain text is fine for MVP — the analysis prompt doesn't ask for markdown.
 - [ ] The Analyze button always says "Analyze" even for re-analysis. Could say "Re-analyze" when session.status === 'complete'. Polish, not function.
+- [ ] Add a meta analysis to tailored resumes, either "all" or maybe that's too much... at least in 1 session... to see if it was even worth it to tailor. This gives me (the dev) feedback on how worthwhile this part of the tool is, and gives the user feedback that this was actually worth the money, rather than just having claude pick "apply to these 6 out of 25 and use resume #1" from the "analyze" phase on its own. This could just be sending the completed tailored resumes and JDs through a fresh claude call and asking for this analysis and displying in a box.
+- [ ] Tab 4 "Batch Tailor All" button could also live on Tab 1 (next to Analyze) — Nicole will decide placement later
+- [ ] Jobs where the JD status changed AFTER tailoring (apply → maybe) still show on Tab 4. This is intentional (output exists), but could add a visual indicator "JD status changed to maybe" in a future sprint.
+- [ ] Polling has no exponential backoff — 3s forever until terminal. Fine for MVP, but if someone leaves the tab open overnight it's chatty. Phase 1: increase interval after 60s.
+- [ ] No AbortController on the polling fetch — same issue noted in housekeeping for analyzeSession.
 
 
 ## Tech Debt
@@ -83,4 +75,12 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 - [ ] Phase N. line-clamp-3 depends on -webkit-line-clamp which is non-standard but supported in all modern browsers. If it ever breaks, fall back to a JS truncation.
 - [ ] Phase N: observe behavior post-launch. The Analyze button re-enables immediately on error via `finally { setIsAnalyzing(false) }`. No retry budget or rate limiting exists yet. Monitor real usage for repeated error-retry loops before deciding whether to add a retry counter, cooldown timer, or backend cost cap. Backend concern to gate at the API/billing layer? or also on the button? Precedent: Sprint 3 batch analysis already has per-session cost tracking that
 could be extended. Status: Acceptable risk for MVP. Revisit after first real-user sessions.
-- [ ] PhaseN: The jdOverrides state overlay pattern works but creates a brief window where context jds and overrides can disagree (between stream end and refreshSession resolving). This is harmless — the override data matches what the backend wrote — but a more robust pattern would be to optimistically update the context itself. Phase 1 if it causes issues.
+- [ ] Phase N: The jdOverrides state overlay pattern works but creates a brief window where context jds and overrides can disagree (between stream end and refreshSession resolving). This is harmless — the override data matches what the backend wrote — but a more robust pattern would be to optimistically update the context itself. Phase 1 if it causes issues.
+- [ ] Phase N: On "only apply jobs in Tab 4"- a nuance. The batch-tailor endpoint only creates jobs for apply-status JDs (backend enforced). The listSessionTailoringJobs endpoint returns all tailoring jobs that exist for the session — so if a JD was "apply" when tailored but later changed to "maybe," its job still shows up. I'll show whatever the backend returns rather than client-side filtering, since the output exists and is useful regardless of current status. The per-JD "Tailor" button on each card will only be active for apply-status JDs without an existing job. gotta figure out exactly how we want to deal with this in Phase N when we let users change "apply" status to "maybe" or whatever.
+- [ ] Phase N: currently no place to see the claude analysis for each JD (usually he returns a nice chart of skill matches and summary)
+- [ ] Phase ?:  if you have old jobs stuck at queued from before this sprint, they'll stay there. The migration adds the enum value but doesn't retroactively fix stale rows. Manual SQL or just delete them.
+- [ ]  add a "download all" button (downloads zip with folder structure like session_title_timestamp/[company_role_timestamp_folders]/[files] so user can just get them all if they've iterated a process that they don't usually have to chat with claude to revise and can just open and check by themselves before doing the apply
+- [ ] onRetry cap for createTailoringJob (FE and BE). no runaway loop to worry about here but, need to make a cap to limit my cost (hitting my claude API key) for 1) friends testing and 2) probably my first real paying users will just have a limit for a set dollar subscription or batch package 3) I can add like... a-la-carte pricing later if I want.). `tailoring.py` update for later (unless we think my friends are gonna hit this 400 times...).
+- [ ] TailoringPage: extract useTailoringData hook (polling, fetchJobs, derivations) when Phase N inline chat adds enough complexity that the page's render body obscures the JSX. Currently ~15 lines of derivation logic — comfortable, but one more feature tips it.
+- [ ] TailoringPage tests: add polling lifecycle test (advance fake timers, assert queued→ready transition updates UI). Highest-complexity React test pattern — fake timers + async state + act() wrapping. Defer until polling logic gets more complex or a bug surfaces.
+- [ ] The "failed" error paths in tailoring.py are repetitive (6x the same pattern: set status, add, commit, return). A context manager or decorator could DRY this up. Not worth the abstraction for 6 lines each, but note it if it grows.
