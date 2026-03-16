@@ -2,7 +2,7 @@
 
 **Job application orchestration for humans.**
 
-Takes you from 600 LinkedIn results to 6 tailored applications running in the background — in under 20 minutes. Then tells you what's working so you can do it better next week.
+Paste 25 job descriptions in 2 minutes — and receive an analysis of your skills vs the posted roles, individually and as a group, a ranking of which to "apply" to vs "maybe" or "no", plus tailored resumes and cover letters for the ones worth your time. The whole thing runs in the background in about 6 minutes. You can review the meta analysis and make a plan to sharpen your docs or skills while you wait.
 
 ## What It Does
 
@@ -10,19 +10,19 @@ You paste job descriptions. The platform analyzes them against your resume, reco
 
 Built around a real workflow that increased callback rates during a real job search. Opinionated defaults, editable prompts, and funnel analytics that show you where to focus.
 
-<!-- SCREENSHOT: full app chrome showing nav bar with all 5 tabs — establishes the product scope at a glance -->
+![Scrape & Analyze tab with LinkedIn side-by-side — paste JDs straight from search results](docs/scrape-and-analyze.PNG)
 
 ## The Funnel
 
 ```
-600 job board results
- → 25 scraped JDs (manual, ~2 min)
+LinkedIn filtered search (last 24h, etc)
+ → paste ~25 JDs (2 min of copy-paste)
   → 6 Apply recommendations (AI analysis, ~5 min)
-   → 6 tailored applications (background generation, ~10 min)
+   → 6 tailored applications (background generation, ~2 min)
     → track → interview → offer
 ```
 
-<!-- SCREENSHOT: session detail page with pasted JDs as cards (pre-analysis, all gray) — shows the data entry UX -->
+![Sessions board — each row is a search session with JD count and status](docs/sessions-board.PNG)
 
 ## Stack
 
@@ -40,8 +40,19 @@ Built around a real workflow that increased callback rates during a real job sea
 
 Live at [application-pipeline-production.up.railway.app](https://application-pipeline-production.up.railway.app/). The core loop works end-to-end: paste JDs, kick off AI analysis, watch cards sort themselves green/yellow/red in real time, then kick off tailoring and download zip packages of tailored resumes, cover letters, and app answers. Cookie-based anonymous auth isolates data per browser — no login required. See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap.
 
-<!-- SCREENSHOT: card grid mid-analysis (green/yellow/red animation) — the "show a non-engineer" moment -->
-<!-- SCREENSHOT: tailoring output view with download/zip buttons — the "it actually did the work" moment -->
+![Card grid after analysis — green/yellow/red recommendations with rolling meta analysis](docs/_200-dollar-meta-analysis.PNG)
+
+![Tailoring complete — download individual resumes or full zip packages](docs/batch-tailor-all-post.PNG)
+
+### Output
+
+Each zip package contains the JD analysis, the original job description, and a tailored resume — ready to open in Word and submit.
+
+![Zip package contents — analysis, JD, and tailored resume per application](docs/zip_package_jd_analysis_tailoredresume.PNG)
+
+The tailoring isn't cosmetic. Each resume is restructured for the target role — different summaries, reordered skills, reframed bullet points.
+
+![Side-by-side tailored resumes in Word — different summaries, skills, and bullet points per role](docs/tailored-resumes-are-actually-different-docx.PNG)
 
 ## Quick Start
 
