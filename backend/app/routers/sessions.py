@@ -18,12 +18,13 @@ Assumes:
     - models.py is at the package root
     - services/claude.py, services/analysis.py, services/tailoring.py exist
 """
+import secrets
 
 from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Cookie, Response
 from fastapi.background import BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -51,15 +52,40 @@ from ..services.tailoring import MAX_RESUMES, run_batch_tailor
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
 
-# ── Auth stub ─────────────────────────────────────────────────────────────────
-# Replace this with real cookie auth when you get there.
-# For now it grabs the first user in the DB — enough to test the data path.
+# ── Auth: cookie-based anonymous sessions ─────────────────────────────────────
+# Each browser gets a unique token on first visit → its own User row → isolated
+# data. No login, no email, no friction. Phase 1 adds magic-link accounts that
+# adopt the anonymous user's data.
 
-async def get_current_user(db: AsyncSession = Depends(get_session)) -> User:
-    result = await db.execute(select(User))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(status_code=401, detail="No user found — seed one first")
+async def get_current_user(
+    response: Response,
+    db: AsyncSession = Depends(get_session),
+    auth_token: str | None = Cookie(default=None),
+) -> User:
+    # Returning visitor — look up by cookie
+    if auth_token:
+        result = await db.execute(
+            select(User).where(User.auth_token == auth_token)
+        )
+        user = result.scalars().first()
+        if user:
+            return user
+
+    # New visitor (or stale cookie) — create a user, set the cookie
+    token = secrets.token_urlsafe(32)
+    user = User(auth_token=token)
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+
+    response.set_cookie(
+        key="auth_token",
+        value=token,
+        max_age=60 * 60 * 24 * 30,  # 30 days for beta
+        httponly=True,
+        secure=settings.environment != "development",
+        samesite="lax",
+    )
     return user
 
 

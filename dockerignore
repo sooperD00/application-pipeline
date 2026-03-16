@@ -1,0 +1,20 @@
+# Never ship these
+.env
+backend/.env
+.git
+
+# Frontend source isn't needed — the built dist/ is copied from stage 1
+frontend/node_modules
+frontend/dist
+
+# Python caches
+__pycache__
+*.pyc
+.pytest_cache
+backend/.pytest_cache
+
+# Editor/OS junk
+.vscode
+.idea
+.DS_Store
+*.swp

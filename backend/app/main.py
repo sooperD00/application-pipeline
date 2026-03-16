@@ -1,16 +1,20 @@
 """
 ApplicationPipeline — FastAPI entry point.
 
-Phase 0, Sprint 6+. Backend is functional: session/JD CRUD, resume CRUD,
+Phase 0, Sprint 11. Backend is functional: session/JD CRUD, resume CRUD,
 Claude batch analysis (SSE), parallel tailoring with docx generation,
-skip-already-tailored logic, and batch status dashboards. 71 tests passing.
-Frontend is scaffolded but not yet wired.
+skip-already-tailored logic, batch status dashboards, zip downloads.
+Frontend: full session flow, SSE card animations, resume management,
+tailoring UI with polling and output display.
 """
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from .config import settings
 from .database import create_db_and_tables
@@ -46,42 +50,26 @@ async def health() -> dict:
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 from .routers import sessions, jds, resumes
-app.include_router(sessions.router)  # prefix: /api/sessions
-app.include_router(jds.router)       # prefix: /api/jds
-app.include_router(resumes.router)   # prefix: /api/resumes
-# app.include_router(activities.router, prefix="/api/activities", tags=["activities"])
+app.include_router(sessions.router)
+app.include_router(jds.router)
+app.include_router(resumes.router)
 
 
-if __name__ == "__main__":
-    # ── Dev seed: python -m app.main ─────────────────────────────────────────────
-    import asyncio
-    from .database import AsyncSessionLocal
-    from .models import User
+# ── SPA static serving (production only) ─────────────────────────────────────
+# In dev, this directory doesn't exist — Vite proxy handles the frontend.
+# In production, the Dockerfile copies the built React app into /app/static/.
+_static_dir = Path(__file__).resolve().parent.parent / "static"
 
-    async def seed():
-        async with AsyncSessionLocal() as db:
-            user = User(auth_token="test-token")
-            db.add(user)
-            await db.commit()
-            print("Seeded test user.")
+if _static_dir.exists():
+    app.mount(
+        "/assets",
+        StaticFiles(directory=_static_dir / "assets"),
+        name="static-assets",
+    )
 
-    asyncio.run(seed())
-
-    """
-    What to check:
-    ----------------
-    Go to http://localhost:8000/docs — Swagger UI, everything is clickable. Hit the endpoints in order:
-
-    POST /api/sessions — create a session, copy the id from the response
-    POST /api/sessions/{id}/jds — paste a real JD in raw_text, use the session id
-    GET /api/sessions/{id} — confirm the JD came back cleaned and numbered correctly
-
-    What to verify on that GET:
-
-    raw_text ≠ cleaned_text if you pasted something messy (try copying a LinkedIn JD — you'll get \xa0s for free)
-    number is 1
-    status is pending, status_source is ai
-    jd_count is 1
-
-    If Postgres isn't running locally yet, docker compose up -d db (or Railway's dev DB) before step 2.
-    """
+    @app.get("/{full_path:path}")
+    async def _serve_spa(full_path: str):
+        file_path = _static_dir / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(_static_dir / "index.html")
