@@ -5,23 +5,6 @@
 ---
 
 
-## Sprint 12 — Deploy to Railway
-
-Environment variables, Alembic migration on prod DB, CORS for prod domain. Half-session if nothing is on fire.
-
-Critical: **run the seed script** (or equivalent migration) on first deploy. `run_tailoring_job` checks for the `resume_generation` PromptTemplate and sets `status = failed` if it's missing (tailoring.py line 300). A fresh DB with just `alembic upgrade head` gives you empty template tables and every tailoring job immediately fails with a visible error — better than the silent bail that existed before Sprint 11, but still broken. Either:
-- Add seed data to an Alembic data migration, or
-- Document `python -m scripts.seed` as a required post-deploy step
-
-Frontend deployment decision: the Vite dev server proxies `/api` to FastAPI, but prod needs a real strategy. Two options:
-1. `npm run build` → serve `dist/` as static files from FastAPI (single Railway service, simpler, add a `StaticFiles` mount in main.py)
-2. Separate Railway service for the frontend (two deploys, but cleaner separation, Railway handles static hosting natively)
-
-Option 1 is the cheaper MVP path. Either way, `cors_origins` in config.py needs the prod domain added.
-
-Deliverables: Procfile or railway.toml (or nixpacks config), `npm run build` integration, prod CORS, Alembic migration on prod DB, seed script run, smoke test the full loop.
-
-
 ## Sprint 13 — Tests
 
 Fill concrete gaps. The goal is confidence before adding auth complexity in Sprint 14.
@@ -42,21 +25,22 @@ Frontend — audit:
 Context load: `test_analysis.py` is the heavy one — analysis.py is 331 lines, the SSE protocol has 4 event types, and the mocked Claude client needs to return structured JSON in batches. The rest are incremental additions to existing test files. Fits one context window.
 
 
-## Sprint 14 — Auth for beta testers
+## Sprint 14 — Magic link accounts (Phase 1, not scheduled)
 
-The cheapest path is still separate Railway instances per user — each gets their own DB, their own environment. Ugly, doesn't scale, but it's zero sprints and you could charge for it tomorrow.
+Cookie auth shipped in Sprint 12. Anonymous sessions work, data is isolated per browser, beta testers are unblocked.
 
-Real auth is closer to 1 sprint than originally estimated. The codebase is already structured for multi-user: `get_current_user` is defined once in `sessions.py` and imported by `jds.py` and `resumes.py` via `from .sessions import get_current_user`. Every endpoint uses `Depends(get_current_user)`, every query filters by `user_id`. No FK migration needed — `user_id` columns already exist on all tables. The work is:
-1. Replace the `get_current_user` stub (currently `select(User).first()`) with real cookie/session auth
-2. Add a login/signup flow (magic link is the plan from implementation-plan.md — email + token, no passwords)
-3. Frontend: protected routes, login page, token storage
-4. Seed script: stop creating a default user, let auth handle it
+What's left for real accounts:
+1. Magic link flow: email + token, no passwords. Needs an email provider (Resend or SES), a token table, expiry logic.
+2. Account conversion: anonymous User row adopts into a permanent account when user enters email. Data carries over — no migration, just set `user.email` and clear the expiry.
+3. Frontend: login page, protected routes, auth state management.
 
-The migration concern from the original spec ("adding user_id foreign keys to sessions, resumes, jobs, tailoring outputs, all of it") doesn't apply — those FKs are already in place. The scary part is the magic link email integration (needs an email provider, a token table, expiry logic) and making sure the frontend handles auth state cleanly.
+Not urgent. Cookie auth covers beta. This becomes relevant when persistence beyond 30 days matters or when users want to switch devices.
 
 ---
 
 ## Deferred from Phase 0
+
+**Prompts IP** pull the prompts out of the repo - infra is there to backup to another private repo but prompts are currently in `original-prompts.md`, `service/claude.py`, and `services/analysis.py`
 
 **Activities** (`routers/activities.py`, `services/activities.py`): The data model is in place (Activity table, ActivityType enum, cascade templates designed in service-layer-notes.md), but no router, service, or frontend exists. The README tree and architecture.md list these as Phase 0 scope, but they aren't needed for the core flow (paste → analyze → tailor → download). Deferring to Phase 1 when the Full Tracker makes them visible and useful.
 

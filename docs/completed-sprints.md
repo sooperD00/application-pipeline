@@ -4,6 +4,26 @@
 
 ---
 
+## Sprint 12 — Deploy to Railway 3/15/2026
+
+The app is live. One Railway service serves everything — FastAPI backend + built React frontend as static files.
+
+**Cookie auth shipped.** Replaced the `get_current_user` stub (select first user from DB) with cookie-based anonymous sessions. Each browser gets a unique `auth_token` on first visit → own User row → fully isolated data. `secure` flag conditional on `ENVIRONMENT` setting so cookies work on both localhost and Railway HTTPS. Phase 1 adds magic-link accounts that adopt the anonymous user's data.
+
+**Single-service deploy (Option 1 from the original plan).** Multi-stage Dockerfile: node:20 builds the React frontend, python:3.12-slim runs the backend and serves the built `dist/` as static files via FastAPI's `StaticFiles` mount. Catch-all route serves `index.html` for react-router-dom deep links (bookmarks and refresh work). `start.sh` runs `alembic upgrade head` then starts uvicorn. Railway injects `PORT=8080`; uvicorn reads it via `${PORT:-8000}`.
+
+**Environment separation.** Production DB (original Railway Postgres) and dev DB (new `application-pipeline-dev` Railway Postgres) are fully isolated. No `.env` file in production — env vars set in Railway's dashboard. Local `.env` points at dev DB with `ENVIRONMENT=development`.
+
+Infrastructure files added to repo root: `Dockerfile`, `start.sh`, `.dockerignore`.
+
+**Not needed (from original sprint notes):**
+- Seed script on prod: not required yet — testers create their own data through the UI. PromptTemplate seeding becomes relevant when the prompt editor ships (Phase 2).
+- CORS for prod domain: not needed — frontend is served from the same origin as the API. `cors_origins` only matters if the frontend were on a separate domain.
+- Procfile/railway.toml/nixpacks: Dockerfile was sufficient, Railway detected it automatically.
+
+Done when: live at `application-pipeline-production.up.railway.app`, cookie auth verified in two browsers, beta invites sent.
+
+
 ## Sprint 11 — Frontend: Tab 4 (Tailoring) 3/15/2026
 
 Tailoring kickoff UI per JD. Status polling (queued → processing → ready) using `GET /sessions/{id}/tailoring-jobs`. Output view: resume text, cover letter, app answers. Download button for docx.
