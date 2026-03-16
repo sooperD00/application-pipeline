@@ -1,11 +1,12 @@
 """
 ApplicationPipeline — FastAPI entry point.
 
-Phase 0, Sprint 11. Backend is functional: session/JD CRUD, resume CRUD,
+Phase 0, Sprint 12. Deployed to Railway. Backend: session/JD CRUD, resume CRUD,
 Claude batch analysis (SSE), parallel tailoring with docx generation,
 skip-already-tailored logic, batch status dashboards, zip downloads.
+Cookie-based anonymous auth (get_current_user in sessions.py).
 Frontend: full session flow, SSE card animations, resume management,
-tailoring UI with polling and output display.
+tailoring UI with polling and output display. SPA static serving below.
 """
 from contextlib import asynccontextmanager
 from pathlib import Path

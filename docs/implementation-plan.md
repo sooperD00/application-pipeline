@@ -12,7 +12,7 @@ Built around a proven workflow. Opinionated defaults, editable prompts, and anal
 - **Frontend**: React (Vite)
 - **LLM**: Claude API (Anthropic) — Opus 4.6 by default, configurable per call
 - **Background jobs**: FastAPI `BackgroundTasks` initially, upgrade to `arq`/Redis if needed
-- **Auth** (Phase 2+): anonymous sessions → magic link accounts
+- **Auth**: Cookie-based anonymous sessions (Sprint 12) → magic link accounts (Phase 1)
 
 ## Data Model
 
@@ -120,14 +120,17 @@ Left side — compact table:
 
 ### Phase 0 Deliverables
 
+All shipped (Sprints 1–12):
+
 1. FastAPI project: SQLModel entities, Alembic migrations, Postgres on Railway
 2. Text cleaning utility
 3. Claude API integration: batched analysis with meta-summary, parallel tailoring
 4. React app: Tab 1 (card UI + analyze), Tab 4 (tailoring + output review)
 5. Resume paste & edit (text-only)
-6. Deploy to Railway
+6. Cookie-based anonymous auth (data isolation per browser, no login)
+7. Deploy to Railway (single-service: Dockerfile, SPA static serving)
 
-**Deferred**: Tab 2 Calibrate, Tab 3 Review & Enrich, Full Tracker, compare, analytics, multi-user, auth, payments.
+**Deferred**: Tab 2 Calibrate, Tab 3 Review & Enrich, Full Tracker, compare, analytics, multi-user, magic link accounts, payments.
 
 ---
 
@@ -135,8 +138,7 @@ Left side — compact table:
 
 **Goal**: Two users. Persistence, tracker, and flow polished for someone who didn't design it.
 
-- Anonymous sessions with 7-day server-side persistence (cookie token, nudge to create account)
-- Account creation: email + magic link, converts anonymous data
+- Magic link accounts — builds on Sprint 12's cookie auth. Email + token, converts anonymous User row into a permanent account (data carries over). See Sprint 14 in remaining-sprints.md.
 - Tab 3: Review & Enrich table with all sections
 - Full Tracker on main nav with stage tracking and week groupings
 - Company matching across sessions

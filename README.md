@@ -10,6 +10,8 @@ You paste job descriptions. The platform analyzes them against your resume, reco
 
 Built around a real workflow that increased callback rates during a real job search. Opinionated defaults, editable prompts, and funnel analytics that show you where to focus.
 
+<!-- SCREENSHOT: full app chrome showing nav bar with all 5 tabs — establishes the product scope at a glance -->
+
 ## The Funnel
 
 ```
@@ -20,6 +22,8 @@ Built around a real workflow that increased callback rates during a real job sea
     → track → interview → offer
 ```
 
+<!-- SCREENSHOT: session detail page with pasted JDs as cards (pre-analysis, all gray) — shows the data entry UX -->
+
 ## Stack
 
 | Layer | Tech |
@@ -28,13 +32,16 @@ Built around a real workflow that increased callback rates during a real job sea
 | Frontend | React (Vite) |
 | LLM | Claude API (Anthropic) |
 | Background Jobs | FastAPI BackgroundTasks → arq/Redis |
-| Auth | Anonymous sessions → magic link accounts |
+| Auth | Cookie-based anonymous sessions (Sprint 12) → magic link accounts |
 
 ## Status
 
-🟡 **Phase 0 — In Development**
+🟢 **Phase 0 — Deployed**
 
-The core loop works end-to-end in the browser: paste JDs, kick off AI analysis, watch cards sort themselves green/yellow/red in real time, then kick off tailoring and download zip packages of tailored resumes, cover letters, and app answers. Deployment is next. See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap.
+Live at [application-pipeline-production.up.railway.app](https://application-pipeline-production.up.railway.app/). The core loop works end-to-end: paste JDs, kick off AI analysis, watch cards sort themselves green/yellow/red in real time, then kick off tailoring and download zip packages of tailored resumes, cover letters, and app answers. Cookie-based anonymous auth isolates data per browser — no login required. See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap.
+
+<!-- SCREENSHOT: card grid mid-analysis (green/yellow/red animation) — the "show a non-engineer" moment -->
+<!-- SCREENSHOT: tailoring output view with download/zip buttons — the "it actually did the work" moment -->
 
 ## Quick Start
 
@@ -72,6 +79,9 @@ Requires a `.env` with `ANTHROPIC_API_KEY` and `DATABASE_PUBLIC_URL`.
 ```
 ApplicationPipeline/
 ├── README.md
+├── Dockerfile                       # - [x] Multi-stage: node:20 builds React, python:3.12-slim runs backend + serves dist/
+├── start.sh                         # - [x] alembic upgrade head → uvicorn (Railway injects PORT=8080)
+├── dockerignore                     # - [x]
 ├── backend/
 │   ├── tests/                       # - [x]  77/77 BE Tests Pass
 │   │   ├── conftest.py
