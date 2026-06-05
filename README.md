@@ -8,9 +8,36 @@ Paste 25 job descriptions in 2 minutes — and receive an analysis of your skill
 
 You paste job descriptions. The platform analyzes them against your resume, recommends which ones are worth your time, and generates tailored resumes and cover letters for the winners — in parallel, while you go do something else.
 
-Built around a real workflow that increased callback rates during a real job search. Opinionated defaults, editable prompts, and funnel analytics that show you where to focus.
+Built around a real workflow that, as I developed it, lifted my own interview-callback rate from ~4% to ~11% during a live job search. Opinionated defaults, editable prompts, and funnel analytics that show you where to focus.
 
 ![Scrape & Analyze tab with LinkedIn side-by-side — paste JDs straight from search results](docs/scrape-and-analyze.PNG)
+
+## How It Works — Two-Pass Matching
+
+Most job-matching compares a résumé to a posting and scores overlap. That breaks
+when the work is the same but the vocabulary isn't — a strong candidate gets
+filtered out for describing the role in different words than the posting used.
+Keyword matching and naive embedding similarity both fail here for the same
+reason: they match *language*, not *work*.
+
+So this matches against an expanded role, not the raw posting.
+
+- **Pass 1 — expand the role.** The LLM infers the role's latent
+  responsibilities: day-to-day work, pain points, stakeholder interactions, and
+  technical demands the posting implies but never states. That inference is
+  appended back into context, turning a thin JD into a fuller picture of the
+  actual job.
+- **Pass 2 — score against the expansion.** The system evaluates experience
+  across multiple résumé variants against the *expanded* role. The output isn't a
+  claim that you hold skills you don't — it's a measure of how well real
+  experience maps once both sides are described in full, plus the specific
+  re-emphasis that makes a real match legible to a human screener.
+
+The result is reasoning, not just a number: what the role demands, where
+experience already meets it, and the framing that surfaces the overlap. A score
+can be gamed; a written-out mapping can be checked. Batch ~25 postings to surface
+recurring skill gaps, adjacent role types, and market-level patterns across a
+search session.
 
 ## The Funnel
 
@@ -19,7 +46,7 @@ LinkedIn filtered search (last 24h, etc)
  → paste ~25 JDs (2 min of copy-paste)
   → 6 Apply recommendations (AI analysis, ~5 min)
    → 6 tailored applications (background generation, ~2 min)
-    → track → interview → offer
+    → track → screen → interview
 ```
 
 ![Sessions board — each row is a search session with JD count and status](docs/sessions-board.PNG)
