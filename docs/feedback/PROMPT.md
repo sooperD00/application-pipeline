@@ -2,7 +2,9 @@ Read every file in `batches/` first to see which notes have already
 been processed and which items have already been extracted.
 
 Then read the note files I've given you and extract actionable items.
-Skip anything already captured in a previous batch.
+Skip anything already captured in a previous batch. Read the file in 
+`asks/` referenced by each note's `ask:` field before interpreting that 
+note.
 
 For each item, output:
 - **Title** — issue-ready, imperative, under 10 words
