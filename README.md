@@ -10,7 +10,7 @@ You paste job descriptions. The platform analyzes them against your resume, reco
 
 Built around a real workflow that, as I developed it, lifted my own interview-callback rate from ~4% to ~11% during a live job search. Opinionated defaults, editable prompts, and funnel analytics that show you where to focus.
 
-![Scrape & Analyze tab with LinkedIn side-by-side — paste JDs straight from search results](docs/scrape-and-analyze.PNG)
+![Scrape & Analyze tab with LinkedIn side-by-side — paste JDs straight from search results](docs/img/scrape-and-analyze.PNG)
 
 ## How It Works — Two-Pass Matching
 
@@ -49,7 +49,7 @@ LinkedIn filtered search (last 24h, etc)
     → track → screen → interview
 ```
 
-![Sessions board — each row is a search session with JD count and status](docs/sessions-board.PNG)
+![Sessions board — each row is a search session with JD count and status](docs/img/sessions-board.PNG)
 
 ## Stack
 
@@ -67,19 +67,19 @@ LinkedIn filtered search (last 24h, etc)
 
 Live at [application-pipeline-production.up.railway.app](https://application-pipeline-production.up.railway.app/). The core loop works end-to-end: paste JDs, kick off AI analysis, watch cards sort themselves green/yellow/red in real time, then kick off tailoring and download zip packages of tailored resumes, cover letters, and app answers. Cookie-based anonymous auth isolates data per browser — no login required. See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap.
 
-![Card grid after analysis — green/yellow/red recommendations with rolling meta analysis](docs/_200-dollar-meta-analysis.PNG)
+![Card grid after analysis — green/yellow/red recommendations with rolling meta analysis](docs/img/_200-dollar-meta-analysis.PNG)
 
-![Tailoring complete — download individual resumes or full zip packages](docs/batch-tailor-all-post.PNG)
+![Tailoring complete — download individual resumes or full zip packages](docs/img/batch-tailor-all-post.PNG)
 
 ### Output
 
 Each zip package contains the JD analysis, the original job description, and a tailored resume — ready to open in Word and submit.
 
-![Zip package contents — analysis, JD, and tailored resume per application](docs/zip_package_jd_analysis_tailoredresume.PNG)
+![Zip package contents — analysis, JD, and tailored resume per application](docs/img/zip_package_jd_analysis_tailoredresume.PNG)
 
 The tailoring isn't cosmetic. Each resume is restructured for the target role — different summaries, reordered skills, reframed bullet points.
 
-![Side-by-side tailored resumes in Word — different summaries, skills, and bullet points per role](docs/tailored-resumes-are-actually-different-docx.PNG)
+![Side-by-side tailored resumes in Word — different summaries, skills, and bullet points per role](docs/img/tailored-resumes-are-actually-different-docx.PNG)
 
 ## Quick Start
 
