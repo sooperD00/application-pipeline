@@ -9,9 +9,23 @@ thrown away.
 ## Run it
 
 ```bash
-pip install -r requirements.txt
-export ANTHROPIC_API_KEY=sk-ant-...
+# 1. Make sure the venv stays untracked (adds the rule if it got lost in transit)
+grep -q '\.venv' .gitignore || echo '.venv/' >> .gitignore  # local .gitignore
+grep -q '.env' .gitignore || echo '.env' >> .gitignore  # don't expose your API key
 
+# 2. Build it
+python -m venv .venv
+source .venv/Scripts/activate    # macOS/Linux: source .venv/bin/activate
+
+# 3. Fill it
+python -m pip install -r requirements.txt
+
+# 4. Claude Developer API Key
+cp .env.example .env
+# add your real key from https://console.anthropic.com/settings/keys to .env
+# check you have $ in your account (lower left sidebar): https://console.anthropic.com/settings/cost
+
+# 5. Run it
 python lab.py --dry-run     # no key needed, fake extraction, proves the plumbing
 python lab.py               # the real thing
 open out/report.html

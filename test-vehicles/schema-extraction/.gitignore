@@ -3,3 +3,4 @@ samples/*
 out/
 .env
 __pycache__/
+.venv

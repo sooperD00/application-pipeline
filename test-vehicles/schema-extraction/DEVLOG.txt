@@ -1,0 +1,38 @@
+7/25/2026
+application-pipeline\test-vehicles\schema-extraction
+
+
+---
+
+
+# 7/25/2026 Set up venv for this test vehicle
+
+- nexted venvs don't fight each other
+- python -m venv writes an absolute path into its own scripts
+git bash
+- [-] cd /c/Users/Barac0da/source/repos/application-pipeline/test-vehicles/schema-extraction
+- [-] deactivate 2>/dev/null   # in case the main venv is live in this tab
+- [x] python -m venv .venv  # creates a .venv folder (takes a hot min)
+- [x] add .venv to local .gitignore
+- [x] source .venv/Scripts/activate
+- [x] python -m pip install -r requirements.txt
+- [-] deactivate # when you're done
+anthropic key
+- [x] ensure .env is in .gitignore
+- [x] touch .env .env.example
+	- ANTHROPIC_API_KEY=sk-ant-your-key-here
+- [ ] git commit -m "test-vehicles: make schema-extraction self-contained
+
+The folder now stands up on its own so it can be picked up cold after
+a break, or cloned somewhere else entirely:
+
+- venv lives in the folder, not shared with backend/ — plain venv +
+  requirements.txt, no pyproject so nothing walks up the tree
+- lab.py calls load_dotenv(), so the key comes from .env instead of a
+  manual export that dies with the terminal tab
+- .env.example committed as the template; .env ignored
+- samples/ and out/ ignored (both hold real resume text); one example
+  sample kept as a reference
+- README updated
+- dry run with samples/example-freeform.txt works"
+

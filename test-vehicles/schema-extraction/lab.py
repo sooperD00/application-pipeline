@@ -2,12 +2,16 @@
 Runner. Reads samples/*.txt, decomposes each one, measures what survived,
 writes out/*.json and out/report.html.
 
+ # Dry Run
+    python lab.py --dry-run --only example
+    python lab.py --dry-run            # no API key needed, fake extraction,
+                                       # exercises the report pipeline
+# Real Money Will Be Spent    
     python lab.py                      # everything in samples/, cached
     python lab.py --only crawford      # one sample
     python lab.py --model claude-opus-4-8
     python lab.py --no-cache           # force fresh calls
-    python lab.py --dry-run            # no API key needed, fake extraction,
-                                       # exercises the report pipeline
+    
 """
 
 from __future__ import annotations
@@ -20,18 +24,20 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from dotenv import load_dotenv
 from schema import Extraction, SCHEMA_VERSION
 import prompt as prompt_mod
 import report as report_mod
 
+load_dotenv()   # copies .env into os.environ; without this the key is invisible
 ROOT = Path(__file__).parent
 SAMPLES = ROOT / "samples"
 OUT = ROOT / "out"
 CACHE = OUT / ".cache"
 
-DEFAULT_MODEL = "claude-sonnet-5"
+DEFAULT_MODEL = "claude-opus-5"
 
-# Structured outputs are also available on claude-opus-4-8 and
+# Structured outputs are also available on claude-sonnet-5 and
 # claude-haiku-4-5-20251001. Worth running the same sample through two of them:
 # if Haiku and Opus disagree about where a line goes, the ambiguity is in your
 # schema, not in the model.
