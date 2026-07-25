@@ -1,0 +1,31 @@
+#kind: freeform
+
+I've never really put together a proper resume, so I'm just going to write this out.
+
+I spent about nine years running the kitchen at a mid-size catering company in
+Sacramento — started as a line cook, ended up as the executive chef. By the end I
+was doing all the ordering, managing a team of eleven, and building the costing
+spreadsheets that the owner used to price events. That spreadsheet thing turned
+out to be the part I liked most, honestly. I taught myself pivot tables and then
+some VBA, and eventually I was the person everyone came to when a number looked
+wrong.
+
+Two years ago I got laid off when the company folded and I took a bootcamp in
+data analytics. Since then I've been doing contract work — mostly cleaning up
+messy operational data for restaurant groups, building Looker dashboards, a
+couple of small Python scripts that pull POS exports and reconcile them against
+invoices. One client cut their monthly close from four days to about six hours
+after I rebuilt their reconciliation process.
+
+I have a food handler's manager certification (ServSafe) and I finished the
+Google Data Analytics certificate in 2024. No degree — I did two years at Sac
+State and left.
+
+I'm looking for something full time now, ideally analytics or ops analytics
+somewhere that doesn't mind that my background is weird. I'm comfortable with
+SQL, Python (pandas mostly), Looker, and obviously Excel to an unreasonable
+degree. I've read about dbt and I understand the idea but I've never used it on
+a real project.
+
+I'm in Sacramento, open to remote. Willing to relocate for the right thing.
+References available if useful.

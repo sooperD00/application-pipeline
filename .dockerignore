@@ -18,3 +18,10 @@ backend/.pytest_cache
 .idea
 .DS_Store
 *.swp
+
+# Docs and design notes don't ship
+docs
+README.md
+
+# Test vehicles — characterization rigs, not the app
+test-vehicles

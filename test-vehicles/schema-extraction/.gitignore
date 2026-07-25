@@ -1,0 +1,5 @@
+samples/*
+!samples/example-*.txt
+out/
+.env
+__pycache__/
