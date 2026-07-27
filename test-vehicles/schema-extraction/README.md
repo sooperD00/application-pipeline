@@ -31,8 +31,12 @@ python lab.py               # the real thing
 open out/report.html
 ```
 
-Drop `.txt` files into `samples/`. One person per file, filename becomes the
-label. Optional first line tells the model what it's looking at:
+Drop files into `samples/`. One person per file, filename becomes the
+label. Check ALLOWED_FILE_TYPES in loader.py, e.g.
+```python
+ALLOWED_FILE_TYPES = {".txt", ".md", ".pdf", ".docx"}
+```
+In `.txt` files, optional first line tells the model what it's looking at:
 
 ```
 #kind: cv

@@ -25,6 +25,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from dotenv import load_dotenv
+import loaders
+import prompt as prompt_mod
 from schema import Extraction, SCHEMA_VERSION
 import prompt as prompt_mod
 import report as report_mod
@@ -49,12 +51,23 @@ DEFAULT_MODEL = "claude-opus-5"
 
 def read_samples(only: str | None) -> list[tuple[str, str, str]]:
     """Returns (name, kind, text). Kind comes from an optional first line:
-    `#kind: cv`  —  one of resume | cv | linkedin | freeform | other."""
+    `#kind: cv`  —  one of resume | cv | linkedin | freeform | other.
+    Anything in ALLOWED_FILE_TYPES is fair game; loaders.py turns it into text."""
     out = []
-    for p in sorted(SAMPLES.glob("*.txt")):
-        if only and only.lower() not in p.stem.lower():
+    for p in sorted(SAMPLES.iterdir()):
+        if p.is_dir() or p.suffix.lower() not in loaders.ALLOWED_FILE_TYPES:
             continue
-        raw = p.read_text(encoding="utf-8")
+        if only and only.lower() not in p.name.lower():
+            continue
+
+        try:
+            raw, warnings = loaders.load(p)
+        except loaders.LoadError as e:
+            print(f"  -- skipping {p.name}: {e}", file=sys.stderr)
+            continue
+        for w in warnings:
+            print(f"  !! {p.name}: {w}", file=sys.stderr)
+
         kind = "unknown"
         if raw.lstrip().lower().startswith("#kind:"):
             first, _, rest = raw.lstrip().partition("\n")

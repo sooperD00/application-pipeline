@@ -5,7 +5,43 @@ application-pipeline\test-vehicles\schema-extraction
 ---
 
 
-# 7/25/2026 Set up venv for this test vehicle
+7/27/2026
+Test on real content
+Profile.pdf
+
+---
+
+# 7/25/2026 1:12p
+Add loaders.py; ALLOWED_FILE_TYPES = {".txt", ".md", ".pdf", ".docx"}
+
+- [x] loaders.py
+- [x] requirements.txt
+```text
+pdfplumber>=0.11      # PDF text, layout-aware
+python-docx>=1.2      # .docx text
+```
+- [x] lab.py - import block
+```
+import loaders
+import prompt as prompt_mod
+```
+- [x] lab.py - replace read_samples()
+- [x] python lab.py --dry-run --only example-freeform.txt
+- [x] git commit -m "test-vehicles: read pdf and docx samples, not just .txt
+
+Most of the corpus is PDF. loaders.py extracts text before the API
+call; nothing downstream changed.
+
+- type detected from magic bytes, not extension — a PDF named .docx
+  is a real thing people send
+- docx walks body children rather than doc.paragraphs, which silently
+  skips tables; a table-layout resume returned 10 chars before this
+- scanned PDFs raise LoadError and are skipped with a reason, rather
+  than passing through as empty-two-quotes string and scoring 0% coverage"
+
+
+# 7/25/2026 12:04p 
+Set up venv for this test vehicle
 
 - nexted venvs don't fight each other
 - python -m venv writes an absolute path into its own scripts
@@ -21,7 +57,7 @@ anthropic key
 - [x] ensure .env is in .gitignore
 - [x] touch .env .env.example
 	- ANTHROPIC_API_KEY=sk-ant-your-key-here
-- [ ] git commit -m "test-vehicles: make schema-extraction self-contained
+- [x] git commit -m "test-vehicles: make schema-extraction self-contained
 
 The folder now stands up on its own so it can be picked up cold after
 a break, or cloned somewhere else entirely:
