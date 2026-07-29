@@ -1,0 +1,81 @@
+
+
+Michael D. Odai
+
+General Counsel
+	- what is this? I'm a lawyer at a company
+CEO
+venture capital
+regulatory compliance
+domestic and international
+new business ventures
+
+self-defined category = "Achievements"
+highlighted at top of resume (by linkedin?)
+- founding member of 2 international venture capital firms
+- no actual numbers or value listed, just the title - jerk
+
+
+---
+GREG SAYS:
+- non-businessy people are gonna be a bit weird (what do we do this group? doctors, lawyers, they don't use resumes as much maybe?)
+	> ????
+- most people are not gonna have put on the "result" numbers - this guy didn't even put the numbers in "achievments"
+	> put in an explicit ask to the user (prompted to them) if they don't have "result" attached to bullets / experiences
+---
+
+NICOLE SAYS:
+  "extraction": {
+    "doc_kind": "linkedin",
+    "overall_quality": "high",  # low, med, high, exceptional
+    "quality_reasoning": "A LinkedIn profile export for a senior legal/operations executive with clear roles, dates, and detailed, substantive achievement bullets. Structure is only lightly garbled by the PDF sidebar interleaving.",
+    "suggested_titles": [
+      "General Counsel",
+      "Chief Operating Officer & General Counsel",
+      "Chief Legal Officer",
+      "Chief Operating Officer",
+      "VP, Legal & Operations"
+    ],
+
+- we need returned the 1 to 3 to 5 top things the user can do (maybe accordioned so the user isn't overwhelmed and if they're an overachiever they can do all 5) to *improve* the resume. This should be an explicit text field that we ask intake agent to return, similar to the "quality_reasoning". That way we can already say we gave the user a quick win and they can immediately experience the "help" we are offering of quickly *doing* and integrating the improvement with minimal friction. They type the answer to quesion, intake agent suggests where and optimized text to add, user says "yes" and they move on with a quick win.
+
+- I think, from reading this, I think we want an actual rubric for the evaulation
+	- structure
+	- content
+	- throughline
+	- result specificity
+	- result amount
+	- (harder-zbb until later) expected keyword match to role?
+	- (harder-zbb until later) something about seniority titles
+ok so now we'll have a better "score" made up of individual "what even is a resume" kind of questions - that's intake #1. We'll split the business logic here - resumes with "high" score can just get "suggestion to ++" and quick suggested mods to the resume
+
+***feature: quick wins editing analysis***
+"here's a little box that we could add really easily"
+"and we described why each change - hover over the ?"
+"this is the easy text modification, keyword-stuffing, number-adding widget"
+"later widgets and the "low score" ones... those changes to into the *vault*, not the resume, and they are more substantial and they can be more associated with "your score goes up" reward UI/UX patterns"
+LEFT | RIGHT 	 | accept?
+old1 | new1  (?) | [?] 
+old2 | new2  (?) | [?]
+... accordion
+
+answer question (how much money did you oversee in pulled_experience_from_resume?)
+user answers
+intake agent gives another table now
+
+NICOLE GOAL FOR WEEK 2: actually implement the intake, and the "high" score branch
+
+GREG WILL THINK ABOUT THIS WEEK 2:
+"low" scores - we're gonna need the user to input a lot more... not ready to design yet..
+????  
+
+here's where we design this:
+"later widgets and the "low score" ones... those changes to into the *vault*, not the resume, and they are more substantial and they can be more associated with "your score goes up" reward UI/UX patterns"
+
+and this one is more reusable... we can give "resume example" here of what's added.. but that's harder - the user will wait longer.
+nicole recommends maybe for now... a bunch of further and guided intake, then *one* pass through the re-scoring - I would let the user have access to the "rescore" button on these longer intake turns.
+
+---
+
+DEFER TO LATER WEEKS
+#2 - it's does the user agree with the job titles and what would make the user match better to the job titles they want?

@@ -1,0 +1,76 @@
+AP User Funnel / Interaction / Score Improvement / Engagement Metadata Tracking
+
+This is for us for long term learning
+
+THIS IS GONNA BE A WHOLE WEEK ITSELF DURING STEP 1
+
+NICOLE strategy: yes spend the time to tack this on to phase 1 when phase 1 beta is out
+because it's a design / integration learning for you, and you'll need those learnings to
+design, understand, and scope future phases and tracking stuff
+
+1. funnel analysis (where / when / what the user clicked and typed)
+2. what data will help us in the long term "train" our "models" 
+	- LLM prompt ++ (tweaks *how* we ask for things)
+	- Data model field additions and refinements
+		- e.g. the one we did today like "grade the score against these 5 categories and return sub-scores"
+		- add another category to return "top 5 improvements and why"
+
+
+---
+GREG: we need to attribute inputs from the user
+and outputs given to the user
+
+attribute these to 2 different outcome buckets:
+	1. is the user engaging with the product? (typical analyses will help us here)
+let's say they run this analysis and they think all the suggestions are shit
+they stop using the tool and don't sign up for paid tier
+when the user gets into the product they need to feel like they are getting value
+what are the features and results that are keeping them there?
+getting this data will help us in different ways?
+	- could apply some of this data to our models / algorithms / business logic
+e.g. other customers who are also "general counsel" often have this bullet point. You don't. have you done this? That's not saying this bullet point will get you a job. ahhh, this is batch job in the background, or in real time "fingerprinting" against other people's data.
+	- LLMs are maybe trained on in general what "general counsel" "should" have on their resume, but the specificity of "99% of people have this and you don't" we hypthosize that this is a high-value differentiator for our product
+	- bc hard statistic vs output of LLM
+	- point of this is to build credibility of the tool vs "just using chatGPT"
+	- here's a good point to compare semantic vs LLMs vs ML
+	- in theory, this leads itself to bucket 2
+
+	2. are we helping them get jobs? (way harder to get bc requires a lot more user input)
+harder and need more feedback data
+this person uses the tool for 2 months, they apply to 100 jobs, we know the exact resume they used for each job, can do an attribution analysis (statistical model?) associate this job had these bullet points, salary range, and say ok ... 
+	- nicole's funnel analysis for individuals
+	- then in general for "general counsel" that helps people bc it's more than just you
+
+
+---
+maybe not that important then:
+3. what does ML give us? we don't know yet, but we want to think about what metadata we are collecting and how we are storing it from the beginning, so that ML is enabled in the future easily.
+4. Other things besides ML and what we need for that (semantic, etc)
+
+---
+
+I have a resume, I know what I am, and I know what I want
+I have a resume, but I don't know what I am and I don't know waht I want
+I have a lot of different jobs, I don't know waht I am, and I want something different
+	- I'm a teacher and I want to get out of teaching and become a general manager at a store
+	gap analysis
+
+---
+
+NICOLE make a visual of the funnel of "all the jobs" down to our funnel
+
+---
+
+EDUCATION is a big one
+AI gets a bad rap/rep bc ... is it garbage in garbage out?
+
+usable vs useful
+being intentional with complexity
+claude can do all of this... so it's the easiest thing to use but... why can't everybody use it?
+it's usable in that anybody can type into the chat?
+can anybody produce the resume you need by typing into the chat?
+
+adding complexity (interface, databases)
+while still keeping it usable
+
+we are adding constraints at the appropriate place that it matters
