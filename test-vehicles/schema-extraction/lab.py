@@ -4,13 +4,18 @@ writes out/*.json and out/report.html.
 
  # Dry Run
     python lab.py --dry-run --only example
-    python lab.py --dry-run            # no API key needed, fake extraction,
-                                       # exercises the report pipeline
+    python lab.py --dry-run              # no API key needed, fake extraction,
+                                         # exercises the report pipeline
 # Real Money Will Be Spent    
-    python lab.py                      # everything in samples/, cached
-    python lab.py --only crawford      # one sample
-    python lab.py --model claude-opus-4-8
-    python lab.py --no-cache           # force fresh calls
+    python lab.py                        # everything in samples/, cached
+    python lab.py --only pdf             # all PDFs in samples/
+    python lab.py --only crawford        # one sample
+    python lab.py --model claude-opus-5  # see model strings below
+    python lab.py --no-cache             # force fresh calls
+    python lab.py --yes                  # skip both preview.py checks
+
+# self-serve model IDs as of 7/29/2026
+    claude-fable-5, claude-opus-5, claude-sonnet-5, and claude-haiku-4-5-20251001
     
 """
 
@@ -26,6 +31,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 import loaders
+import preview
 import prompt as prompt_mod
 from schema import Extraction, SCHEMA_VERSION
 import prompt as prompt_mod
@@ -49,31 +55,23 @@ DEFAULT_MODEL = "claude-opus-5"
 # input
 # ---------------------------------------------------------------------------
 
-def read_samples(only: str | None) -> list[tuple[str, str, str]]:
-    """Returns (name, kind, text). Kind comes from an optional first line:
-    `#kind: cv`  —  one of resume | cv | linkedin | freeform | other.
-    Anything in ALLOWED_FILE_TYPES is fair game; loaders.py turns it into text."""
+def read_samples(paths) -> list[tuple[str, str, str, list[str]]]:
+    """Returns (name, kind, text, warnings) for paths phase 1 approved.
+    Kind comes from an optional first line: `#kind: cv`."""
     out = []
-    for p in sorted(SAMPLES.iterdir()):
-        if p.is_dir() or p.suffix.lower() not in loaders.ALLOWED_FILE_TYPES:
-            continue
-        if only and only.lower() not in p.name.lower():
-            continue
-
+    for p in paths:
         try:
             raw, warnings = loaders.load(p)
         except loaders.LoadError as e:
             print(f"  -- skipping {p.name}: {e}", file=sys.stderr)
             continue
-        for w in warnings:
-            print(f"  !! {p.name}: {w}", file=sys.stderr)
 
         kind = "unknown"
         if raw.lstrip().lower().startswith("#kind:"):
             first, _, rest = raw.lstrip().partition("\n")
             kind = first.split(":", 1)[1].strip().lower()
             raw = rest
-        out.append((p.stem, kind, raw.strip()))
+        out.append((p.stem, kind, raw.strip(), warnings))
     return out
 
 
@@ -228,26 +226,43 @@ def stub_extract(text: str) -> Extraction:
 # ---------------------------------------------------------------------------
 
 def main():
+    # argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--only")
     ap.add_argument("--model", default=DEFAULT_MODEL)
     ap.add_argument("--max-tokens", type=int, default=16000)
     ap.add_argument("--no-cache", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--yes", action="store_true", help="skip both checkpoints")
     args = ap.parse_args()
 
-    samples = read_samples(args.only)
-    if not samples:
-        print(f"No .txt files in {SAMPLES}/. Drop some in and re-run.")
-        return 1
+    # guard blocks
     if not args.dry_run and not os.environ.get("ANTHROPIC_API_KEY"):
-        print("ANTHROPIC_API_KEY isn't set. Either export it or use --dry-run.")
+        print("ANTHROPIC_API_KEY isn't set. Either put it in .env or use --dry-run.")
         return 1
+
+    skip_gates = args.dry_run or args.yes
+
+    paths = preview.phase1(SAMPLES, args.only, loaders.ALLOWED_FILE_TYPES,
+                           loaders.detect, skip_gates)
+    if not paths:
+        return 1
+
+    samples = read_samples(paths)
+    if not samples:
+        print("Nothing survived extraction.")
+        return 1
+
+    preview.phase2(samples,
+                   args.max_tokens,
+                   lambda kind, text: cache_path(args.model, kind, text).exists()
+                                      and not args.no_cache,
+                   skip_gates)
 
     OUT.mkdir(exist_ok=True)
     results, tok_in, tok_out = [], 0, 0
 
-    for name, kind, text in samples:
+    for name, kind, text, _warnings in samples:
         print(f"→ {name} ({kind or 'unknown'}, {len(text):,} chars)")
         if args.dry_run:
             ex, meta = stub_extract(text), {"model": "dry-run", "cached": False,
@@ -276,6 +291,7 @@ def main():
               f"fabricated spans {len(cov.fabricated):2d}"
               f"{'  (cached)' if meta.get('cached') else ''}{flag}")
 
+	# out
     report_mod.write(OUT / "report.html", results, args.model, SCHEMA_VERSION)
     print(f"\n{tok_in:,} in / {tok_out:,} out tokens this run (cached calls cost nothing).")
     print(f"Report: {OUT / 'report.html'}")

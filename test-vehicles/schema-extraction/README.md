@@ -101,3 +101,26 @@ required, absence is `""`. Ugly in Python, cheap in grammar, and it stops being
 your problem the moment this lands in SQLModel.
 
 Docs: https://platform.claude.com/docs/en/build-with-claude/structured-outputs
+
+
+## How the caching works
+
+The key is a SHA-256 of six things joined together. The filename is not one of them.
+Reasoning: the cache is keyed onwhat would be sent to the API.
+
+```text
+0: claude-opus-5          ← --model
+1: v1                     ← PROMPT_VERSION
+2: v1                     ← SCHEMA_VERSION
+3: unknown                ← the #kind: line
+4: SYSTEM (3,045 chars)   ← the whole system prompt, verbatim
+5: the extracted text
+```
+
+Verified — same PDF under two names:
+
+```text
+Profile.pdf  -> 5bc54aacc0242031.json
+RENAMED.pdf  -> 5bc54aacc0242031.json
+same key: True
+```

@@ -85,7 +85,7 @@ PROMPT_VERSION = "v1"
 
 
 def cache_key_material(model: str, kind: str, text: str) -> str:
-    return "\n".join([model, PROMPT_VERSION, SCHEMA_VERSION, kind, SYSTEM, text])
+    return "\n".join([model, PROMPT_VERSION, SCHEMA_VERSION, kind, SYSTEM, USER_TEMPLATE, text])
 
 
 def build(kind: str, text: str) -> tuple[str, str]:
