@@ -1,0 +1,54 @@
+# Carolina CPG case study
+
+- [ ] python lab.py --only CarolinaLopez_Resume_Evermark_2026_final_rev_CPG.docx
+
+
+start: 4:16p
+end: 4:18p
+
+samples/ — 1 file
+  .docx  1
+
+  CarolinaLopez_Resume_Evermar….docx     20.8 KB
+
+look right?   [Enter] continue   [Ctrl-C] bail
+
+extracted 1 file
+
+  name                              chars   ~tokens   cache
+  CarolinaLopez_Resume_Evermark…    7,137     1,784   fresh
+
+  ! warnings
+      CarolinaLopez_Resume_Ev…   1 table(s) flattened into lines — reading order
+ may differ from what the page looks like
+
+  1 fresh / 0 cached      ~1,784 input tokens to spend
+
+spend it?   [Enter] continue   [Ctrl-C] bail
+→ CarolinaLopez_Resume_Evermark_2026_final_rev_CPG (unknown, 7,137 chars)
+   coverage  90.1%   buckets  65   unclassified  5   fabricated spans  0  ← LOOK
+
+5,607 in / 14,905 out tokens this run (cached calls cost nothing).
+Report: C:\Users\Barac0da\source\repos\application-pipeline\test-vehicles\schema
+-extraction\out\report.html
+
+
+   "suggested_titles": [
+      "Commercialization Manager",
+      "Senior Procurement Manager",
+      "Product Innovation / NPI Program Manager",
+      "Supply Chain Manager",
+      "Technical Project Manager"
+    ],
+
+I don't like NPI. I want to go more towards CPG = consumer product goods.
+NPI is like first of a kind / new product innovation.
+CPG is ... anything from beverages to tampons to skin care to pizzas.
+grocery stores or retail chains.
+
+what do you do in that job?
+I want to do like project management, e.g. support procurement
+I'm a founder so I could work for an investor, companies taht invest in beauty companies
+bc I alreayd know about that.
+
+I talked to a 3rd party supplier that helps hire people

@@ -18,16 +18,27 @@ Two artifacts, per user:
 
 1. A **general resume** they would send.
 2. An answer to **"what are you, and what do you want to be?"** — a mutable set of
-   up to 5 job titles, at phase-0 confidence.
+   up to 5 job titles (alternate if this is too hard / low quality: consider a set of REGEX keywords), at phase-0 confidence.
 
 The shipped product needs both before it can run. This phase manufactures them from
 whatever the user arrived with: a resume, a CV, a LinkedIn export, or freeform text
-typed on the spot.
+typed on the spot, plus iterative, controlled conversation with the user.
 
-The phase ends at the handoff into the find-jobs section that already ships.
+The phase ends at the handoff into the find-jobs section. There are 2 options for
+the user in the next section, and they shape the deliverables from this section
 
-Phase-0 confidence is the bar. The titles do not have to be right. They have to be
-close enough to search on and close enough to argue with.
+1. The user can find jobs by searching search strings supplied by Phase 0 into
+their preferred job board. They then paste JDs they want to compare into the existing
+function of the ApplicationPipeline tool and receive back out apply/maybe/no
+recommendation for each JD.
+2. Our plan is to implement pull or pull and cache from Common Crawl with set of
+beginning URL matches (e.g., the one greenhouse, ashby, and lever) to get company
+slugs / names, then a hit the actual APIs to grab open roles, chunked by company slug sets for size management, then to regex against title, then to LLM job details vs
+the user job seeker "vault" built in Phase 0. This phase will also contain iterative
+conversation option with the user so they can address gaps.
+
+Phase-0 confidence is the bar. The titles and recommended search strings do not have
+to be right. They have to be close enough to search on and close enough to argue with.
 
 ---
 

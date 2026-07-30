@@ -8,6 +8,28 @@ application-pipeline\test-vehicles\schema-extraction
 
 ---
 
+7/30/2026
+### Sprint 0 — extraction lab, in flight
+
+Not app work. Finishes the instrument.
+
+- [ ] Housekeeping: duplicate `import prompt as prompt_mod` (`lab.py:37`), stale
+      docstring (`lab.py:2`, says `.txt` only), retired model string
+      (`README.md:84`)
+- [ ] Token summary line counts cached tokens as spent. Guard on
+      `not meta["cached"]`.
+- [ ] Dollar estimate in the phase-2 gate. Calibration is already in `cost.md`:
+      input ≈ chars/1.25 plus the 3,045-char SYSTEM, output ≈ 2.5× input.
+- [ ] `ledger.csv` — append one row per fresh call: timestamp, cache_key, name,
+      model, in, out, $, seconds, schema_version, prompt_version
+- [ ] Index table at the top of `report.html` — one row per document. At 30 docs
+      the current report is an unnavigable scroll.
+- [ ] Integrate the 07-27 observations into schema v2 (§8)
+- [ ] Run a document from each band, read the report, then run the corpus
+
+Exit: one schema version survives a document from each band without producing a new
+field request, and the suggested titles are good enough to show a stranger.
+
 
 7/29/2026
 application-pipeline-20260729: reporting and schema++ for test-vehicle/schema-extraction
@@ -19,6 +41,15 @@ git archive just the test-vehicles/schema-extraction/ folder
 	- [x] git ls-files test-vehicles/schema-extraction/
 	# Zip it
 	- [x] git archive -o test-vehicles.zip HEAD test-vehicles/schema-extraction/
+
+decision: you need a sprint plan just for this, even:
+- [x] git commit -m "docs: plan the remaining v2 sprints
+
+The v2 work has a design session, a cost model, and a working test
+vehicle. It has no single place that says what ships in what order.
+docs/remaining-sprints.md is that place. Living doc — the dated files
+in docs/design/ stay session records, and this supersedes them where
+they disagree."
 
 - [ ] Reporting
 	- [ ] add how long this took... took maybe 5 min for this 1 run?
