@@ -6,12 +6,20 @@ application-pipeline\test-vehicles\schema-extraction
 # startup
 - [ ] source .venv/Scripts/activate    # macOS/Linux: source .venv/bin/activate
 
+
+git archive just test-vehicles/schema-extraction/
+	# [x] Commit first (whatever you want to be in the zip)
+	# Preview
+	- [x] cd /path/to/ApplicationPipeline/
+	- [x] git ls-files test-vehicles/schema-extraction/
+	# Zip it
+	- [x] git archive -o test-vehicles.zip HEAD test-vehicles/schema-extraction/
+
 ---
 
 7/30/2026
-### Sprint 0 — extraction lab, in flight
-
-Not app work. Finishes the instrument.
+## Sprint 0 — Use the Extraction Lab to "Finalize" the Schema
+application-pipeline-20260730: test-vehicles/schema-extraction schema finalization
 
 - [ ] Housekeeping: duplicate `import prompt as prompt_mod` (`lab.py:37`), stale
       docstring (`lab.py:2`, says `.txt` only), retired model string
