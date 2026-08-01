@@ -7,7 +7,9 @@ in different buckets across runs, that's the prompt. If it lands in the same
 wrong place every time, that's the schema.
 """
 
-from schema import SCHEMA_VERSION
+import json
+
+from schema import Extraction, SCHEMA_VERSION
 
 SYSTEM = """\
 You decompose a person's career document into a structured profile.
@@ -82,6 +84,23 @@ to what it actually is.)
 """
 
 PROMPT_VERSION = "v1"
+
+def fixed_chars() -> dict[str, int]:
+    """Chars in every request that aren't the document.
+
+    Computed, never hard-coded. `schema` is the big one and the invisible one:
+    output_format=Extraction serializes schema.py into JSON schema and ships it
+    with every call, so each Field(description=...) is prompt text you pay for.
+    Edit a description and this moves; a constant in cost.md would not.
+
+    Approximate on the schema line — the SDK may reshape what actually goes on
+    the wire. It tracks edits to schema.py, which is what a gate needs.
+    """
+    return {
+        "system": len(SYSTEM),
+        "schema": len(json.dumps(Extraction.model_json_schema())),
+        "template": len(USER_TEMPLATE.replace("{kind}", "").replace("{text}", "")),
+    }
 
 
 def cache_key_material(model: str, kind: str, text: str) -> str:

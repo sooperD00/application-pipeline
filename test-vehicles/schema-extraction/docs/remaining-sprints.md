@@ -10,10 +10,10 @@ against: samples/human_observations/ (2026-07-27 session), docs/design/
 
 ## Sprint 0 — Use the Extraction Lab to "Finalize" the Schema
 
-- [ ] Housekeeping: duplicate `import prompt as prompt_mod` (`lab.py:37`), stale
+- [x] Housekeeping: duplicate `import prompt as prompt_mod` (`lab.py:37`), stale
       docstring (`lab.py:2`, says `.txt` only), retired model string
       (`README.md:84`)
-- [ ] Token summary line counts cached tokens as spent. Guard on
+- [x] Token summary line counts cached tokens as spent. Guard on
       `not meta["cached"]`.
 - [ ] Dollar estimate in the phase-2 gate. Calibration is already in `cost.md`:
       input ≈ chars/1.25 plus the 3,045-char SYSTEM, output ≈ 2.5× input.

@@ -7,7 +7,7 @@ application-pipeline\test-vehicles\schema-extraction
 - [ ] source .venv/Scripts/activate    # macOS/Linux: source .venv/bin/activate
 
 
-git archive just test-vehicles/schema-extraction/
+# git archive just test-vehicles/schema-extraction/
 	# [x] Commit first (whatever you want to be in the zip)
 	# Preview
 	- [x] cd /path/to/ApplicationPipeline/
@@ -15,17 +15,77 @@ git archive just test-vehicles/schema-extraction/
 	# Zip it
 	- [x] git archive -o test-vehicles.zip HEAD test-vehicles/schema-extraction/
 
+# one run
+	
+
 ---
 
 7/30/2026
 ## Sprint 0 — Use the Extraction Lab to "Finalize" the Schema
 application-pipeline-20260730: test-vehicles/schema-extraction schema finalization
 
-- [ ] Housekeeping: duplicate `import prompt as prompt_mod` (`lab.py:37`), stale
-      docstring (`lab.py:2`, says `.txt` only), retired model string
-      (`README.md:84`)
-- [ ] Token summary line counts cached tokens as spent. Guard on
+- [x] Housekeeping:
+	- [x] duplicate `import prompt as prompt_mod` (`lab.py:37`)
+	- [x] stale docstring (`lab.py:2`, says `.txt` only)
+	- [x] retired model string (`README.md:84`)
+- [x] Token summary line counts cached tokens as spent. Guard on
       `not meta["cached"]`.
+	test: you're testing the *report out*, not the resumes,
+		so use example-freeform.txt on the cheapest model
+	- [x] python lab.py --only example --model claude-haiku-4-5-20251001 # first time
+		- [x] 1 fresh / 0 cached      ~404 input tokens to spend
+		- [LOOK ->] 2,740 in / 1,980 out tokens spent      1 fresh / 0 cached
+	- [x] python lab.py --only example --model claude-haiku-4-5-20251001 --yes # second time
+		- [x] 0 fresh / 1 cached      ~0 input tokens to spend
+		- [x] 0 in / 0 out tokens spent      0 fresh / 1 cached
+	- [x] python lab.py --only example --model claude-haiku-4-5-20251001 --no-cache --yes
+		- [x] 1 fresh / 0 cached      ~404 input tokens to spend
+		- [x] 2,740 in / 1,925 out tokens spent      1 fresh / 0 cached
+	learning:
+		the SYSTEM prompt contributes to the overhead, but the compiled 
+		JSON schema is actually larger (3,912 characters) and the 4 chars/token 
+		ratio is too generous for schema JSON. I should add that to the report 
+		and frame it as fixed overhead per call, showing how the schema dominates 
+		the per-document cost.
+
+Where the 2,336-token gap goes:
+component	chars	in the estimate?
+SYSTEM prompt	3,045	no ← you named this
+USER_TEMPLATE (fixed part)	222	no
+compiled JSON schema	3,912	no
+document text	1,619	yes — this is the 404
+on the wire	8,798	
+
+The two runs agree, which is the confirmation
+Apply the same fixed block to your Opus 5 Profile.pdf run in cost.md:
+
+run	wire chars	input tok	chars/tok
+example-freeform, Haiku 4.5	8,798	2,740	3.21
+Profile.pdf, Opus 5	13,826	5,286	2.62
+
+Opus 5 produces 23% more tokens for the same text. Anthropic documents that as a real property — models from Claude 4.7 onward use a newer tokenizer that yields roughly 30% more tokens than earlier models, with the exact increase depending on content. Haiku 4.5 predates it; Opus 5 doesn't. Two different documents, two different models, one hypothesis, and the residual is the documented tokenizer delta. That's about as clean as a two-point check gets.
+
+document + fixed (system + schema + template)
+404 + 2,760 (1,172 + 1,505 + 85)
+
+	- [-] python lab.py --model claude-haiku-4-5-20251001
+	- [x] python lab.py --only example --model claude-haiku-4-5-20251001 --no-cache --yes
+		- excellet. yes. the overestimate is bc the estimate multiplier is 
+		calculated from claude-opus-5 runs, not haiku.
+```
+  1 fresh / 0 cached
+
+  document + fixed (system + schema + template)
+  623 + 2,761 (1,171 + 1,505 + 85) = ~3,384 input tokens to spend
+
+→ example-freeform (freeform, 1,619 chars)
+   coverage  84.4%   buckets  14   unclassified  1   fabricated spans  0  ← LOOK
+
+  name                             est in   actual       Δ      out
+  example-freeform                  3,384    2,740    +24%    2,094
+
+2,740 in / 2,094 out tokens spent      1 fresh / 0 cached
+```
 - [ ] Dollar estimate in the phase-2 gate. Calibration is already in `cost.md`:
       input ≈ chars/1.25 plus the 3,045-char SYSTEM, output ≈ 2.5× input.
 - [ ] `ledger.csv` — append one row per fresh call: timestamp, cache_key, name,

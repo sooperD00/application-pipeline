@@ -15,8 +15,23 @@ from __future__ import annotations
 from pathlib import Path
 
 BIG_FILE_BYTES = 10 * 1024 * 1024   # "that is not a resume" territory
-CHARS_PER_TOKEN = 4                 # rough, fine for a go/no-go
-TRUNCATE_AT = 0.80                  # of max_tokens; output ≈ input here
+TRUNCATE_AT = 0.80                  # of max_tokens; output tracks the DOCUMENT
+
+# Blended over prose and schema JSON, which tokenize at very different rates.
+# Measured: 2.62 on the Opus 5 Profile.pdf run, 3.21 on Haiku 4.5. Models from
+# 4.7 on use a newer, denser tokenizer; take the denser figure so the gate
+# over-estimates rather than under-estimates. One rate splits into two (a prose
+# slope and a fixed intercept) once ledger.csv has enough rows to regress.
+CHARS_PER_TOKEN = 2.6
+
+
+def est_tokens(chars: int) -> int:
+    return round(chars / CHARS_PER_TOKEN)
+
+
+def est_input(doc_chars: int, fixed: dict[str, int]) -> int:
+    """One call's input: the document plus everything wrapped around it."""
+    return est_tokens(doc_chars) + sum(est_tokens(v) for v in fixed.values())
 
 
 # ---------------------------------------------------------------------------
@@ -121,17 +136,18 @@ def phase1(sample_dir: Path, only: str | None, allowed: set[str],
 # phase 2 — how big, will it truncate, what will it cost
 # ---------------------------------------------------------------------------
 
-def phase2(loaded, max_tokens: int, is_cached, auto_yes: bool) -> None:
+def phase2(loaded, max_tokens: int, is_cached, auto_yes: bool,
+           fixed: dict[str, int]) -> None:
     """`loaded` is a list of (name, kind, text, warnings). Extraction already ran."""
     ceiling = TRUNCATE_AT * max_tokens
-    rows, warn_lines, fresh_tokens, n_cached = [], [], 0, 0
+    rows, warn_lines, fresh_doc_tok, n_cached = [], [], 0, 0
 
     for name, kind, text, warnings in loaded:
-        est = len(text) // CHARS_PER_TOKEN
+        est = est_tokens(len(text))
         cached = is_cached(kind, text)
         n_cached += cached
         if not cached:
-            fresh_tokens += est
+            fresh_doc_tok += est
         rows.append((name, len(text), est, cached, est > ceiling))
         for w in warnings:
             warn_lines.append(f"      {shorten(name, 24):<26} {w}")
@@ -139,7 +155,7 @@ def phase2(loaded, max_tokens: int, is_cached, auto_yes: bool) -> None:
     rows.sort(key=lambda r: r[2], reverse=True)
 
     print(f"\nextracted {len(rows)} file{'s' * (len(rows) != 1)}\n")
-    print(f"  {'name':<30} {'chars':>8} {'~tokens':>9}   cache")
+    print(f"  {'name':<30} {'chars':>8} {'~doc_tok':>9}   cache")
     for name, chars, est, cached, over in rows:
         print(f"  {shorten(name, 30):<30} {chars:>8,} {est:>9,}   "
               f"{'CACHED' if cached else 'fresh ':<6}"
@@ -153,12 +169,20 @@ def phase2(loaded, max_tokens: int, is_cached, auto_yes: bool) -> None:
     n_over = sum(1 for r in rows if r[4])
     if n_over:
         print(f"\n  ! {n_over} file(s) may blow --max-tokens {max_tokens:,}. "
-              f"Buckets quote verbatim, so output ≈ input.")
+              f"Buckets quote verbatim, so output tracks the document.")
         print(f"    Coverage numbers from a truncated run are meaningless. "
               f"Re-run those with --max-tokens larger.")
 
     n_fresh = len(rows) - n_cached
-    print(f"\n  {n_fresh} fresh / {n_cached} cached      "
-          f"~{fresh_tokens:,} input tokens to spend")
+    n_fresh = len(rows) - n_cached
+    f = {k: n_fresh * est_tokens(v) for k, v in fixed.items()}
+    fix_tok = sum(f.values())
+
+    print(f"\n  {n_fresh} fresh / {n_cached} cached\n")
+    print(f"  document + fixed (system + schema + template)")
+    print(f"  {fresh_doc_tok:,} + {fix_tok:,} "
+          f"({f['system']:,} + {f['schema']:,} + {f['template']:,})"
+          f" = ~{fresh_doc_tok + fix_tok:,} input tokens to spend")
+    print("")
 
     gate("spend it?", auto_yes)

@@ -1,6 +1,9 @@
 # for the dev
 DEVLOG/
 
+# caches
+*.zip
+
 # test results
 backend/tests/results_*.txt
 frontend/src/__tests__/results_*.txt

@@ -1,6 +1,7 @@
 """
-Runner. Reads samples/*.txt, decomposes each one, measures what survived,
-writes out/*.json and out/report.html.
+Runner. Reads `samples/*` matching `loaders.py/ALLOWED_FILE_TYPES`,
+decomposes each one, measures what survived, writes out/*.json 
+and out/report.html.
 
  # Dry Run
     python lab.py --dry-run --only example
@@ -34,7 +35,6 @@ import loaders
 import preview
 import prompt as prompt_mod
 from schema import Extraction, SCHEMA_VERSION
-import prompt as prompt_mod
 import report as report_mod
 
 load_dotenv()   # copies .env into os.environ; without this the key is invisible
@@ -257,10 +257,13 @@ def main():
                    args.max_tokens,
                    lambda kind, text: cache_path(args.model, kind, text).exists()
                                       and not args.no_cache,
-                   skip_gates)
+                   skip_gates,
+                   prompt_mod.fixed_chars())
 
     OUT.mkdir(exist_ok=True)
-    results, tok_in, tok_out = [], 0, 0
+    results, tok_in, tok_out, n_cached = [], 0, 0, 0
+    fixed = prompt_mod.fixed_chars()
+    calib = []   # (name, estimated in, actual in, actual out) — ledger.csv rows, unpersisted
 
     for name, kind, text, _warnings in samples:
         print(f"→ {name} ({kind or 'unknown'}, {len(text):,} chars)")
@@ -270,8 +273,15 @@ def main():
         else:
             ex, meta = extract(name, kind, text, args.model,
                                args.max_tokens, not args.no_cache)
-        tok_in += meta.get("input_tokens", 0)
-        tok_out += meta.get("output_tokens", 0)
+        # A cache hit replays the meta of the call that filled it, token counts and
+        # all. Only a fresh call spent anything.
+        if meta["cached"]:
+            n_cached += 1
+        else:
+            tok_in += meta.get("input_tokens", 0)
+            tok_out += meta.get("output_tokens", 0)
+            calib.append((name, preview.est_input(len(text), fixed),
+                          meta.get("input_tokens", 0), meta.get("output_tokens", 0)))
 
         cov = measure(text, ex.buckets)
         counts: dict[str, int] = {}
@@ -291,10 +301,24 @@ def main():
               f"fabricated spans {len(cov.fabricated):2d}"
               f"{'  (cached)' if meta.get('cached') else ''}{flag}")
 
-	# out
+	# accounting
+    n_fresh = len(samples) - n_cached
+    if args.dry_run:
+        print("\ndry run — nothing was sent, nothing was spent.")
+    else:
+        if calib:
+            print(f"\n  {'name':<30} {'est in':>8} {'actual':>8} {'Δ':>7} {'out':>8}")
+            for name, est, act, out in calib:
+                d = f"{100.0 * (est - act) / act:+.0f}%" if act else "—"
+                print(f"  {preview.shorten(name, 30):<30} {est:>8,} {act:>8,} "
+                      f"{d:>7} {out:>8,}")
+        print(f"\n{tok_in:,} in / {tok_out:,} out tokens spent      "
+              f"{n_fresh} fresh / {n_cached} cached")
+
+    # html report
     report_mod.write(OUT / "report.html", results, args.model, SCHEMA_VERSION)
-    print(f"\n{tok_in:,} in / {tok_out:,} out tokens this run (cached calls cost nothing).")
-    print(f"Report: {OUT / 'report.html'}")
+    print(f"\nReport: {OUT / 'report.html'}")
+
     return 0
 
 
