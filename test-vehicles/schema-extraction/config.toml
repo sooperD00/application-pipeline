@@ -1,0 +1,112 @@
+# Extraction lab — assumptions and thresholds.
+#
+# Data only. No logic. If you need logic (e.g. the Sonnet price cliff),
+# put the dates here and the rule in config.py.
+#
+# Specify here whether numbers are MEASURED or CHOSEN.
+# Specify provenance for MEASURED numbers (the date and the run it came from).
+
+
+# ---------------------------------------------------------------------------
+# estimate — phase-2 gate prediction
+# ---------------------------------------------------------------------------
+
+[estimate]
+
+# MEASURED 2026-07-31. Blended over prose and schema JSON, which tokenize at
+# very different rates, so this is wrong in a knowable direction: applied to a
+# document alone it over-counts, because the wire it was measured on was 82%
+# schema and SYSTEM.
+#   Opus 5   / Profile.pdf        13,826 wire chars -> 5,286 tok = 2.62
+#   Haiku4.5 / example-freeform    8,798 wire chars -> 2,740 tok = 3.21
+# Models from 4.7 on use a denser tokenizer. Taking the denser figure so the
+# gate over-estimates rather than under-estimates.
+# Splits into two constants — a prose slope and a fixed intercept — once
+# ledger.csv has enough rows to regress.
+chars_per_token = 2.6
+
+# MEASURED 2026-07-31, and the weakest numbers in this file. Output tokens per
+# character of DOCUMENT (not per input token — most input is the fixed block,
+# which produces no output at all).
+#
+# lo/hi are the extremes of the SAME document run twice through the SAME model,
+# so they bracket run-to-run variance and nothing else. n=2 per model. Treat the
+# interval as a claim to be scored by ledger.csv ("did actual land inside?"),
+# not as a measurement.
+#   Opus 5   / Profile.pdf       6,647 ch -> 14,882 and 12,554 out
+#   Haiku4.5 / example-freeform  1,619 ch ->  1,980 and  1,925 out
+#
+# Model and document type are confounded — one document each, and they differ in
+# kind. Whether Haiku's 2.5% spread against Opus's 19% is real or n=2 noise is
+# not answerable yet.
+#
+# `default` is wider than either measured model on purpose: an unmeasured model
+# carries model-to-model uncertainty on top of run-to-run, and Fable 5 is a
+# larger model than anything measured here.
+[estimate.out_per_doc_char]
+default                   = { lo = 1.20, mid = 2.10, hi = 2.80 }
+claude-opus-5             = { lo = 1.89, mid = 2.06, hi = 2.24 }
+claude-haiku-4-5-20251001 = { lo = 1.19, mid = 1.21, hi = 1.22 }
+# claude-sonnet-5 — not measured yet
+# claude-fable-5  — not measured yet
+
+
+# ---------------------------------------------------------------------------
+# prices — USD per million tokens. https://platform.claude.com/docs/en/about-claude/pricing
+# Verified 2026-08-01.
+#
+# Tiers are tried in order; the first with no `until`, or whose `until` hasn't
+# passed, wins. One tier is the normal case.
+# ---------------------------------------------------------------------------
+
+[[prices.claude-opus-5.tiers]]
+input = 5.0
+output = 25.0
+
+[[prices.claude-sonnet-5.tiers]]
+until = 2026-08-31                     # introductory
+input = 2.0
+output = 10.0
+
+[[prices.claude-sonnet-5.tiers]]
+input = 3.0
+output = 15.0
+
+[[prices.claude-haiku-4-5-20251001.tiers]]
+input = 1.0
+output = 5.0
+
+[[prices.claude-fable-5.tiers]]
+input = 10.0
+output = 50.0
+
+
+# ---------------------------------------------------------------------------
+# run — defaults the CLI flags override
+# ---------------------------------------------------------------------------
+
+[run]
+default_model = "claude-opus-5"        # CHOSEN. Cheaper models introduce
+                                       # ambiguity you'd then have to rule out
+                                       # before trusting a schema signal.
+max_tokens = 16000
+
+
+# ---------------------------------------------------------------------------
+# thresholds — all CHOSEN, all arguable
+# ---------------------------------------------------------------------------
+
+[thresholds]
+truncate_at = 0.80                     # of max_tokens; flags on DOCUMENT tokens,
+                                       # since output tracks the document
+big_file_bytes = 10_485_760            # 10 MB — "that is not a resume" territory
+coverage_floor = 85                    # below this a run is flagged. Was written
+                                       # three times across lab.py and report.py.
+
+
+# ---------------------------------------------------------------------------
+# intake
+# ---------------------------------------------------------------------------
+
+[intake]
+allowed_file_types = [".txt", ".md", ".pdf", ".docx"]

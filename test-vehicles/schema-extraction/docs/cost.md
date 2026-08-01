@@ -13,6 +13,13 @@ the cache invalidates on every SCHEMA_VERSION bump, so each schema iteration re-
 
 Suggestion: keep Sonnet as the default for iterating, pass --model claude-opus-5 for confirmation runs
 
+---
+
+Input is fixed block + document; output is only k × document
+
+	
+| price	| output costs exactly 5× input — on every current Claude model. $5/$25, $1/$5, $2/$10, $3/$15, $10/$50. Same ratio all the way down the lineup.|
+| volume	| Profile.pdf produced 14,882 output tokens from 5,286 input — 2.8× more output than input|
 
 ---
 

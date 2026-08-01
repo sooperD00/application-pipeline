@@ -13,25 +13,56 @@ Both are skipped under --dry-run (nothing to spend) and --yes (you already looke
 
 from __future__ import annotations
 from pathlib import Path
+from dataclasses import dataclass
 
-BIG_FILE_BYTES = 10 * 1024 * 1024   # "that is not a resume" territory
-TRUNCATE_AT = 0.80                  # of max_tokens; output tracks the DOCUMENT
-
-# Blended over prose and schema JSON, which tokenize at very different rates.
-# Measured: 2.62 on the Opus 5 Profile.pdf run, 3.21 on Haiku 4.5. Models from
-# 4.7 on use a newer, denser tokenizer; take the denser figure so the gate
-# over-estimates rather than under-estimates. One rate splits into two (a prose
-# slope and a fixed intercept) once ledger.csv has enough rows to regress.
-CHARS_PER_TOKEN = 2.6
+from config import BIG_FILE_BYTES, CHARS_PER_TOKEN, ESTIMATE, TRUNCATE_AT, dollars
 
 
 def est_tokens(chars: int) -> int:
     return round(chars / CHARS_PER_TOKEN)
 
 
-def est_input(doc_chars: int, fixed: dict[str, int]) -> int:
-    """One call's input: the document plus everything wrapped around it."""
-    return est_tokens(doc_chars) + sum(est_tokens(v) for v in fixed.values())
+@dataclass
+class Forecast:
+    """What one call is predicted to cost, before it is made.
+
+    This is the ledger.csv row, minus the things only the run knows (timestamp,
+    cache_key, elapsed) and the actuals that come back from the API.
+
+    lo/mid/hi vary the OUTPUT rate only. Input gets a point estimate because its
+    error is systematic rather than random — chars_per_token is one blended
+    constant across two tokenizers, so it runs ~24% high on pre-4.7 models and
+    near zero on the rest. A range would dress up a bias as uncertainty; the fix
+    is splitting the constant, not bracketing it.
+    """
+    model: str
+    doc_chars: int
+    doc_tokens: int
+    fixed_tokens: int
+    in_tokens: int
+    out_lo: int
+    out_mid: int
+    out_hi: int
+    usd_lo: float | None
+    usd_mid: float | None
+    usd_hi: float | None
+    rate_measured: bool
+
+
+def forecast(doc_chars: int, fixed: dict[str, int], model: str) -> Forecast:
+    """One document, one model. The only place an estimate is computed."""
+    doc_tok = est_tokens(doc_chars)
+    fix_tok = sum(est_tokens(v) for v in fixed.values())
+    in_tok = doc_tok + fix_tok
+
+    rate = ESTIMATE.out_rate(model)
+    out = {k: round(doc_chars * getattr(rate, k)) for k in ("lo", "mid", "hi")}
+    usd = {k: dollars(model, in_tok, out[k])[0] for k in ("lo", "mid", "hi")}
+
+    return Forecast(model, doc_chars, doc_tok, fix_tok, in_tok,
+                    out["lo"], out["mid"], out["hi"],
+                    usd["lo"], usd["mid"], usd["hi"],
+                    ESTIMATE.measured(model))
 
 
 # ---------------------------------------------------------------------------
@@ -137,18 +168,20 @@ def phase1(sample_dir: Path, only: str | None, allowed: set[str],
 # ---------------------------------------------------------------------------
 
 def phase2(loaded, max_tokens: int, is_cached, auto_yes: bool,
-           fixed: dict[str, int]) -> None:
+           fixed: dict[str, int], model: str) -> None:
     """`loaded` is a list of (name, kind, text, warnings). Extraction already ran."""
     ceiling = TRUNCATE_AT * max_tokens
-    rows, warn_lines, fresh_doc_tok, n_cached = [], [], 0, 0
+    rows, warn_lines, fresh, n_cached = [], [], [], 0
 
     for name, kind, text, warnings in loaded:
-        est = est_tokens(len(text))
+        fc = forecast(len(text), fixed, model)
         cached = is_cached(kind, text)
         n_cached += cached
         if not cached:
-            fresh_doc_tok += est
-        rows.append((name, len(text), est, cached, est > ceiling))
+            fresh.append(fc)
+        # Truncation flags on DOCUMENT tokens. The fixed block generates no
+        # output, so it has no business in this comparison.
+        rows.append((name, len(text), fc.doc_tokens, cached, fc.doc_tokens > ceiling))
         for w in warnings:
             warn_lines.append(f"      {shorten(name, 24):<26} {w}")
 
@@ -173,16 +206,47 @@ def phase2(loaded, max_tokens: int, is_cached, auto_yes: bool,
         print(f"    Coverage numbers from a truncated run are meaningless. "
               f"Re-run those with --max-tokens larger.")
 
-    n_fresh = len(rows) - n_cached
-    n_fresh = len(rows) - n_cached
+    n_fresh = len(fresh)
+    if not n_fresh:
+        # Everything replayed from cache. The breakdown below would be a column
+        # of zeros, and gate() documents that it never fires with nothing at
+        # stake — a prompt you'd learn to hit Enter through is worse than none.
+        print(f"\n  0 fresh / {n_cached} cached      nothing to spend")
+        return
+
     f = {k: n_fresh * est_tokens(v) for k, v in fixed.items()}
     fix_tok = sum(f.values())
 
+    # Output tracks the DOCUMENT. The fixed block is input-only — it generates
+    # nothing — so it must not appear on this line.
+    doc_tok = sum(x.doc_tokens for x in fresh)
+    doc_chars = sum(x.doc_chars for x in fresh)
+    tok_in = sum(x.in_tokens for x in fresh)
+    tok_out = sum(x.out_mid for x in fresh)
+    rate = ESTIMATE.out_rate(model)
+    measured = fresh[0].rate_measured
+
+    # input report
     print(f"\n  {n_fresh} fresh / {n_cached} cached\n")
-    print(f"  document + fixed (system + schema + template)")
-    print(f"  {fresh_doc_tok:,} + {fix_tok:,} "
+    print(f"  doc + fixed  = doc + (system + schema + template)")
+    print(f"  {doc_tok:,} + {fix_tok:,} "
           f"({f['system']:,} + {f['schema']:,} + {f['template']:,})"
-          f" = ~{fresh_doc_tok + fix_tok:,} input tokens to spend")
-    print("")
+          f" = ~{tok_in:,} input tokens")
+
+    # output report
+    print(f"  {doc_chars:,} chars × {rate.mid:g}"
+          f"{'' if measured else ' (default — this model is unmeasured)'}"
+          f" = ~{tok_out:,} output tokens")
+
+    # cost report
+    _, tier = dollars(model, tok_in, tok_out)
+    if tier is None:
+        print(f"\n  ~$?        {model} has no price in config.toml")
+    else:
+        # lo/hi are carried for ledger.csv; the gate shows the point estimate.
+        mid = sum(x.usd_mid for x in fresh)
+        share = 100.0 * tok_out * tier.output / (tok_in * tier.input + tok_out * tier.output)
+        print(f"\n  ~${mid:,.2f}     {model}   ${tier.input:g}/${tier.output:g} per Mtok"
+              f"   ({share:.0f}% of it is output)")
 
     gate("spend it?", auto_yes)

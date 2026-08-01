@@ -31,6 +31,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from dotenv import load_dotenv
+from config import COVERAGE_FLOOR, DEFAULT_MODEL, MAX_TOKENS
 import loaders
 import preview
 import prompt as prompt_mod
@@ -42,14 +43,6 @@ ROOT = Path(__file__).parent
 SAMPLES = ROOT / "samples"
 OUT = ROOT / "out"
 CACHE = OUT / ".cache"
-
-DEFAULT_MODEL = "claude-opus-5"
-
-# Structured outputs are also available on claude-sonnet-5 and
-# claude-haiku-4-5-20251001. Worth running the same sample through two of them:
-# if Haiku and Opus disagree about where a line goes, the ambiguity is in your
-# schema, not in the model.
-
 
 # ---------------------------------------------------------------------------
 # input
@@ -230,17 +223,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only")
     ap.add_argument("--model", default=DEFAULT_MODEL)
-    ap.add_argument("--max-tokens", type=int, default=16000)
+    ap.add_argument("--max-tokens", type=int, default=MAX_TOKENS)
     ap.add_argument("--no-cache", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--yes", action="store_true", help="skip both checkpoints")
     args = ap.parse_args()
 
-    # guard blocks
+    # check anthropic key
     if not args.dry_run and not os.environ.get("ANTHROPIC_API_KEY"):
         print("ANTHROPIC_API_KEY isn't set. Either put it in .env or use --dry-run.")
         return 1
 
+    # phase1 gate
     skip_gates = args.dry_run or args.yes
 
     paths = preview.phase1(SAMPLES, args.only, loaders.ALLOWED_FILE_TYPES,
@@ -253,18 +247,22 @@ def main():
         print("Nothing survived extraction.")
         return 1
 
+    # phase2 gate
     preview.phase2(samples,
                    args.max_tokens,
                    lambda kind, text: cache_path(args.model, kind, text).exists()
                                       and not args.no_cache,
                    skip_gates,
-                   prompt_mod.fixed_chars())
+                   prompt_mod.fixed_chars(),
+                   args.model)
 
+    # init
     OUT.mkdir(exist_ok=True)
     results, tok_in, tok_out, n_cached = [], 0, 0, 0
     fixed = prompt_mod.fixed_chars()
-    calib = []   # (name, estimated in, actual in, actual out) — ledger.csv rows, unpersisted
+    calib = []   # (name, Forecast, actual in, actual out) — ledger.csv rows, unpersisted
 
+    # run
     for name, kind, text, _warnings in samples:
         print(f"→ {name} ({kind or 'unknown'}, {len(text):,} chars)")
         if args.dry_run:
@@ -280,8 +278,10 @@ def main():
         else:
             tok_in += meta.get("input_tokens", 0)
             tok_out += meta.get("output_tokens", 0)
-            calib.append((name, preview.est_input(len(text), fixed),
-                          meta.get("input_tokens", 0), meta.get("output_tokens", 0)))
+            calib.append((name,
+                          preview.forecast(len(text), fixed, args.model),
+                          meta.get("input_tokens", 0),
+                          meta.get("output_tokens", 0)))
 
         cov = measure(text, ex.buckets)
         counts: dict[str, int] = {}
@@ -295,7 +295,7 @@ def main():
         results.append({"name": name, "kind": kind, "text": text,
                         "ex": ex, "cov": cov, "counts": counts, "meta": meta})
 
-        flag = "  ← LOOK" if counts.get("unclassified") or cov.fabricated or cov.pct < 85 else ""
+        flag = "  ← LOOK" if counts.get("unclassified") or cov.fabricated or cov.pct < COVERAGE_FLOOR else ""
         print(f"   coverage {cov.pct:5.1f}%   buckets {len(ex.buckets):3d}   "
               f"unclassified {counts.get('unclassified', 0):2d}   "
               f"fabricated spans {len(cov.fabricated):2d}"
@@ -307,11 +307,14 @@ def main():
         print("\ndry run — nothing was sent, nothing was spent.")
     else:
         if calib:
-            print(f"\n  {'name':<30} {'est in':>8} {'actual':>8} {'Δ':>7} {'out':>8}")
-            for name, est, act, out in calib:
-                d = f"{100.0 * (est - act) / act:+.0f}%" if act else "—"
-                print(f"  {preview.shorten(name, 30):<30} {est:>8,} {act:>8,} "
-                      f"{d:>7} {out:>8,}")
+            print(f"\n  {'name':<24} {'est in':>8} {'actual':>8} {'Δ':>6}"
+                  f" {'est out':>8} {'actual':>8} {'Δ':>6}  {'rng':<3}")
+            for name, fc, ain, aout in calib:
+                di = f"{100.0 * (fc.in_tokens - ain) / ain:+.0f}%" if ain else "—"
+                do = f"{100.0 * (fc.out_mid - aout) / aout:+.0f}%" if aout else "—"
+                hit = "in" if fc.out_lo <= aout <= fc.out_hi else "OUT"
+                print(f"  {preview.shorten(name, 24):<24} {fc.in_tokens:>8,} {ain:>8,} {di:>6}"
+                      f" {fc.out_mid:>8,} {aout:>8,} {do:>6}  {hit:<3}")
         print(f"\n{tok_in:,} in / {tok_out:,} out tokens spent      "
               f"{n_fresh} fresh / {n_cached} cached")
 

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-ALLOWED_FILE_TYPES = {".txt", ".md", ".pdf", ".docx"}
+from config import ALLOWED_FILE_TYPES
 
 # First bytes of the file, which is what it actually IS regardless of what the
 # extension claims. .docx is a zip, hence PK.

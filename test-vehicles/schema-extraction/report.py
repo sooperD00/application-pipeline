@@ -12,6 +12,8 @@ from __future__ import annotations
 import html
 from pathlib import Path
 
+from config import COVERAGE_FLOOR
+
 HUE = {
     "role": "#2C5F8A",
     "accomplishment": "#17795E",
@@ -176,7 +178,7 @@ def _sample(r) -> str:
             f'{f"<div class=m>{html.escape(meta)}</div>" if meta else ""}</div>'
         )
 
-    covcls = "bad" if cov.pct < 85 else ""
+    covcls = "bad" if cov.pct < COVERAGE_FLOOR else ""
     return f"""
 <section class="sample">
   <div class="head">
@@ -224,7 +226,7 @@ looks reasonable — it's whether anything had nowhere to go.</p>
 <div class="verdict">
   <div class="metric"><span class="n {'bad' if unc else ''}">{unc}</span>
     <span class="l">unclassified across all samples</span></div>
-  <div class="metric"><span class="n {'bad' if worst < 85 else ''}">{worst:.0f}%</span>
+  <div class="metric"><span class="n {'bad' if worst < COVERAGE_FLOOR else ''}">{worst:.0f}%</span>
     <span class="l">worst-case text coverage</span></div>
   <div class="metric"><span class="n {'bad' if fab else ''}">{fab}</span>
     <span class="l">quotes not found in source</span></div>

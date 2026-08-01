@@ -86,10 +86,90 @@ document + fixed (system + schema + template)
 
 2,740 in / 2,094 out tokens spent      1 fresh / 0 cached
 ```
-- [ ] Dollar estimate in the phase-2 gate. Calibration is already in `cost.md`:
+	- [x] fix: guard for token summary line counted cached tokens as spent
+- [x] Dollar estimate in the phase-2 gate. Calibration is already in `cost.md`:
       input ≈ chars/1.25 plus the 3,045-char SYSTEM, output ≈ 2.5× input.
+	- [x] A. Prices keyed how? Exact model string ("claude-haiku-4-5-20251001")
+	- [x] B. Does the dollar line show a range? ~$0.40 reads well in a gate. $0.33 – $0.48
+		- we'll need 3 fields for the tracking csv, lo_, approx_, and hi_
+		Range needs a source, and there's a defensible one sitting in your data: 
+		you ran both documents twice.
+		model / doc	two runs, out-tokens per doc char	spread
+		Opus 5 / Profile.pdf	1.89 → 2.24	19%
+		Haiku 4.5 / example-freeform	1.19 → 1.22	2.5%
+	- [x] C. We need an actual model for output tokens (doc_size * 5 * k) where 5 is bc that's
+		how Anthropic prices every model in/out cost multiplier and k because the output is
+		larger than the intput as well -- we don't know if it's really a straight multiplier
+		but this is our model for now. Calc from the few runs we've done.
+	- [x] D. We need a flat file to keep estimates and measurements and other constants in
+		-> config.toml for data, typing (including date type), and comments
+		-> config.py (toml/pydantic loader) to ingest the "data" from the toml and 
+		convert to typed dataclasses
+	- [x] dry run (does it run?)
+		- [x] python lab.py --dry-run --only example
+	- [x] test on a fresh haiku run
+		- [x] python lab.py --only example --model claude-haiku-4-5-20251001
+			- fixed a divide by zero issue
+		- [x] python lab.py --only example --model claude-haiku-4-5-20251001 --no-cache
+		- [x] Excellent. The output estimator lands within 2% on its first real check. 
+		The input one is the +24% we predicted — Haiku's older tokenizer against a 
+		constant measured on Opus.
+```
+1 fresh / 0 cached
+
+  document + fixed (system + schema + template)
+  623 + 2,761 (1,171 + 1,505 + 85) = ~3,384 input tokens
+  ~1,943 output tokens
+
+  ~$0.01     claude-haiku-4-5-20251001   $1/$5 per Mtok   (74% of it is output)
+
+spend it?   [Enter] continue   [Ctrl-C] bail
+```
+name                       est in   actual      Δ  est out   actual      Δ
+  example-freeform            3,384    2,740   +24%    1,943    1,980    -2%
+```
+		- [x] let's print the calculation for ~1,943 output tokens as well
+		- [x] ok implementing B. the range, and a dataclass marching towards ledger.csv
+			- [x] dry-run, haiku, no-cache # looks good
+	- [ ] git commit -m "test-vehicles: dollar estimate in the phase-2 gate
+
+Gate now prints both sides before the spend: document + fixed
+(system + schema + template) for input, doc chars × rate for output,
+then ~$X.XX at the model's rate.
+
+- fixed block computed from SYSTEM, USER_TEMPLATE and
+  Extraction.model_json_schema(), not hard-coded
+- CHARS_PER_TOKEN 4 -> 2.6; document tokens stay separate from the
+  fixed block so truncation still flags on the document alone
+- new Forecast dataclass + forecast() in preview.py — the only place
+  an estimate is computed, and the shape of a ledger.csv row
+- output carries lo/mid/hi; input stays a point estimate
+- prices by exact model string; unpriced model prints ~$? and the run
+  continues
+- run summary adds est vs actual for both sides, plus whether actual
+  landed in range
+- config.toml + pydantic loader in config.py, so a typo in a price
+  fails at import instead of inside the math. Also absorbs the three
+  copies of the 85% coverage floor.
+
+Initial TOML rates from Profile.pdf on Opus 5 and example-freeform on
+Haiku 4.5, two runs each. Unmeasured models fall back to a wider
+default and say so.
+
+Smoke tested on example-freeform: dry-run, fresh, cached, --no-cache,
+and an unpriced model string."
+
+
+
 - [ ] `ledger.csv` — append one row per fresh call: timestamp, cache_key, name,
       model, in, out, $, seconds, schema_version, prompt_version
+	how to track schema changes in the ledger report? here's an easy version 
+	I can track by eye just for development:
+		- paste in the header if there isn't one
+		- paste in a new header if it doesn't match the old
+		- keep track of the "latest" header by pre-pending it to the top of the 
+		doc as well as appending it to the start of the latest append section
+
 - [ ] Index table at the top of `report.html` — one row per document. At 30 docs
       the current report is an unnavigable scroll.
 - [ ] Integrate the 07-27 observations into schema v2 (§8)
