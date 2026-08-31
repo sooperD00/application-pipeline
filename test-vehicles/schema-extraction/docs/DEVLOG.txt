@@ -131,7 +131,7 @@ name                       est in   actual      Δ  est out   actual      Δ
 		- [x] let's print the calculation for ~1,943 output tokens as well
 		- [x] ok implementing B. the range, and a dataclass marching towards ledger.csv
 			- [x] dry-run, haiku, no-cache # looks good
-	- [ ] git commit -m "test-vehicles: dollar estimate in the phase-2 gate
+	- [x] git commit -m "test-vehicles: dollar estimate in the phase-2 gate
 
 Gate now prints both sides before the spend: document + fixed
 (system + schema + template) for input, doc chars × rate for output,
@@ -159,16 +159,58 @@ default and say so.
 Smoke tested on example-freeform: dry-run, fresh, cached, --no-cache,
 and an unpriced model string."
 
-
-
 - [ ] `ledger.csv` — append one row per fresh call: timestamp, cache_key, name,
       model, in, out, $, seconds, schema_version, prompt_version
-	how to track schema changes in the ledger report? here's an easy version 
-	I can track by eye just for development:
-		- paste in the header if there isn't one
-		- paste in a new header if it doesn't match the old
-		- keep track of the "latest" header by pre-pending it to the top of the 
-		doc as well as appending it to the start of the latest append section
+	- [x] A. gitignore ledger.csv -> ledger.*
+	- [ ] B. how to track schema changes in the ledger report? 
+
+Alt1: This is the standard schema versioning in append-only logs: never change the header, only add columns. Old rows get empty values for new columns. That's how event logs handle this problem, and it preserves both append-safety and parseability. The tradeoff rewrites when adding a field to backfill empty cells, but rewrites are rare while appends are constant
+	write a small function that reads the existing header, checks if the new header is a superset, and if so rewrites the file once with the added columns blank-filled. If it's not a superset — meaning a column was removed or renamed — that's a signal to start a new file like ledger-2.csv rather than corrupt the original.
+Alt2: when the header doesn't match, rotate the file. Rename ledger.csv to something like ledger-20260801-v1.csv and start fresh.
+Alt3: a fixed superset header that gets backfilled on schema changes
+
+--> I like this one --> Alt2: JSONL (where schema evolution is free and pandas handles ragged keys natively)
+
+She needs both eyeball-friendly inspection during development and machine-readable data for regression analysis on things like the chars_per_token split. The cleanest solution would be JSONL for the durable log with a CSV projection generated on demand.
+
+commit or stash her current work first for safety, then copy my file over hers, use git add -p to walk through each hunk of the diff between her committed version and my working version, stage only the hunks she wants, and then discard the rest—though the exact sequence of commands needs careful ordering to avoid losing unstaged changes.
+
+git add -p, I should mention the key bindings—y/n/q/a/d/s/e—especially that 
+	- s splits hunks into smaller pieces for finer-grained control and 
+	- e lets her edit manually
+
+git diff              # unchanged — unified diff, in your terminal, through the pager
+git difftool          # opens VS Code
+
+Set up vscode as difftool
+git config --global merge.tool vscode
+git config --global mergetool.vscode.cmd 'code --wait --merge $REMOTE $LOCAL $BASE $MERGED'
+
+Two things that make difftool less annoying once you're using it:
+git config --global difftool.prompt false     # stop asking "launch vscode [Y/n]?" per file
+git config --global mergetool.keepBackup false # stop leaving .orig files behind
+git config --global diff.tool vscode
+git config --global difftool.vscode.cmd 'code --wait --diff $LOCAL $REMOTE'
+
+To see what you've actually set, or back it out:
+git config --get-regexp '^(diff|difftool|merge|mergetool)\.'
+git config --global --unset diff.tool
+
+	# open
+	- [x] git difftool HEAD~1 HEAD -- lab.py  # vscode opens with 2-pane diff
+	# check how big the delta is
+	- [x] git status                                          # anything uncommitted?
+	- [x] git diff --no-index lab.py /path/to/claude/lab.py   # or difftool for the GUI
+
+	- [x] git difftool -- lab.py       # VS Code
+	**save the file before you close the diff**, or the arrow clicks go 
+	nowhere. Ctrl+S, then check git diff.
+	- [x] git diff -- lab.py           # terminal
+	- [x] python lab.py --dry-run --only example
+
+	# generate some ledger lines!!
+	- [ ] python lab.py --no-cache --model claude-opus-5  # there's 5 in there now!
+
 
 - [ ] Index table at the top of `report.html` — one row per document. At 30 docs
       the current report is an unnavigable scroll.

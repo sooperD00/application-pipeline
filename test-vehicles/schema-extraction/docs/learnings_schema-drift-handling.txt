@@ -1,0 +1,67 @@
+The real standards here are the format itself—JSON Lines with one object per line, newline-delimited, no wrapping array—and the schema compatibility modes from Confluent Schema Registry: backward compatible (new schema reads old data), forward compatible (old schema reads new data), and full compatible (both directions). These compatibility patterns are what actually matter for append-only logs in production systems.
+
+The evolution rules are strict: add optional fields with defaults, never remove required fields, never rename (that's a remove plus add), never change types except for safe widening like int to long, and absolutely never reuse a field name or tag for something different—that silently corrupts your history. Protobuf handles this elegantly by using field numbers as identity rather than names, with a reserved keyword to prevent tag reuse, which is why it's the gold standard. Avro travels its schema with the data or through a registry and uses reader-writer schema resolution.
+
+The version-in-the-record pattern is standard for event logs—every record carries a schema version field so you know which reader to apply—and the envelope pattern separates concerns further.
+
+The envelope wraps metadata like version, timestamp, and event type around the payload, letting you evolve them independently. Dead letter queues catch unparseable records instead of crashing the reader, and schema-on-read versus schema-on-write is the fundamental choice: JSONL is schema-on-read (data lake style), while CSV-with-header leans schema-on-write. What she's describing—detecting changes in the data—is the classic schema drift detection problem, and there are standard tools like Great Expectations, dbt tests, Delta Lake's schema enforcement and evolution, and Iceberg's schema capabilities.
+
+For a data engineering assessment, the expected approach is to infer the schema per record, union across records to find the full shape, classify what changed (added columns, removed columns, type changes, nullability shifts), decide on a compatibility mode, then either evolve the target table or quarantine the problematic records. Practically speaking, tools like pandas for reading JSONL, pyarrow for schema inference, and jq for command-line JSON manipulation are the go-to utilities, plus json.dumps with sorted keys for stable diffs.
+
+Given the purpose here—building a dev ledger, regression dataset, and learning resource—I should focus on creating an append-only JSONL ledger with a schema version envelope, a small drift-detection function that directly maps to the assessment pattern, and keep the CSV export as an optional projection. I need to be mindful of scope and rewrite the ledger module for JSONL, add the drift detector, wire it minimally into the lab module, and test it out.
+
+Defining the schema version and building the append function... Implementing the drift detection function...
+
+---
+
+Ragged records fill with NaN, the torn line quarantines, pandas is happy.
+
+The standards, named
+
+You'd hear all of these in a DE interview, and the assessment you described is testing exactly this vocabulary.
+
+The format. JSON Lines / NDJSON / LDJSON — same thing, three names. jsonlines.org, ndjson.org, media type application/x-ndjson. Extension .jsonl or .ndjson.
+
+Schema evolution compatibility modes. This is the core vocabulary, from Confluent Schema Registry:
+
+mode	means
+BACKWARD	new reader handles old data — you added an optional field
+FORWARD	old reader handles new data — old code ignores fields it doesn't know
+FULL	both
+TRANSITIVE variants	holds against all prior versions, not just the previous one
+NONE	anything goes
+
+Add-only gives you FULL. That's why "add optional fields, never rename, never retype" is the rule everywhere.
+
+Why renames are the trap. A rename is a remove plus an add, and readers can't tell it from two unrelated changes. Protobuf solved this by making the field number the identity and the name cosmetic, with a reserved keyword so a retired tag can never be reused. Iceberg does the same with column IDs. If you ever hear "why is protobuf good at evolution," that's the answer.
+
+Version in the record, not beside it. Every record carries v. CloudEvents (the CNCF event spec) names the same field specversion. Avro's alternative is writer-schema plus reader-schema resolution via a registry — heavier, and the reason Kafka shops run a schema registry at all.
+
+Malformed-record handling. Spark's three read modes: PERMISSIVE (default — nulls the bad row, stashes the raw text in _corrupt_record), DROPMALFORMED, FAILFAST. The general pattern is a dead-letter queue: bad records go somewhere for inspection instead of killing the load. ledger.read() is that in two lines, and it's why pd.read_json(lines=True) isn't the right loader for a log.
+
+Schema-on-read vs schema-on-write. JSONL is schema-on-read — the data lake position. CSV-with-header leans schema-on-write. Delta Lake and Iceberg split the difference: enforcement by default, mergeSchema=true to opt into evolution. "Schema drift detection" is the industry term for exactly what scan() does.
+
+What changed in the code
+
+ledger.py is now:
+
+append(path, record) — one write() of one line, versioned envelope, never reads the file
+from_forecast(fc) — unchanged, still the one place out_mid meets est_out_mid
+read(path, strict=False) — returns (records, bad_lines)
+scan(path) / report(path) — drift classified as added / removed / RETYPED / unparseable
+python ledger.py runs the report
+
+Rotation is gone — that was a CSV workaround. lab.py changes are two lines: LEDGER = ROOT / "ledger.jsonl", and None stays None instead of "" for the unpriced fields.
+
+Two things the run proved that CSV couldn't:
+
+{"model": "claude-typo-5", "est_usd_mid": null, "price_in": null, "rate_measured": false}
+{"model": "claude-haiku-4-5-20251001", "est_usd_mid": 0.013179, "in_range": false}
+
+null versus a number is now distinguishable from a missing field, and in_range is a real boolean rather than the string "False" — which in CSV is truthy, and would have quietly inverted any filter you wrote on it.
+
+Still outstanding
+
+.gitignore has no ledger* line. Sample filenames are real people's names.
+
+And the regression this file exists for needs documents of different lengths on one model — two Opus rows at the same doc_chars fit nothing. One Opus run over three differently-sized samples gives you the slope and intercept, which is what finally splits chars_per_token in two.

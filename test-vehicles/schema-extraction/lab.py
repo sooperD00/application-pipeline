@@ -27,22 +27,34 @@ import hashlib
 import json
 import os
 import sys
+import time
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
-from config import COVERAGE_FLOOR, DEFAULT_MODEL, MAX_TOKENS
+from config import COVERAGE_FLOOR, DEFAULT_MODEL, MAX_TOKENS, dollars as config_dollars
 import loaders
 import preview
 import prompt as prompt_mod
 from schema import Extraction, SCHEMA_VERSION
+import prompt as prompt_mod
 import report as report_mod
+import ledger as ledger_mod
 
 load_dotenv()   # copies .env into os.environ; without this the key is invisible
 ROOT = Path(__file__).parent
 SAMPLES = ROOT / "samples"
 OUT = ROOT / "out"
 CACHE = OUT / ".cache"
+LEDGER = ROOT / "ledger.csv"   # gitignored: sample names are real people
+
+
+# Structured outputs are also available on claude-sonnet-5 and
+# claude-haiku-4-5-20251001. Worth running the same sample through two of them:
+# if Haiku and Opus disagree about where a line goes, the ambiguity is in your
+# schema, not in the model.
+
 
 # ---------------------------------------------------------------------------
 # input
@@ -160,6 +172,7 @@ def extract(name, kind, text, model, max_tokens, use_cache) -> tuple[Extraction,
     client = anthropic.Anthropic()   # reads ANTHROPIC_API_KEY
     system, user = prompt_mod.build(kind, text)
 
+    t0 = time.monotonic()
     resp = client.messages.parse(
         model=model,
         max_tokens=max_tokens,
@@ -167,6 +180,7 @@ def extract(name, kind, text, model, max_tokens, use_cache) -> tuple[Extraction,
         messages=[{"role": "user", "content": user}],
         output_format=Extraction,
     )
+    elapsed = time.monotonic() - t0
 
     if resp.stop_reason == "max_tokens":
         print(
@@ -180,6 +194,7 @@ def extract(name, kind, text, model, max_tokens, use_cache) -> tuple[Extraction,
         "input_tokens": resp.usage.input_tokens,
         "output_tokens": resp.usage.output_tokens,
         "stop_reason": resp.stop_reason,
+        "seconds": round(elapsed, 2),
         "cached": False,
     }
     ex = resp.parsed_output
@@ -258,6 +273,7 @@ def main():
 
     # init
     OUT.mkdir(exist_ok=True)
+    run_id = datetime.now().strftime("%Y%m%d-%H%M%S")
     results, tok_in, tok_out, n_cached = [], 0, 0, 0
     fixed = prompt_mod.fixed_chars()
     calib = []   # (name, Forecast, actual in, actual out) — ledger.csv rows, unpersisted
@@ -294,6 +310,26 @@ def main():
         )
         results.append({"name": name, "kind": kind, "text": text,
                         "ex": ex, "cov": cov, "counts": counts, "meta": meta})
+
+        if not args.dry_run and not meta["cached"]:
+            fc = calib[-1][1]
+            ain, aout = meta.get("input_tokens", 0), meta.get("output_tokens", 0)
+            usd, tier = config_dollars(args.model, ain, aout)
+            ledger_mod.append(LEDGER, {
+                **ledger_mod.from_forecast(fc),
+                "run_id": run_id, "ts": datetime.now().isoformat(timespec="seconds"),
+                "name": name,
+                "schema_version": SCHEMA_VERSION, "prompt_version": prompt_mod.PROMPT_VERSION,
+                "cache_key": cache_path(args.model, kind, text).stem,
+                "max_tokens": args.max_tokens,
+                "act_in": ain, "act_out": aout,
+                "act_usd": round(usd, 6) if usd is not None else "",
+                "price_in": tier.input if tier else "", "price_out": tier.output if tier else "",
+                "seconds": meta.get("seconds", ""), "stop_reason": meta.get("stop_reason", ""),
+                "doc_kind": ex.doc_kind, "n_buckets": len(ex.buckets),
+                "coverage_pct": round(cov.pct, 1),
+                "in_range": fc.out_lo <= aout <= fc.out_hi,
+            })
 
         flag = "  ← LOOK" if counts.get("unclassified") or cov.fabricated or cov.pct < COVERAGE_FLOOR else ""
         print(f"   coverage {cov.pct:5.1f}%   buckets {len(ex.buckets):3d}   "

@@ -15,10 +15,11 @@ against: samples/human_observations/ (2026-07-27 session), docs/design/
       (`README.md:84`)
 - [x] Token summary line counts cached tokens as spent. Guard on
       `not meta["cached"]`.
-- [ ] Dollar estimate in the phase-2 gate. Calibration is already in `cost.md`:
+- [x] Dollar estimate in the phase-2 gate. Calibration is already in `cost.md`:
       input ≈ chars/1.25 plus the 3,045-char SYSTEM, output ≈ 2.5× input.
-- [ ] `ledger.csv` — append one row per fresh call: timestamp, cache_key, name,
+- [x] `ledger.csv` — append one row per fresh call: timestamp, cache_key, name,
       model, in, out, $, seconds, schema_version, prompt_version
+      --> changed to `ledger.jsonl` for proper schema version tracking
 - [ ] Index table at the top of `report.html` — one row per document. At 30 docs
       the current report is an unnavigable scroll.
 - [ ] Integrate the 07-27 observations into schema v2 (§8)

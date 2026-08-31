@@ -1,6 +1,15 @@
-samples/*
-!samples/example-*.txt
-out/
-.env
+# python
 __pycache__/
 .venv
+
+# API keys
+.env
+
+# input PII
+samples/*
+!samples/example-*.txt
+
+# output PII
+out/
+ledger*.*
+
