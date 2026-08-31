@@ -1,3 +1,12 @@
+# Completed Sprints — Phase 1
+
+> Execution order: bottom-up (first sprint is at the bottom)
+> Don't forget the **Landed** line so you know how to get better at Sprint Planning
+
+
+
+
+
 # Completed Sprints — Phase 0
 
 > Execution order: bottom-up (first sprint is at the bottom)

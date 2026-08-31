@@ -1,11 +1,116 @@
-# Remaining Sprints — Phase 0
+# Remaining Sprints — Phase 1
 
+LLM MODEL = Claude Opus 5 Max Thinking
+
+TERMINOLOGY
 > Execution order: top-down. Next sprint is at the top.
+> "Phase" = a body of work with one architecture story.
+> "Sprint" = one named change to the system, titled as the category of work.
+> "Kind" = commit-ordering heuristic for a leg. [feature | refactor | migration | upgrade]
+> "Leg" = sequenced segment of one journey, with an appetite of one sitting
+> "Factor" = the class of thing a red suite would blame.
+> "Appetite" = sizing rule of one sitting per leg (human); fits in [LLM MODEL] context.
+> "Watch" = a known trap.
+> "Status" = planned → in progress → done YYYY-MM-DD, or dropped (say why).
+> "Housekeeping" = can be added to any sprint; "Tech Debt" = deferred, probably for a while.
+
+
+> "Kind" map to a distinct ordering heuristic:
+
+| kind      | ordering heuristic |
+|-----------|--------------------|
+| feature   | import graph |
+| migration | consumer graph |
+| refactor  | the suite is the invariant |
+| upgrade   | no graph — lock first, let the breakage name the commits |
+| spike / investigation    | planned as a sprint but quarantined in `~/test-vehicles/spike-name/` |
+| bugfix    | reproduce → fix → confirm (regression test) |
+
+> tell me if you need another "Kind" -- we can discuss.
+Not every topic is a Kind. Ask what orders the commits, not what the work is about
+    - deploy might be a migration: dev → staging → prod is a consumer graph
+    - deploy might be a feature: build the pipeline
+
+---
+
+## Sprint 13 — Backend dependencies --- planned
+
+Migrate backend dependency management from pip to uv.
+**Kind:** migration
+**Legs:** migration, consumer flip, version upgrade — the first two move packaging (factor 1) with versions pinned; the third moves versions (factor 2) with packaging fixed. Merging the last two means a red suite can't say which.
+
+**Why now** CE! current SWE expectations. Also: requirements.txt is a pip freeze —
+13 real roots buried in 20 transitives, hand-appended since. Nothing declares what this
+project actually requires, so nothing can be upgraded deliberately.
+
+### 13a — requirements.txt → uv (migration) --- planned
+
+**Done when**
+- [ ] `uv pip freeze` matches the pre-migration `pip freeze` exactly — same 33 packages, same 33 versions
+- [ ] pytest collected count and pass/skip counts are unchanged
+- [ ] `uv lock --check` and `uv sync --check` both exit clean
+- [ ] `docker build` still succeeds — this leg must not touch prod
+
+**Commits**
+| # | | |
+|---|---|---|
+| 0 | ground truth | `pip freeze` + test counts captured before anything moves (artifact, not a commit) |
+| 1 | new beside old | pyproject: `[project]` ranges, `[dependency-groups]`, constraint-dependencies, `package = false` |
+| 2 | prove equivalence | freeze diff empty, test counts match |
+| 3 | guard the venv | `.dockerignore` excludes `backend/.venv` |
+| 4 | shim the consumer | requirements.txt becomes `uv export` output — same file, new status: generated |
+
+### 13b — flip the consumers, delete requirements.txt (consumer flip) --- planned
+
+**Done when**
+- [ ] `docker build` succeeds installing from pyproject + uv.lock, with no requirements.txt in the repo
+- [ ] the built image runs migrations and starts uvicorn
+- [ ] image size is same or smaller
+- [ ] `grep -rn requirements.txt --exclude-dir=docs --exclude-dir=test-vehicles .` returns nothing
+
+**Commits**
+| # | | |
+|---|---|---|
+| 1 | flip consumer | Dockerfile installs from the lock, dev group excluded |
+| 2 | flip consumer | README local-setup section |
+| 3 | delete the old | `git rm backend/requirements.txt` |
+
+**Watch** start.sh calls bare `alembic` and `uvicorn` off PATH. It consumes *where packages
+land*, not requirements.txt, so 13a's inventory missed it. Satisfy it by putting the venv's
+bin on PATH in the image rather than rewriting start.sh — fewer files move, and start.sh
+stays runnable outside Docker.
+
+### 13c — remove the scaffolding, take the upgrade (version upgrade) --- planned
+
+**Kind:** upgrade
+
+**Done when**
+- [ ] constraint-dependencies is gone from pyproject and `uv lock --check` is clean
+- [ ] the uv.lock diff has been read, not skimmed — that diff IS the upgrade
+- [ ] test counts unchanged
+- [ ] docker build + run smoke passes
+
+**Commits**
+| # | | |
+|---|---|---|
+| 1 | remove scaffolding | delete constraint-dependencies, re-lock with upgrades allowed |
+| 2 | absorb breakage | whatever the bumps broke — may be zero commits, may be several |
+
+**Watch** sqlmodel is pre-1.0, so any bump is potentially breaking; pydantic, SQLAlchemy and
+the anthropic SDK all move fast. If this blows the appetite, cut scope not time: upgrade a
+named subset and leave the rest locked.
+
+### Out of Scope (13)
+- `python-multipart` has no UploadFile/Form/File usage in app/ — removing it is a second factor → housekeeping
+- Declare `sqlalchemy[asyncio]` instead of relying on greenlet arriving transitively → housekeeping
+- Delete `backend/venv/` once .venv is trusted — closes the coexistence window locally → housekeeping
+- No CI exists. `uv lock --check` is a one-line pre-deploy gate once there's somewhere to run it → techdebt
+
 
 ---
 
 
-## Sprint 13 — Tests
+## Sprint N — Tests
 
 Fill concrete gaps. The goal is confidence before adding auth complexity in Sprint 14.
 
@@ -25,7 +130,7 @@ Frontend — audit:
 Context load: `test_analysis.py` is the heavy one — analysis.py is 331 lines, the SSE protocol has 4 event types, and the mocked Claude client needs to return structured JSON in batches. The rest are incremental additions to existing test files. Fits one context window.
 
 
-## Sprint 14 — Magic link accounts (Phase 1, not scheduled)
+## Sprint N — Magic link accounts (Phase 1, not scheduled)
 
 Cookie auth shipped in Sprint 12. Anonymous sessions work, data is isolated per browser, beta testers are unblocked.
 
@@ -86,7 +191,7 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 - [ ] The "failed" error paths in tailoring.py are repetitive (6x the same pattern: set status, add, commit, return). A context manager or decorator could DRY this up. Not worth the abstraction for 6 lines each, but note it if it grows.
 
 
-## Tech Debt
+## Tech Debt (deferred, maybe long term)
 - [ ] Phase 1+: extract repeated Tailwind class strings into shared component styles.
 - [ ] Phase 1+: extract shared test factories and mocks once data models stabilize, especially if same factory/mock appears in 3+ test files and the shape is identical. `__tests__/factories.js` and `__tests__/mocks.js`
 - [ ] tooltip "Select or create a session to unlock this step" appears after 1s delay = browser-native `title` attribute behavior (delay hardcoded in the browser, not my app). Add a custom tooltip component to make it ~instant (polish)
