@@ -1,9 +1,105 @@
+# Declares your dependencies, and configures other tools (ruff, mypy, coverage) in one file
+# instead of scattered config files.
+#
+# Package NAMES only, never versions. uv reads live registries and picks; during Sprint 13
+# the constraint block below holds those picks to the pre-migration freeze.
+
+[project]
+name = "application-pipeline-backend"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+# Runtime roots. Everything here is either imported by app/ or invoked by start.sh.
+# Transitives (anyio, httpcore, starlette, greenlet, ...) are uv's job, not ours.
+dependencies = [
+    "alembic",
+    "anthropic",
+    "asyncpg",
+    "fastapi",
+    "pydantic",
+    "pydantic-settings",
+    "python-docx",
+    # [SPRINT-13-CLEANUP] python-multipart has no UploadFile/Form/File usage anywhere in app/.
+    # Kept so 13a's freeze diff stays empty -- removing it moves a second factor. Defer to
+    # housekeeping, see remaining-sprints.md, Out of Scope (13).
+    "python-multipart",
+    # [SPRINT-13-CLEANUP] greenlet arrives transitively rather than via a declared
+    # sqlalchemy[asyncio] extra, so nothing states that this app needs async SQLAlchemy.
+    # Adding the extra moves a second factor. Defer to housekeeping, see Out of Scope (13).
+    "sqlalchemy",
+    "sqlmodel",
+    "uvicorn",
+]
+
+# Test-only roots. httpx and aiosqlite appear nowhere in app/ -- only in tests/.
+[dependency-groups]
+dev = [
+    "aiosqlite",
+    "httpx",
+    "pytest",
+    "pytest-asyncio",
+]
+
+[tool.uv]
+# This is an application, not a library. Nothing here gets built or installed as a package;
+# pytest finds app/ through pythonpath below.
+package = false
+
+# [SPRINT-13-CLEANUP] These pins hold all packages at the pre-migration freeze so Sprint 13a
+# moves packaging (factor 1) without moving versions (factor 2). 13c deletes this whole block
+# and re-locks -- that diff IS the upgrade. See remaining-sprints.md, Sprint 13c commit 1.
+#
+# Generated, not hand-written. To fill or refresh it, from backend/ with the OLD venv active:
+#     python scripts/dep_freeze.py constraints ~/sprint13/baseline-freeze.txt --write pyproject.toml
+# Do not run `uv lock` while this block is empty -- an empty constraint list constrains
+# nothing, and uv will happily resolve every package to latest.
+# >>> BEGIN GENERATED CONSTRAINTS >>>
+constraint-dependencies = [
+    "aiosqlite==0.22.1",
+    "alembic==1.18.4",
+    "annotated-doc==0.0.4",
+    "annotated-types==0.7.0",
+    "anthropic==0.84.0",
+    "anyio==4.12.1",
+    "asyncpg==0.31.0",
+    "certifi==2026.2.25",
+    "click==8.3.1",
+    "colorama==0.4.6",
+    "distro==1.9.0",
+    "docstring-parser==0.17.0",
+    "fastapi==0.134.0",
+    "greenlet==3.3.2",
+    "h11==0.16.0",
+    "httpcore==1.0.9",
+    "httpx==0.28.1",
+    "idna==3.11",
+    "iniconfig==2.3.0",
+    "jiter==0.13.0",
+    "lxml==6.0.2",
+    "mako==1.3.10",
+    "markupsafe==3.0.3",
+    "packaging==26.0",
+    "pluggy==1.6.0",
+    "pydantic==2.12.5",
+    "pydantic-core==2.41.5",
+    "pydantic-settings==2.13.1",
+    "pygments==2.19.2",
+    "pytest==9.0.2",
+    "pytest-asyncio==1.3.0",
+    "python-docx==1.2.0",
+    "python-dotenv==1.2.2",
+    "python-multipart==0.0.22",
+    "sniffio==1.3.1",
+    "sqlalchemy==2.0.47",
+    "sqlmodel==0.0.37",
+    "starlette==0.52.1",
+    "typing-extensions==4.15.0",
+    "typing-inspection==0.4.2",
+    "uvicorn==0.41.0",
+]
+# <<< END GENERATED CONSTRAINTS <<<
+
 # Tell pytest where to find your code
 [tool.pytest.ini_options]
 pythonpath = ["."]
 asyncio_mode = "auto"
-
-# Declares your dependencies
-# TODO: move requirements.txt here
-
-# Configures other tools e.g. ruff, mypy, coverage, all in one file instead of scattered config files
