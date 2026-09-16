@@ -46,16 +46,17 @@ project actually requires, so nothing can be upgraded deliberately.
 ### 13a — requirements.txt → uv (migration) --- planned
 
 **Done when**
-- [ ] `uv pip freeze` matches the pre-migration `pip freeze` exactly — same 33 packages, same 33 versions
-- [ ] pytest collected count and pass/skip counts are unchanged
-- [ ] `uv lock --check` and `uv sync --check` both exit clean
-- [ ] `docker build` still succeeds — this leg must not touch prod
+- [x] `uv pip freeze` matches the pre-migration `pip freeze` exactly — same packages,
+      same versions, against the commit-0 artifact
+- [x] pytest collected count and pass/skip counts are unchanged
+- [x] `uv lock --check` and `uv sync --check` both exit clean
+- [x] `docker build` still succeeds — this leg must not touch prod
 
 **Commits**
 | # | | |
 |---|---|---|
 | 0 | ground truth | `pip freeze` + test counts captured before anything moves (artifact, not a commit) |
-| 1 | new beside old | pyproject: `[project]` ranges, `[dependency-groups]`, constraint-dependencies, `package = false` |
+| 1 | new beside old | pyproject: `[project]` names, `[dependency-groups]`, constraint-dependencies, `package = false` |
 | 2 | prove equivalence | freeze diff empty, test counts match |
 | 3 | guard the venv | `.dockerignore` excludes `backend/.venv` |
 | 4 | shim the consumer | requirements.txt becomes `uv export` output — same file, new status: generated |
@@ -165,6 +166,11 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 
 ## Housekeeping (any sprint)
 
+- [ ] [SPRINT-13-CLEANUP]: 18 pre-existing failures in tests/test_tailoring.py — session/DB wiring, one cause. Not caused by 13a, not fixable inside it. Route to the Tests sprint.
+- [ ] [SPRINT-13-CLEANUP] remember to use `--python 3.13.7` in 13c
+- [ ] [SPRINT-14-CLEANUP] H-6 (new): dev/prod interpreter skew. You develop on 3.13.7, you ship on 3.12. This predates the sprint — uv just made it visible. Resolving it means either bumping the image or pinning dev down, and both touch the Dockerfile, so it can't happen before 13b.
+- [ ] [SPRINT-14-CLEANUP]: incorporate `scripts/` precommit yaml files 
+	and .py script linter later.
 - [ ] `datetime.utcnow()` deprecation warnings — switch to `datetime.now(datetime.UTC)` across models.py (7 occurrences) and tailoring.py (1 occurrence)
 - [ ] `HTTP_422_UNPROCESSABLE_ENTITY` deprecation — FastAPI renamed to `HTTP_422_UNPROCESSABLE_CONTENT`. 11 occurrences across jds.py (2), resumes.py (4), sessions.py (5).
 - [ ] Timestamps showing 1 day ahead in Oregon (UTC storage, no timezone conversion). Not important for MVP (Nicole is only user), but will confuse anyone else.
@@ -189,7 +195,20 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 - [ ] onRetry cap for createTailoringJob (FE and BE). no runaway loop to worry about here but, need to make a cap to limit my cost (hitting my claude API key) for 1) friends testing and 2) probably my first real paying users will just have a limit for a set dollar subscription or batch package 3) I can add like... a-la-carte pricing later if I want.). `tailoring.py` update for later (unless we think my friends are gonna hit this 400 times...).
 - [ ] TailoringPage: extract useTailoringData hook (polling, fetchJobs, derivations) when Phase N inline chat adds enough complexity that the page's render body obscures the JSX. Currently ~15 lines of derivation logic — comfortable, but one more feature tips it.
 - [ ] The "failed" error paths in tailoring.py are repetitive (6x the same pattern: set status, add, commit, return). A context manager or decorator could DRY this up. Not worth the abstraction for 6 lines each, but note it if it grows.
-
+- [ ] H-1 delete backend/venv/ — after commit 3 is green, not before. The doc already routes
+      this to housekeeping, but note that 13a DEPENDS on it: deleting it early does not just
+      postpone cleanup, it destroys your ability to prove commit 3. [any sprint after 13a]
+- [ ] H-2 remove python-multipart — confirmed zero UploadFile/Form/File usage in app/.
+      Second factor, tagged in pyproject.toml. [housekeeping]
+- [ ] H-3 declare sqlalchemy[asyncio] — greenlet currently arrives transitively, so nothing
+      states this app needs async SQLAlchemy. Second factor, tagged. [housekeeping]
+- [ ] H-4 .dockerignore does not exclude backend/venv/ (the OLD venv) either. Whether it is
+      currently entering the build context depends on the Dockerfile's COPY lines, which I
+      did not read. Worth checking in 13b, where "image size is same or smaller" is already
+      a done-when — if the old venv has been shipping, that is where the size went. H-1
+      makes it moot. [13b]
+- [ ] H-5 delete ~/sprint13/ — after 13c, not 13a. 13c re-runs `compare` against the same
+      baseline. [after 13c]
 
 ## Tech Debt (deferred, maybe long term)
 - [ ] Phase 1+: extract repeated Tailwind class strings into shared component styles.
@@ -204,3 +223,28 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 - [ ] Phase N: The jdOverrides state overlay pattern works but creates a brief window where context jds and overrides can disagree (between stream end and refreshSession resolving). This is harmless — the override data matches what the backend wrote — but a more robust pattern would be to optimistically update the context itself. Phase 1 if it causes issues.
 - [ ] Phase N: On "only apply jobs in Tab 4"- a nuance. The batch-tailor endpoint only creates jobs for apply-status JDs (backend enforced). The listSessionTailoringJobs endpoint returns all tailoring jobs that exist for the session — so if a JD was "apply" when tailored but later changed to "maybe," its job still shows up. I'll show whatever the backend returns rather than client-side filtering, since the output exists and is useful regardless of current status. The per-JD "Tailor" button on each card will only be active for apply-status JDs without an existing job. gotta figure out exactly how we want to deal with this in Phase N when we let users change "apply" status to "maybe" or whatever.
 - [ ] Phase N: currently no place to see the claude analysis for each JD (usually he returns a nice chart of skill matches and summary)
+- [ ] [SPRINT-14-CLEANUP] Makefile wrapping the uv commands — uv binds to an
+      environment based on the working directory and says nothing about it (G8; cost an
+      hour in 13a when a stale root .venv answered instead of backend/.venv). A recipe
+      that cd's first removes the failure mode instead of detecting it.
+      Targets: preflight (print sys.prefix, fail unless it ends in backend/.venv), sync,
+      test, test-frontend, lock-check (uv lock --check + uv sync --check), seed, run.
+      Every uv target depends on preflight.
+      Do NOT carry over the 13a/13c scaffolding targets (dep_freeze compare, uv export) —
+      they die with their legs.
+      Gate: after 13c AND after the mac move. make is not in Git Bash; it arrives with
+      the Xcode CLT, which is what makes this worth doing at all.
+      Watch: macOS ships GNU make 3.81 (2006 — Apple stopped at the GPLv3 line), so
+      `.ONESHELL:` silently does nothing. Each recipe line gets its own shell, so
+      `cd backend` on one line does not persist to the next. Write
+      `cd backend && uv sync` on one line, or brew a newer make (lands as `gmake` under
+      /opt/homebrew unless you add the gnubin path). Getting this wrong reproduces the
+      exact bug the Makefile exists to prevent.
+      Success condition: it REPLACES typing uv directly. A wrapper used half the time is
+      a second way to be in the wrong directory, not a fix.   [techdebt, Sprint 14]
+- [ ] T-1 `uv lock --check` as a pre-deploy gate — one line, no CI to put it in. Already in
+      the doc's Out of Scope. [Phase N]
+- [ ] T-2 requirements.txt CRLF vs LF churn — a .gitattributes entry would stop generated
+      files from re-diffing on line endings alone. Only bites for one leg (13b deletes the
+      file), so it is probably not worth a commit. Noting it so it is a decision and not an
+      oversight. [Phase N or never]
