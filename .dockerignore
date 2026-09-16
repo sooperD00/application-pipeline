@@ -1,27 +1,49 @@
-# Never ship these
-.env
-backend/.env
-.git
+# this file says what not to ship (different from .gitignore = what not to track)
+# there is no way to `include .gititnore` in .dockerignore programatically
+# and .dockerignore patterns != .gitignore patterns
 
-# Frontend source isn't needed — the built dist/ is copied from stage 1
+# .dockerignore patterns match relative to the build context root,
+# and a bare name matches ONLY at the root. Use **/ for "at any depth"
+
+# secrets
+**/.env
+**/.env.*
+prompts
+
+# for the Dev / docs
+DEVLOG
+test-vehicles
+docs
+README.md
+
+# compressed caches
+.git
+**/*.zip
+
+# venv
+# [SPRINT-13-CLEANUP] backend/.venv is created by `uv sync` in Sprint 13a and coexists with
+# the old backend/venv while requirements.txt is still the Docker consumer. Resolved in 13b,
+# when the Dockerfile installs from uv.lock. See remaining-sprints.md, Sprint 13a commit 3.
+**/.venv
+**/venv
+
+# tests
+backend/tests
+frontend/src/__tests__
+
+# Frontend source (only needed for build)
 frontend/node_modules
 frontend/dist
 
 # Python caches
-__pycache__
-*.pyc
-.pytest_cache
-backend/.pytest_cache
+**/.mypy_cache
+**/.pytest_cache
+**/__pycache__
+**/*.pyc
 
 # Editor/OS junk
-.vscode
-.idea
-.DS_Store
-*.swp
-
-# Docs and design notes don't ship
-docs
-README.md
-
-# Test vehicles — characterization rigs, not the app
-test-vehicles
+**/.vscode
+**/.idea
+**/.DS_Store
+**/*.swp
+**/Thumbs.db
