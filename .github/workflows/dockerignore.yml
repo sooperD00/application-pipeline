@@ -1,0 +1,11 @@
+# .github/workflows/dockerignore.yml   (catches --no-verify and edits made on github.com)
+name: dockerignore
+on:
+  push:
+  pull_request:
+jobs:
+  in-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 scripts/sync_dockerignore.py --check
