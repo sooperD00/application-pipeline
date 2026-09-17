@@ -59,13 +59,15 @@ LinkedIn filtered search (last 24h, etc)
 | Frontend | React (Vite) |
 | LLM | Claude API (Anthropic) |
 | Background Jobs | FastAPI BackgroundTasks → arq/Redis |
-| Auth | Cookie-based anonymous sessions (Sprint 12) → magic link accounts |
+| Auth | Cookie-based anonymous sessions (Phase 0) → magic link accounts (Phase 1) |
 
 ## Status
 
 🟢 **Phase 0 — Deployed**
 
 Live at [application-pipeline-production.up.railway.app](https://application-pipeline-production.up.railway.app/). The core loop works end-to-end: paste JDs, kick off AI analysis, watch cards sort themselves green/yellow/red in real time, then kick off tailoring and download zip packages of tailored resumes, cover letters, and app answers. Cookie-based anonymous auth isolates data per browser — no login required. See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap.
+
+Phase 1 is in progress — auth, billing, onboarding, and the tracking that makes the funnel visible. What ships and in what order: [docs/remaining-sprints.md](docs/remaining-sprints.md).
 
 ![Card grid after analysis — green/yellow/red recommendations with rolling meta analysis](docs/img/_200-dollar-meta-analysis.PNG)
 
@@ -83,21 +85,43 @@ The tailoring isn't cosmetic. Each resume is restructured for the target role �
 
 ## Quick Start
 
+Two terminals, both starting at the repo root.
+
 ```bash
 # Backend
 cd backend
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
+```
 
+```bash
 # Frontend
 cd frontend
 npm install
 npm run dev
 ```
 
-Requires a `.env` with `ANTHROPIC_API_KEY` and `DATABASE_PUBLIC_URL`.
+Requires `backend/.env` with `ANTHROPIC_API_KEY` and `DATABASE_PUBLIC_URL` — copy
+`backend/.env.example` and fill it in. Settings are read from the working directory, so start the
+backend from `backend/`.
+
+`backend/requirements.txt` is generated from `uv.lock` by `uv export`, so dependency changes
+belong in `backend/pyproject.toml`, not in the txt file. The uv workflow replaces the venv and
+pip steps above in the next leg of the dependency sprint — see
+[docs/remaining-sprints.md](docs/remaining-sprints.md).
+
+### Tests
+
+```bash
+cd backend && pytest       # 106 collected: 88 pass, 18 known failures in test_tailoring.py
+cd frontend && npm test
+```
+
+Those 18 failures have one cause (session/DB wiring), predate the dependency sprint, and are
+scheduled — see [docs/remaining-sprints.md](docs/remaining-sprints.md). Counts measured
+2026-09-16.
 
 ### Checks
 
@@ -109,6 +133,21 @@ python3 scripts/check_docker_context.py           # the files on your disk right
 ```
 
 It lists anything git ignores that Docker would still copy into the build. Needs Docker running; exit 0 means clean. Railway builds from GitHub, where ignored files don't exist, so this protects local builds.
+
+Scripts in `scripts/` are stdlib-only on purpose — no virtualenv, so the check still runs when
+the environment is the thing in doubt.
+
+## Choosing the Model
+
+One setting, one place: `default_model` in `backend/app/config.py` — `claude-opus-4-6` today.
+Model choice is the main cost lever, since analysis is one conversation per session and
+tailoring is one per Apply JD. [ADR-003](docs/decisions.md) has the reasoning for Opus.
+
+- **Change it without touching code**: set `DEFAULT_MODEL`. Pydantic-settings maps the field
+  name to the env var, so `DEFAULT_MODEL=claude-sonnet-5` in `backend/.env` works locally, and
+  the same variable in the Railway dashboard applies in production on restart.
+- **Change it for one call**: `ClaudeConversation(model=...)` wins over the default.
+- **See what ran**: `model_used` is stored on every tailoring job.
 
 ## Docs
 
@@ -132,16 +171,19 @@ ApplicationPipeline/
 ├── start.sh                         # - [x] alembic upgrade head → uvicorn (Railway injects PORT=8080)
 ├── .dockerignore                    # - [x]
 ├── backend/
-│   ├── tests/                       # - [x]  77/77 BE Tests Pass
+│   ├── tests/                       # - [x] 106 collected: 88 pass, 18 known failures (2026-09-16)
 │   │   ├── conftest.py
+│   │   ├── test_dep_freeze.py       # - [x] dependency-migration scaffolding, deleted with it
 │   │   ├── test_resumes.py
 │   │   ├── test_sessions.py
-│   │   ├── test_tailoring.py
+│   │   ├── test_tailoring.py        # - [x] holds all 18 failures — one cause, session/DB wiring
 │   │   └── test_text_cleaning.py
-│   └── pyproject.toml               # - [x] Python project manifest (replacing setup.[py|cfg])
+│   ├── pyproject.toml               # - [x] dependency roots, dev group, pinned constraints (uv)
+│   ├── uv.lock                      # - [x] the resolved versions, committed
 │   ├── scripts/
 │   │   ├── __init__.py
-│   │   ├── seed.py                  # - [x] Seed 3 real resumes, 7 real JDs (test mod 5 batches)
+│   │   ├── dep_freeze.py            # - [x] freeze diff for the pip → uv migration; scaffolding
+│   │   └── seed.py                  # - [x] Seed 3 real resumes, 7 real JDs (test mod 5 batches)
 │   ├── app/
 │   │   ├── __init__.py
 │   │   ├── main.py                  # - [x] FastAPI app, CORS, lifespan
@@ -155,7 +197,7 @@ ApplicationPipeline/
 │   │   │   |                        # - [x] batch-tailor (POST /{id}/batch-tailor)
 │   │   │   ├── jds.py               # - [x] JD CRUD, status overrides, enrichment
 │   │   │   |                        # - [x] single tailor, status, outputs, docx download
-│   │   │   |                        # - [x] zip package download (ADR-014, Sprint 11)
+│   │   │   |                        # - [x] zip package download (ADR-014)
 │   │   │   ├── resumes.py           # - [x] paste, edit, list, delete (max 3)
 │   │   │   └── activities.py        # - [ ] active list, add/complete, tracker view
 │   │   ├── services/
@@ -174,7 +216,7 @@ ApplicationPipeline/
 │   │   ├── env.py                   # - [x] 
 │   │   └── versions/                # - [x] migration scripts
 │   ├── alembic.ini                  # - [x] boilerplate
-│   ├── requirements.txt
+│   ├── requirements.txt             # - [x] generated by `uv export`; the Docker install reads it
 │   ├── .env.example                 # - [x] example
 │   └── .env                         # - [x] ANTHROPIC_API_KEY, DATABASE_PUBLIC_URL
 ├── frontend/
@@ -196,7 +238,7 @@ ApplicationPipeline/
 │   │   │   ├── SessionDetailPage.jsx   # - [x] Tab 1: JD paste form + card grid
 │   │   │   ├── SessionLayout.jsx       # - [x] useParams → fetch session → Outlet context
 │   │   │   ├── SessionsPage.jsx        # - [x] session list + create form
-│   │   │   ├── TailoringPage.jsx       # - [x] Tab 4: status polling, output viewer, zip download (Sprint 11)
+│   │   │   ├── TailoringPage.jsx       # - [x] Tab 4: status polling, output viewer, zip download
 │   │   ├── main.jsx                    # - [x] BrowserRouter entry point
 │   │   ├── index.css                   # - [x] Tailwind v4 @import + @theme (custom pipeline-* palette)
 │   │   ├── test-setup.js               # - [x] Vitest setup (jest-dom matchers)
@@ -213,7 +255,7 @@ ApplicationPipeline/
 │   │   ├── hooks/
 │   │   │   └── useSSE.js               # - [x] SSE consumption for batch analysis
 │   │   └── api/
-│   │       └── client.js               # - [x] fetch wrappers for backend routes + zip download (Sprint 11)
+│   │       └── client.js               # - [x] fetch wrappers for backend routes + zip download
 │   ├── index.html                      # - [x] 
 │   ├── vite.config.js                  # - [x] dev proxy (/api, /health → FastAPI), Vitest config
 │   ├── eslint.config.js                # - [x]
@@ -226,9 +268,13 @@ ApplicationPipeline/
 │   ├── original-prompts.md
 │   ├── remaining-sprints.md
 │   ├── service-layer-notes.md
-│   └── workflow.md
+│   ├── workflow.md
+│   ├── design/                      # - [x] design sessions, one file per person per session
+│   ├── feedback/                    # - [x] what testers said, and the asks that produced it
+│   └── img/                         # - [x] screenshots used above
 ├── scripts/
 │   └── check_docker_context.py      # - [x] would Docker get a file git ignores? (see Quick Start → Checks)
+├── sync-prompts.sh                  # - [x] copies a private prompts/ folder to a sibling repo (unused, see ADR-013)
 ├── test-vehicles/                   # - [x] quarantined spikes (kept out of the Docker build)
 │   ├── dockerignore-check/          # - [x] parked first attempt at the .gitignore/.dockerignore check
 │   └── schema-extraction/           # - [x] schema-extraction lab
