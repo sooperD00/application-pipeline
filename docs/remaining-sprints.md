@@ -61,12 +61,29 @@ project actually requires, so nothing can be upgraded deliberately.
 | 3 | guard the venv | `.dockerignore` excludes `backend/.venv` |
 | 4 | shim the consumer | requirements.txt becomes `uv export` output — same file, new status: generated |
 
+**Close-out (unplanned), 2026-09-16.** A "stash" commit (673f7a0) put a first .gitignore/.dockerignore
+overlap check on main. It moved start.sh, so the Railway deploy failed, and its new workflow failed on
+every push. Reverted in fe8794e (deploy green again). Then:
+
+| commit | |
+|---|---|
+| 0a8cbde | doc conflicts fixed (prompts location, H-4, spike location, README) |
+| 0a57dc5 | `check_docker_context.py`: lists files git ignores that Docker would still get |
+| ea7213e | `.dockerignore` covers every rule git ignores (probe: 398 leaks → 0; tracked build context unchanged) |
+| df7ad46 | the check also sees files inside ignored nested git repos |
+| c1755c8 | check moved to `scripts/`; README Quick Start → Checks says when to run it |
+| 47a2b07 | sprint13 freeze paths point at `docs/DEVLOG/sprints/sprint13/` |
+
+The first attempt is parked on branch `idea/dockerignore-check`. Lesson for the Landed line: a "stash"
+commit on main is live (CI and Railway both run it), so park experiments on a branch.
+
 ### 13b — flip the consumers, delete requirements.txt (consumer flip) --- planned
 
 **Done when**
 - [ ] `docker build` succeeds installing from pyproject + uv.lock, with no requirements.txt in the repo
 - [ ] the built image runs migrations and starts uvicorn
 - [ ] image size is same or smaller
+- [ ] `python3 scripts/check_docker_context.py --probe` exits 0 (13b edits the Dockerfile and `.dockerignore`, and it's the first leg with local Docker builds)
 - [ ] `grep -rn requirements.txt --exclude-dir=docs --exclude-dir=test-vehicles .` returns nothing
 
 **Commits**
@@ -175,14 +192,19 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 - [ ] [SPRINT-13-CLEANUP]: 18 pre-existing failures in tests/test_tailoring.py — session/DB wiring, one cause. Not caused by 13a, not fixable inside it. Route to the Tests sprint.
 - [ ] [SPRINT-13-CLEANUP] remember to use `--python 3.13.7` in 13c
 - [ ] [SPRINT-14-CLEANUP] H-6 (new): dev/prod interpreter skew. You develop on 3.13.7, you ship on 3.12. This predates the sprint — uv just made it visible. Resolving it means either bumping the image or pinning dev down, and both touch the Dockerfile, so it can't happen before 13b.
-- [ ] [SPRINT-14-CLEANUP]: .gitignore/.dockerignore overlap check (pre-commit hook + the .py
-      script). The first attempt went to main in 673f7a0, broke the Railway deploy (it also
-      moved start.sh), and was reverted in fe8794e. It's parked on branch
-      `idea/dockerignore-check` in `test-vehicles/dockerignore-check/`, whose README covers what
-      broke, what was learned, and the options. The script is on main now:
-      `scripts/check_docker_context.py` asks git and Docker directly,
-      and `--probe` tests every ignore rule. Left: run it from a pre-commit hook or the
-      Makefile. It needs Docker running.
+- [ ] [SPRINT-14-CLEANUP]: .gitignore/.dockerignore overlap check. The first attempt (673f7a0)
+      broke the Railway deploy and was reverted (fe8794e). It's parked on branch
+      `idea/dockerignore-check` in `test-vehicles/dockerignore-check/`, whose README has the
+      details. `scripts/check_docker_context.py` is on main (see the Sprint 13a close-out).
+      How far to take it, lightest first:
+      L0 documented command: done (README Quick Start → Checks)
+      L1 task runner: see the Makefile item in Tech Debt
+      L2 git hook: this item. Either the pre-commit framework (1 file + `pre-commit install` on
+         each machine) or `.githooks/` + `git config core.hooksPath .githooks`. Run it only on
+         commits that touch an ignore file or the Dockerfile. Needs Docker running, and
+         `--no-verify` skips it. ~20–30 min. The same hook file can run a Python linter later.
+      L3 CI: see T-1
+      L4 tests for the script: see T-3
 - [ ] `datetime.utcnow()` deprecation warnings — switch to `datetime.now(datetime.UTC)` across models.py (7 occurrences) and tailoring.py (1 occurrence)
 - [ ] `HTTP_422_UNPROCESSABLE_ENTITY` deprecation — FastAPI renamed to `HTTP_422_UNPROCESSABLE_CONTENT`. 11 occurrences across jds.py (2), resumes.py (4), sessions.py (5).
 - [ ] Timestamps showing 1 day ahead in Oregon (UTC storage, no timezone conversion). Not important for MVP (Nicole is only user), but will confuse anyone else.
@@ -246,6 +268,8 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
       Targets: preflight (print sys.prefix, fail unless it ends in backend/.venv), sync,
       test, test-frontend, lock-check (uv lock --check + uv sync --check), seed, run.
       Every uv target depends on preflight.
+      Also check-context (`python3 scripts/check_docker_context.py --probe`), and any
+      docker-build target runs it first. (L1 of the overlap check, see Housekeeping.)
       Do NOT carry over the 13a/13c scaffolding targets (dep_freeze compare, uv export) —
       they die with their legs.
       Gate: after 13c AND after the mac move. make is not in Git Bash; it arrives with
@@ -259,8 +283,19 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
       Success condition: it REPLACES typing uv directly. A wrapper used half the time is
       a second way to be in the wrong directory, not a fix.   [techdebt, Sprint 14]
 - [ ] T-1 `uv lock --check` as a pre-deploy gate — one line, no CI to put it in. Already in
-      the doc's Out of Scope. [Phase N]
+      the doc's Out of Scope. When CI exists, run `python3 scripts/check_docker_context.py
+      --probe` in the same job. That's L3 of the overlap check: the only layer you can't skip,
+      and `--probe` needs no real ignored files, so it works in CI. Try the workflow on a
+      branch first (673f7a0's workflow failed on every push to main). ~45 min. [Phase N]
 - [ ] T-2 requirements.txt CRLF vs LF churn — a .gitattributes entry would stop generated
       files from re-diffing on line endings alone. Only bites for one leg (13b deletes the
       file), so it is probably not worth a commit. Noting it so it is a decision and not an
       oversight. [Phase N or never]
+- [ ] T-3 tests for `scripts/check_docker_context.py` (L4 of the overlap check), only if the
+      script grows or others rely on it. Unit tests for the pure functions (probe paths,
+      glob → file name, Dockerfile COPY parsing), plus one Docker test that skips when Docker
+      is off. 1–2 files, ~1–2 h. [Phase N]
+- [ ] T-4 `--diff` mode for the same script. The check catches shipping files git ignores,
+      not excluding files the app needs. Compare the build context before and after a
+      `.dockerignore` edit (done by hand for ea7213e). Until then, a docker build plus a smoke
+      test covers that direction. [Phase N]
