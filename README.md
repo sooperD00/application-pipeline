@@ -217,6 +217,7 @@ ApplicationPipeline/
 │   ├── service-layer-notes.md
 │   └── workflow.md
 ├── test-vehicles/                   # - [x] quarantined spikes (kept out of the Docker build)
+│   ├── dockerignore-check/          # - [x] check_docker_context.py: would Docker get a file git ignores?
 │   └── schema-extraction/           # - [x] schema-extraction lab
 └── LICENSE                          # BSL 1.1 → Apache 2.0 (2029-03-01)
 ```

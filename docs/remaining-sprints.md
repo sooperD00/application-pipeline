@@ -179,8 +179,10 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
       script). The first attempt went to main in 673f7a0, broke the Railway deploy (it also
       moved start.sh), and was reverted in fe8794e. It's parked on branch
       `idea/dockerignore-check` in `test-vehicles/dockerignore-check/`, whose README covers what
-      broke, what was learned, and the options. Current pick: a comparison script that asks
-      git and Docker directly (prototype under review).
+      broke, what was learned, and the options. The script is on main now:
+      `test-vehicles/dockerignore-check/check_docker_context.py` asks git and Docker directly,
+      and `--probe` tests every ignore rule. Left: run it from a pre-commit hook or the
+      Makefile. It needs Docker running.
 - [ ] `datetime.utcnow()` deprecation warnings — switch to `datetime.now(datetime.UTC)` across models.py (7 occurrences) and tailoring.py (1 occurrence)
 - [ ] `HTTP_422_UNPROCESSABLE_ENTITY` deprecation — FastAPI renamed to `HTTP_422_UNPROCESSABLE_CONTENT`. 11 occurrences across jds.py (2), resumes.py (4), sessions.py (5).
 - [ ] Timestamps showing 1 day ahead in Oregon (UTC storage, no timezone conversion). Not important for MVP (Nicole is only user), but will confuse anyone else.
