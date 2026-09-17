@@ -41,7 +41,7 @@ ACTIVITY_TEMPLATES = {
 }
 ```
 
-Implementation: plain sync function in `services.py`, called from the FastAPI route. No async, no background task — it's 5 rows on a button click.
+Implementation: plain sync function in `services/activities.py`, called from the FastAPI route. No async, no background task — it's 5 rows on a button click.
 
 - [ ] `schedule_activities(jd_id, trigger, anchor_date, session)` — looks up template, bulk-inserts Activity rows
 - [ ] Follow-up days per stage should be user-configurable eventually (same nullable-user_id pattern as PromptTemplate, but a simple settings table — Phase N)
