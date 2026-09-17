@@ -59,7 +59,7 @@ LinkedIn filtered search (last 24h, etc)
 | Frontend | React (Vite) |
 | LLM | Claude API (Anthropic) |
 | Background Jobs | FastAPI BackgroundTasks → arq/Redis |
-| Auth | Cookie-based anonymous sessions (Phase 0) → magic link accounts (Phase 1) |
+| Auth | Cookie-based anonymous sessions (Phase 0) → Google sign-in (Phase 1) |
 
 ## Status
 

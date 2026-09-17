@@ -80,7 +80,7 @@ the sprint order that gets there lives here. Where Phase 1 ends is not decided y
 - 15 — Code hygiene — planned
 - 16 — Developer tooling — planned
 - 17 — Custom domain — planned
-- 18 — Auth, magic link accounts — planned
+- 18 — User authentication, Google sign-in — planned
 - 19 — Billing, and the cost caps it depends on — planned
 - Frontend polish — parked, deliberately last and deliberately unnumbered
 

@@ -12,7 +12,7 @@ Built around a proven workflow. Opinionated defaults, editable prompts, and anal
 - **Frontend**: React (Vite)
 - **LLM**: Claude API (Anthropic) — Opus 4.6 by default, configurable per call
 - **Background jobs**: FastAPI `BackgroundTasks` initially, upgrade to `arq`/Redis if needed
-- **Auth**: Cookie-based anonymous sessions (Phase 0) → magic link accounts (Phase 1)
+- **Auth**: Cookie-based anonymous sessions (Phase 0) → Google sign-in (Phase 1)
 
 ## Data Model
 
@@ -130,7 +130,7 @@ All shipped:
 6. Cookie-based anonymous auth (data isolation per browser, no login)
 7. Deploy to Railway (single-service: Dockerfile, SPA static serving)
 
-**Deferred**: Tab 2 Calibrate, Tab 3 Review & Enrich, Full Tracker, compare, analytics, multi-user, magic link accounts, payments.
+**Deferred**: Tab 2 Calibrate, Tab 3 Review & Enrich, Full Tracker, compare, analytics, multi-user, accounts and sign-in, payments.
 
 ---
 
@@ -141,7 +141,7 @@ didn't design it — plus the auth, billing and limits that make serving someone
 Phase 1 ends isn't decided yet; the sprint order that gets there lives in
 [remaining-sprints.md](remaining-sprints.md).
 
-- Magic link accounts — builds on Phase 0's cookie auth. Email + token, converts anonymous User row into a permanent account (data carries over). Sprint order in [remaining-sprints.md](remaining-sprints.md).
+- Google sign-in — builds on Phase 0's cookie auth. Per-browser login tokens first, then OAuth; signing in adopts the anonymous User row into a permanent account and the data carries over. Chosen over magic links and passwords because both need email infrastructure this project doesn't have, and because there's no password database to defend once paid credits sit behind the login. Magic links stay on the table as a second way in, deferred to public release. ADR-019 (written in Sprint 18a) carries the reasoning; sprint order in [remaining-sprints.md](remaining-sprints.md).
 - Billing, moved up from Phase 3. Whoever pays needs metering and per-user cost caps first — today one API key pays for every session run by anyone.
 - Onboarding flow for first-time users
 - Tab 3: Review & Enrich table with all sections
