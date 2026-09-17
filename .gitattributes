@@ -1,0 +1,18 @@
+# One line-ending convention, everywhere: LF in the index, LF in the working tree, on every
+# machine. Without this, a file committed from Windows keeps its CRLF and then re-diffs
+# whole-file the first time it is touched from the Mac -- the churn that made a generated
+# requirements.txt look like a real change.
+* text=auto eol=lf
+
+# Binary: never converted, never diffed as text. `text=auto` already detects these, but saying
+# it out loud costs nothing and survives a file that fools the heuristic.
+*.png binary
+*.PNG binary
+*.docx binary
+*.pdf binary
+*.zip binary
+
+# Parked evidence, left exactly as it is. These are byte-for-byte copies of 673f7a0 and their
+# README records the CRLF endings as one of the findings, so normalizing them would quietly
+# delete the thing they were kept to show.
+test-vehicles/dockerignore-check/** -text
