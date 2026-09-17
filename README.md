@@ -119,7 +119,7 @@ ApplicationPipeline/
 ├── README.md
 ├── Dockerfile                       # - [x] Multi-stage: node:20 builds React, python:3.12-slim runs backend + serves dist/
 ├── start.sh                         # - [x] alembic upgrade head → uvicorn (Railway injects PORT=8080)
-├── dockerignore                     # - [x]
+├── .dockerignore                    # - [x]
 ├── backend/
 │   ├── tests/                       # - [x]  77/77 BE Tests Pass
 │   │   ├── conftest.py
@@ -216,6 +216,8 @@ ApplicationPipeline/
 │   ├── remaining-sprints.md
 │   ├── service-layer-notes.md
 │   └── workflow.md
+├── test-vehicles/                   # - [x] quarantined spikes (kept out of the Docker build)
+│   └── schema-extraction/           # - [x] schema-extraction lab
 └── LICENSE                          # BSL 1.1 → Apache 2.0 (2029-03-01)
 ```
 

@@ -23,7 +23,7 @@ TERMINOLOGY
 | migration | consumer graph |
 | refactor  | the suite is the invariant |
 | upgrade   | no graph — lock first, let the breakage name the commits |
-| spike / investigation    | planned as a sprint but quarantined in `~/test-vehicles/spike-name/` |
+| spike / investigation    | planned as a sprint but quarantined in `test-vehicles/spike-name/` (repo root) |
 | bugfix    | reproduce → fix → confirm (regression test) |
 
 > tell me if you need another "Kind" -- we can discuss.
@@ -146,11 +146,17 @@ Not urgent. Cookie auth covers beta. This becomes relevant when persistence beyo
 
 ## Deferred from Phase 0
 
-**Prompts IP** pull the prompts out of the repo - infra is there to backup to another private repo but prompts are currently in `original-prompts.md`, `service/claude.py`, and `services/analysis.py`
+**Prompts IP** pull the prompts out of the repo. Checked 2026-09-16:
+- The two system prompts are string constants: `ANALYSIS_SYSTEM_PROMPT` in `services/analysis.py` (committed 2026-03-04) and `TAILORING_SYSTEM_PROMPT` in `services/tailoring.py` (committed 2026-03-05). `services/claude.py` only mentions one in a docstring. The repo is public, so both are also in its public history; extracting them now hides future edits, not these versions.
+- Also public: `docs/original-prompts.md`, and the seeded PromptTemplate defaults in `backend/scripts/seed.py` (public by design, per ADR-013).
+- The backup setup was never used. `sync-prompts.sh` copies a root `prompts/` folder into a sibling clone at `../application-pipeline-prompts`, and neither folder exists. The private repo `sooperD00/application-pipeline-prompts` holds only a `.gitkeep` (three "prompt update" commits, all from 2026-03-01).
 
 **Activities** (`routers/activities.py`, `services/activities.py`): The data model is in place (Activity table, ActivityType enum, cascade templates designed in service-layer-notes.md), but no router, service, or frontend exists. The README tree and architecture.md list these as Phase 0 scope, but they aren't needed for the core flow (paste → analyze → tailor → download). Deferring to Phase 1 when the Full Tracker makes them visible and useful.
 
-**Prompts directory** (`backend/app/prompts/`): Placeholder for extracting system prompts from hardcoded strings in `services/analysis.py` and `services/tailoring.py` to files. See ADR-013 — this is about IP protection before the repo gets public attention, not about functionality. Deferred past MVP. (In-code TODO in analysis.py line 55 cross-references this.)
+**Prompts directory** (`backend/app/prompts/`): Placeholder for extracting system prompts from hardcoded strings in `services/analysis.py` and `services/tailoring.py` to files. See ADR-013 — this is about IP protection before the repo gets public attention, not about functionality. Deferred past MVP. Open questions before extracting (found 2026-09-16):
+- Where the files live. The README tree says `backend/app/prompts/`, but `sync-prompts.sh` expects a root `prompts/`. `.gitignore` ignores `prompts/` at any depth, while `.dockerignore` excludes only a root `prompts`, so `backend/app/prompts/` would be copied into a local image.
+- How they reach production. Railway builds from the GitHub snapshot, where git-ignored files never exist, so "loaded at startup" needs another way in (ADR-013 lists env vars and a private submodule).
+- The in-code TODO at analysis.py line 56 points the other way: it would move the analysis system prompt into the user-editable PromptTemplate table.
 
 **Resume selection for tailoring.** Phase 0 sends all of the user's resumes (up to 3) to Claude for every analysis and tailoring call. Claude sees all versions and decides what to emphasize, blend, or draw from based on the JD — this is the intended default behavior and should remain the default in all phases. Claude is better and faster at picking the right resume emphasis for a given role than a human skimming three documents, and blending across versions is something a human can't do at all.
 
@@ -169,8 +175,12 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 - [ ] [SPRINT-13-CLEANUP]: 18 pre-existing failures in tests/test_tailoring.py — session/DB wiring, one cause. Not caused by 13a, not fixable inside it. Route to the Tests sprint.
 - [ ] [SPRINT-13-CLEANUP] remember to use `--python 3.13.7` in 13c
 - [ ] [SPRINT-14-CLEANUP] H-6 (new): dev/prod interpreter skew. You develop on 3.13.7, you ship on 3.12. This predates the sprint — uv just made it visible. Resolving it means either bumping the image or pinning dev down, and both touch the Dockerfile, so it can't happen before 13b.
-- [ ] [SPRINT-14-CLEANUP]: incorporate `scripts/` precommit yaml files 
-	and .py script linter later.
+- [ ] [SPRINT-14-CLEANUP]: .gitignore/.dockerignore overlap check (pre-commit hook + the .py
+      script). The first attempt went to main in 673f7a0, broke the Railway deploy (it also
+      moved start.sh), and was reverted in fe8794e. It's parked on branch
+      `idea/dockerignore-check` in `test-vehicles/dockerignore-check/`, whose README covers what
+      broke, what was learned, and the options. Current pick: a comparison script that asks
+      git and Docker directly (prototype under review).
 - [ ] `datetime.utcnow()` deprecation warnings — switch to `datetime.now(datetime.UTC)` across models.py (7 occurrences) and tailoring.py (1 occurrence)
 - [ ] `HTTP_422_UNPROCESSABLE_ENTITY` deprecation — FastAPI renamed to `HTTP_422_UNPROCESSABLE_CONTENT`. 11 occurrences across jds.py (2), resumes.py (4), sessions.py (5).
 - [ ] Timestamps showing 1 day ahead in Oregon (UTC storage, no timezone conversion). Not important for MVP (Nicole is only user), but will confuse anyone else.
@@ -202,11 +212,15 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
       Second factor, tagged in pyproject.toml. [housekeeping]
 - [ ] H-3 declare sqlalchemy[asyncio] — greenlet currently arrives transitively, so nothing
       states this app needs async SQLAlchemy. Second factor, tagged. [housekeeping]
-- [ ] H-4 .dockerignore does not exclude backend/venv/ (the OLD venv) either. Whether it is
+- [x] H-4 .dockerignore does not exclude backend/venv/ (the OLD venv) either. Whether it is
       currently entering the build context depends on the Dockerfile's COPY lines, which I
       did not read. Worth checking in 13b, where "image size is same or smaller" is already
       a done-when — if the old venv has been shipping, that is where the size went. H-1
       makes it moot. [13b]
+      Resolved 2026-09-16 in 13a commit 3 (da59650): `.dockerignore` excludes `**/venv` and
+      `**/.venv`. Before that, `COPY backend/ .` copied a local backend/venv into local builds
+      (Railway never had one, since it's gitignored). For 13b's image-size check, compare
+      against a build from da59650 or later.
 - [ ] H-5 delete ~/sprint13/ — after 13c, not 13a. 13c re-runs `compare` against the same
       baseline. [after 13c]
 
