@@ -1015,7 +1015,8 @@ in this list blocks anything.
 
 ## Housekeeping (any sprint)
 
-One item, and it is here because it may not survive Phase 1 in this shape.
+Four items. H-1 is here because it may not survive Phase 1 in this shape; H-2 to H-4 are the
+shed from planning Sprints 18 and 19 — real work, no sprint earned yet.
 
 - [ ] H-1 Build the Activities layer — `routers/activities.py`, `services/activities.py`, and
       the frontend that makes them visible. The data model is already there: Activity table,
@@ -1027,6 +1028,22 @@ One item, and it is here because it may not survive Phase 1 in this shape.
       Design risk: this is the version designed in Phase 0, and the tracker's shape is still
       open. It could be dropped for a different design rather than built as specified, which is
       why it sits here instead of inside a sprint
+- [ ] H-2 Return to the originating page after sign-in. A user who opens a session URL while
+      signed out lands on `/sessions` instead of where they were going. The fix is a `next`
+      parameter, allowlisted to same-origin paths or it is an open redirect. Small, but not
+      small enough to bolt onto 18c's callback while adopt, merge and switch are already in
+      flight. (From Sprint 18's Out of Scope, 2026-09-17.)
+- [ ] H-3 Re-parent the testers' orphaned pre-18 data. The 30-day cookie with no refresh has
+      already handed returning testers new empty users, and their old rows sit in Postgres
+      unreachable. After they sign in, match on resume text and re-point `sessions`, `resumes`
+      and `prompt_templates` at the account. Manual SQL against prod, once per tester — not
+      worth automating for seven people, and worth doing while they still remember what they
+      pasted. (From Sprint 18's Out of Scope, 2026-09-17.)
+- [ ] H-4 Sweep stale `processing` tailoring jobs. A redeploy strands anything mid-flight,
+      because BackgroundTasks die with the request, and a stranded job polls forever. Marking
+      them `failed` on startup is the cheap fix; the real fix is arq + Redis, already Phase 1+
+      in architecture.md. Do the cheap one only once a redeploy actually strands a job someone
+      is waiting on. (From Sprint 19's Out of Scope, 2026-09-17.)
 
 ## Tech Debt (deferred, maybe long term)
 
@@ -1107,3 +1124,20 @@ not here.
       Watch: the in-code TODO in `analysis.py` pulls the opposite direction — it would move the
       analysis prompt into the user-editable PromptTemplate table rather than into a file. Those
       are two different futures; pick one before either gets half-built
+- [ ] T-13 Phase 2+: rate limit the auth routes. Google absorbs credential attacks — there is no
+      password to spray — and `/api/auth/logout` and `/api/auth/me` are cheap. Worth doing when
+      there is enough traffic for abuse to cost something. (From Sprint 18's Out of Scope,
+      2026-09-17.)
+- [ ] T-14 Phase 2+: automated refunds via Stripe's `charge.refunded` webhook. Until then the
+      manual path works and is two steps: refund in the Stripe dashboard, then add a negative
+      row with `scripts/grant_credits.py`. The ledger is append-only either way. (From Sprint
+      19's Out of Scope, 2026-09-17.)
+- [ ] T-15 Phase 2+: prompt caching on the analysis conversation. It re-sends its whole history
+      every batch, so input tokens grow batch over batch and later batches cost more. Caching
+      the stable prefix is the fix. Wait until 19b's `api_usage` rows show what that growth
+      actually costs — the cache-write and cache-read token columns are in the schema precisely
+      so this is measurable before it is optimized. (From Sprint 19's Out of Scope, 2026-09-17.)
+- [ ] T-16 Phase 2+: a Postgres service container in CI. The suite runs on SQLite, so CI cannot
+      see Postgres-only failures — the 15a timestamptz class of bug is invisible to a green CI
+      run. Worth it once a Postgres-only failure has actually reached prod twice. (From Sprint
+      19's Out of Scope, 2026-09-17.)
