@@ -154,7 +154,7 @@ Not urgent. Cookie auth covers beta. This becomes relevant when persistence beyo
 **Activities** (`routers/activities.py`, `services/activities.py`): The data model is in place (Activity table, ActivityType enum, cascade templates designed in service-layer-notes.md), but no router, service, or frontend exists. The README tree and architecture.md list these as Phase 0 scope, but they aren't needed for the core flow (paste → analyze → tailor → download). Deferring to Phase 1 when the Full Tracker makes them visible and useful.
 
 **Prompts directory** (`backend/app/prompts/`): Placeholder for extracting system prompts from hardcoded strings in `services/analysis.py` and `services/tailoring.py` to files. See ADR-013 — this is about IP protection before the repo gets public attention, not about functionality. Deferred past MVP. Open questions before extracting (found 2026-09-16):
-- Where the files live. The README tree says `backend/app/prompts/`, but `sync-prompts.sh` expects a root `prompts/`. `.gitignore` ignores `prompts/` at any depth, while `.dockerignore` excludes only a root `prompts`, so `backend/app/prompts/` would be copied into a local image.
+- Where the files live. The README tree says `backend/app/prompts/`, but `sync-prompts.sh` expects a root `prompts/`. Either way, `.gitignore` and `.dockerignore` both exclude `prompts` at any depth, so the files reach neither GitHub nor a Docker build.
 - How they reach production. Railway builds from the GitHub snapshot, where git-ignored files never exist, so "loaded at startup" needs another way in (ADR-013 lists env vars and a private submodule).
 - The in-code TODO at analysis.py line 56 points the other way: it would move the analysis system prompt into the user-editable PromptTemplate table.
 
