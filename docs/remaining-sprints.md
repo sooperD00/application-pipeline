@@ -24,6 +24,10 @@ TERMINOLOGY
 >   never references them, because anything source points at is planned and carries a
 >   `[SPRINT-<N>-CLEANUP]` marker instead. Renumbered 1..N on a docs pass, so the count is the
 >   signal — past ~50 unassigned, hold a planning session before adding features.
+> "Entry gate" = work in an *earlier* sprint that a later one leans on, named at the top of the
+>   sprint that needs it, as required or recommended. Never a second home: the gate line points
+>   at the leg that owns the work and the spec stays there. If a gate item has no owner yet, it
+>   is a missing sprint, not a checklist.
 
 
 > "Kind" map to a distinct ordering heuristic:
@@ -226,14 +230,20 @@ The `--probe` done-when above is the net that catches it.
 **Decide before commit 1: which Python.** You develop on 3.13.7 and ship on 3.12 (`Dockerfile`,
 `requires-python = ">=3.12"`). Re-locking on an interpreter prod does not run means reading the
 upgrade diff in an environment nobody deploys. Two ways out, and this leg needs one of them:
-- pin dev down to 3.12 (a `.python-version` in `backend/`). No Dockerfile change, this leg
-  stays single-factor, and it is the cheaper default.
+- pin dev down to 3.12 (`uv python pin`, which writes `backend/.python-version`). No Dockerfile
+  change, this leg stays single-factor, and it is the cheaper default.
 - or bump the image to 3.13. That is a real upgrade of its own and a second factor inside a leg
   that already moves every version — if you want it, it is its own leg, not a line here.
 The older note to re-lock with `--python 3.13.7` only holds if the image moves too. (Pulled
 from Housekeeping, 2026-09-17, where the skew and the note sat as two separate items.)
 
+Whichever wins, move every consumer in one commit: the Dockerfile base image,
+`backend/.python-version`, and Sprint 16's CI pin once that job exists. This is Sprint 18's
+entry gate as well as 13c's decision — 18 adds `authlib`, `itsdangerous` and `httpx2`, and new
+packages should resolve against one interpreter.
+
 **Done when**
+- [ ] dev and the Docker image run the same Python minor version — the decision above, taken
 - [ ] constraint-dependencies is gone from pyproject and `uv lock --check` is clean
 - [ ] the uv.lock diff has been read, not skimmed — that diff IS the upgrade
 - [ ] `dep_freeze.py compare` re-run against the same baseline and its output read. It is
@@ -304,27 +314,42 @@ as soon as the sprint is off the critical path.
 
 **Legs:** fix the red suite (bugfix), then fill the gaps (feature).
 
-Fill concrete gaps. The goal is confidence before auth (Sprint 17), and before CI, which can't
+Fill concrete gaps. The goal is confidence before auth (Sprint 18), and before CI, which can't
 live on a red suite.
 
-**First: the 18 failures.** `tests/test_tailoring.py` has 18 failing tests with one cause,
-session/DB wiring. They predate Sprint 13 and were not fixable inside it — the 13a baseline
-recorded the same 18 before and after the migration. Until they are green, every "test counts
-unchanged" done-when in this doc is measuring a suite that is already red. (Pulled out of
-Housekeeping, where it was marked for Sprint 13 — the wrong sprint.)
+### 14a — restore a green suite (bugfix) --- planned
 
-Backend — new files:
-- `test_analysis.py`: batching logic (5-JD boundary, partial final batch), SSE event generation (`batch_start`, `jd_result`, `batch_complete`, `analysis_complete`), error/retry with mocked Claude client, meta-analysis accumulation across batches. This is the biggest gap — the core analysis flow has zero dedicated tests.
-- `test_jds.py`: zip package download (ADR-014), docx download, JD CRUD (PATCH fields, status override), single-JD tailoring kickoff. Currently only tested indirectly through session-level tests.
+`tests/test_tailoring.py` has 18 failing tests with one cause, session/DB wiring. They predate
+Sprint 13 and were not fixable inside it — the 13a baseline recorded the same 18 before and
+after the migration. Until they are green, every "test counts unchanged" done-when in this doc
+is measuring a suite that is already red. (Pulled out of Housekeeping, where it was marked for
+Sprint 13 — the wrong sprint.)
 
-Backend — extend existing:
-- `test_tailoring.py`: verify the 6 `failed` status paths added in Sprint 11 (missing template, missing JD, missing resumes, Claude API error, JSON parse error, docx generation error). These are the error paths that used to silently bail.
+**Done when**
+- [ ] the 18 failures pass, and nothing else changes: 0 failed, same collected count
+- [ ] `conftest.py:59` no longer claims `get_current_user` grabs the first User row
+
+**Commits**
+| # | | |
+|---|---|---|
+| 0 | reproduce | Run pytest. `test_list_sessions: assert 0 == 2` is the tell: every request runs as a fresh anonymous user instead of `seeded_user` (artifact, not a commit) |
+| 1 | fix | In the `client` fixture, add `app.dependency_overrides[get_current_user] = lambda: seeded_user` beside the `get_session` override. Fix the stale comment |
+
+**Watch** Land after 13c closes. 13c's done-when compares test counts against the 13a baseline,
+and this changes them (verified in a scratch copy: 88 passed → 106 passed).
+
+### 14b — fill the gaps (feature) --- planned
+
+Backend — new file:
+- `test_jds.py`: zip package download (ADR-014), docx download, JD CRUD (PATCH fields, status
+  override), single-JD tailoring kickoff. Currently only tested indirectly through
+  session-level tests.
 
 Frontend — extend existing:
-- `TailoringPage.test.jsx`: polling lifecycle test (advance fake timers, assert queued→processing→ready transition updates UI). Highest-complexity React test pattern — fake timers + async state + `act()` wrapping. Currently 12 tests cover rendering and button clicks but not the polling state machine.
-
-Frontend — audit:
-- Ownership/auth guard tests: verify that session-scoped pages handle "session not found" and "session belongs to different user" (setup for Sprint 17). This is the "multi-user safety" item — make it concrete now even though auth is a stub.
+- `TailoringPage.test.jsx`: polling lifecycle test (advance fake timers, assert
+  queued→processing→ready transition updates UI). Highest-complexity React test pattern — fake
+  timers + async state + `act()` wrapping. Currently 12 tests cover rendering and button clicks
+  but not the polling state machine.
 
 **Also in scope**
 - [ ] Extract shared test factories and mocks — `__tests__/factories.js` and `__tests__/mocks.js`
@@ -332,24 +357,82 @@ Frontend — audit:
       shape by the time you are in there. Data models have to stabilize first, and this sprint
       is when you find out whether they have.
 
-Context load: `test_analysis.py` is the heavy one — analysis.py is 330 lines, the SSE protocol has 4 event types, and the mocked Claude client needs to return structured JSON in batches. The rest are incremental additions to existing test files. Fits one context window.
+**Moved out, 2026-09-17.** Three items left this sprint for one that owns them better.
+`test_analysis.py` and the six `failed`-path tests in `test_tailoring.py` went to 19a, which
+puts the spend paths under test in the sprint where money starts touching them. The
+ownership/auth guard test ("session belongs to a different user") went to 18d, where the guard
+it tests actually exists — writing it here would have tested a stub.
 
 
 ## Sprint 15 — Code hygiene --- planned
 
-**Kind:** refactor — the suite is the invariant.
+**Legs:** timestamps (migration), then the rest (refactor). The timestamp work moves a column
+type across ten tables; everything else is a rename or a deletion. One red suite, one cause.
 
 Deprecations, dead files and small corrections, cleared before the next feature lands on top of
 them. Nothing here changes behaviour a user would notice, except the timestamps, which are
 wrong today.
 
+### 15a — timezone-aware timestamps (migration) --- planned
+
+The `datetime.utcnow()` deprecation, taken as the obvious one-line swap to
+`datetime.now(datetime.UTC)`, **breaks prod while the tests stay green**. Every timestamp
+column is `sa.DateTime()` — timestamp *without* time zone. asyncpg raises a DataError when an
+aware datetime is bound to a naive column, and SQLite silently ignores tzinfo, so the suite
+never sees it. Sprint 18 adds token expiry and Sprint 19 adds purchase history, which is
+exactly where the next writer reaches for `datetime.now(UTC)`.
+
+The "timestamps read a day ahead in Oregon" bug is the same bug seen from the frontend — stored
+UTC, serialized without an offset, rendered as local. It closes here.
+
+**Done when**
+- [ ] all 10 timestamp columns are `timestamptz`: `users.created_at`,
+      `users.auth_token_expires_at`, `prompt_templates.created_at`, `resumes.created_at`,
+      `sessions.created_at`, `jds.created_at`, `activities.created_at`,
+      `activities.completed_at`, `tailoring_jobs.created_at`, `tailoring_jobs.completed_at`
+- [ ] models declare them through one `UTCDateTime` type that returns aware UTC datetimes on
+      Postgres and SQLite alike, and raises on naive input
+- [ ] `grep -rn --include='*.py' utcnow backend/app backend/tests` returns nothing — today
+      `models.py` ×7, `tailoring.py:356`, `jds.py:469` (the zip's notes.txt header), and
+      `test_tailoring.py` ×4
+- [ ] existing rows keep their instant: the ground-truth rows read the same moment before and after
+- [ ] every datetime in API JSON carries an offset, and a resume created after 5 PM Pacific
+      shows today's date in `ResumeCard`
+- [ ] test counts unchanged
+
+**Commits**
+| # | | |
+|---|---|---|
+| 0 | ground truth | On dev, record a few rows' `created_at` values and one resume's rendered date (artifact, not a commit) |
+| 1 | new type | Add the `UTCDateTime` TypeDecorator (impl `DateTime(timezone=True)`, attaches UTC on read, raises on naive input) and `utc_now()` to `app/models.py` |
+| 2 | migrate | Hand-write the Alembic migration: `op.alter_column(table, col, type_=sa.DateTime(timezone=True), postgresql_using="<col> AT TIME ZONE 'UTC'")` for all 10 columns, and switch the models to `UTCDateTime` and `utc_now` |
+| 3 | flip consumers | Call `utc_now()` in `tailoring.py:356`, `jds.py:469`, and the `test_tailoring.py` fixtures |
+| 4 | prove equivalence | Confirm the ground-truth rows match, API JSON shows offsets, and the `ResumeCard` date is correct |
+
+**Watch**
+- Write the `USING <col> AT TIME ZONE 'UTC'` clause by hand, in upgrade *and* downgrade.
+  Without it, Postgres reads existing values in the session's TimeZone setting.
+- Push commits 2 and 3 together. Once the models reject naive datetimes, any leftover
+  `utcnow()` raises at write time.
+- Autogenerate renders `UTCDateTime` by its import path. In this migration and every later one
+  (18b, 19b, 19c), write `sa.DateTime(timezone=True)` instead.
+- `DateTime(timezone=True)` alone isn't enough. SQLite still hands back naive datetimes, and
+  comparing one to `utc_now()` raises TypeError (reproduced). The decorator's read side is what
+  keeps Sprint 18's expiry checks testable.
+- `users.auth_token_expires_at` is on the list and 18b deletes it. Migrate it anyway: it keeps
+  this a single mechanical pass, and skipping it makes the grep-clean done-when a special case.
+
+### 15b — deprecations and dead files (refactor) --- planned
+
+**Kind:** refactor — the suite is the invariant.
+
 **Scope**
-- [ ] `datetime.utcnow()` deprecation warnings — switch to `datetime.now(datetime.UTC)` across
-      models.py (7 occurrences), tailoring.py (1), and jds.py (1, in the zip's notes.txt header)
 - [ ] `HTTP_422_UNPROCESSABLE_ENTITY` deprecation — FastAPI renamed it to
-      `HTTP_422_UNPROCESSABLE_CONTENT`. 11 occurrences: jds.py (2), resumes.py (4), sessions.py (5)
-- [ ] Timestamps read a day ahead in Oregon — stored UTC, displayed with no timezone
-      conversion. Tolerable while I was the only reader; the beta testers already see it
+      `HTTP_422_UNPROCESSABLE_CONTENT`. 11 occurrences: jds.py (2), resumes.py (4),
+      sessions.py (5). Agents copy the patterns they find, so retire the deprecated name before
+      Sprint 18 writes new routes. Done when `grep -rn --include='*.py'
+      HTTP_422_UNPROCESSABLE_ENTITY backend/app` returns nothing, the deprecation warning is
+      gone from pytest output, and test counts are unchanged
 - [ ] Delete `assets/react.svg` and `public/vite.svg` — leftover Vite scaffolding, unreferenced
 - [ ] Press Enter to submit the create-session form on SessionsPage.jsx — a simple wrap
 - [ ] Clear the tailoring jobs stuck at `queued` from before the `failed` status existed. The
@@ -393,11 +476,22 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       Getting this wrong reproduces the exact bug the Makefile exists to prevent.
       Success condition: it REPLACES typing uv directly. A wrapper used half the time is a
       second way to be in the wrong directory, not a fix
-- [ ] A first CI job, once the suite is green (Sprint 14). `uv lock --check` is a one-line
-      pre-deploy gate with nowhere to run it today; put `python3 scripts/check_docker_context.py
-      --probe` in the same job, since `--probe` needs no real ignored files and so works in a
-      fresh clone. Try the workflow on a branch first — 673f7a0's workflow failed on every push
-      to main. ~45 min
+- [ ] A first CI job, once the suite is green (Sprint 14), with Railway's Wait for CI turned on
+      behind it. `uv lock --check` is a one-line pre-deploy gate with nowhere to run it today,
+      and Sprint 18 rewrites the dependency every route uses — a red suite should stop that
+      deploy.
+      Workflow: `.github/workflows/ci.yml` on `push: branches: [main]`, which is the only
+      trigger Railway offers Wait for CI for. Backend `uv lock --check`, `uv sync --locked`,
+      `uv run pytest`; frontend `npm ci`, `npm test`. Use `astral-sh/setup-uv`, set
+      `working-directory: backend` on every uv step, pin Python to whatever 13c decided and
+      Node to 20. Put `python3 scripts/check_docker_context.py --probe` in the same job, since
+      `--probe` needs no real ignored files and so works in a fresh clone.
+      Prove the gate rather than assuming it: push a deliberately red commit to `main`, confirm
+      the Railway deploy shows SKIPPED, then revert and confirm the revert deploys.
+      Try the workflow on a branch first — 673f7a0's workflow failed on every push to main.
+      Watch: the suite runs on SQLite, so CI cannot see Postgres-only failures like the one
+      15a exists to fix. CI proves the tests pass; it does not prove Postgres accepts the
+      writes. ~45 min
 - [ ] Decide how far to take the .gitignore/.dockerignore overlap check. The first attempt
       (673f7a0) broke the Railway deploy and was reverted (fe8794e); it is parked in
       `test-vehicles/dockerignore-check/`, whose README has the details. (That README is frozen
