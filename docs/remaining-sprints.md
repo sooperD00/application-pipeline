@@ -91,8 +91,10 @@ Migrate backend dependency management from pip to uv.
 
 **Why now** CE! (Copy Exactly!, the Intel sense — match the current SWE standard rather than
 invent a local one). Also: requirements.txt is a pip freeze —
-13 real roots buried in 20 transitives, hand-appended since. Nothing declares what this
-project actually requires, so nothing can be upgraded deliberately.
+41 pinned lines, hand-appended since, in which the 15 packages this app actually asks for (11
+runtime, 4 test-only) are indistinguishable from the 26 that came along for the ride. Nothing
+declares what this project actually requires, so nothing can be upgraded deliberately.
+(Planning guessed 13 roots in 20 transitives; counted at 13a close, it was 15 in 41.)
 
 ### 13a — requirements.txt → uv (migration) --- done 2026-09-16
 

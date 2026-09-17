@@ -202,6 +202,16 @@ The distinction matters because the repo is public. The PromptTemplate content i
 - Private git submodule (clean separation, but adds deployment complexity).
 - Accept the risk (the workflow design and UX are the real moat, not the prompts). Possibly true, but no reason to give it away before testing that hypothesis.
 
+**Update 2026-09-17** — still Proposed, now deferred to Phase 2+. Three things changed since this was written:
+
+1. "Nicole is the only user" stopped being true on 2026-03-15, when beta invites went out to seven people. The repo still has no traffic to speak of, which is the part that actually gates this.
+2. Both system prompts have been in the public git history since March — `ANALYSIS_SYSTEM_PROMPT` since 2026-03-04, `TAILORING_SYSTEM_PROMPT` since 2026-03-05. Extraction therefore protects the *next* version of a prompt, not the one shipping today. That is still worth doing, but it is a weaker claim than this ADR made when nothing had been published yet.
+3. Two questions have to be answered before any extraction, and neither was visible in March:
+   - **Where the files live.** The README tree says `backend/app/prompts/`; `sync-prompts.sh` expects a root `prompts/`. Either way, `.gitignore` and `.dockerignore` both exclude `prompts` at any depth, so files placed in either location reach neither GitHub nor a Docker build.
+   - **How they reach production.** Railway builds from the GitHub snapshot, where git-ignored files never exist. "Loaded at startup" therefore needs a route in that does not depend on the file being in the repo — the env-var and private-submodule options above are the two candidates, and the env-var objection ("awkward for multi-paragraph text") is now the cheaper of the two problems.
+
+Also worth recording: the in-code TODO in `analysis.py` points the opposite way, proposing to move the analysis system prompt *into* the user-editable PromptTemplate table. That is a different architecture from this one, not a step toward it. Pick one before either gets half-built. The work item is T-12 in remaining-sprints.md.
+
 ---
 
 ## ADR-014: Application Package — Zip Download per Tailoring Job
@@ -262,7 +272,7 @@ The txt files are plain text, not markdown or docx, because the user is pasting 
 
 ---
 
-## ADR-017: Resume Snapshots — Living Documents vs. Point-in-Time References (Phase 1+)
+## ADR-017: Resume Snapshots — Living Documents vs. Point-in-Time References (Phase 2+)
 
 **Date**: 2026-03-12  
 **Status**: Proposed (Phase 0 ships the nullable FK fix; snapshot architecture deferred)
@@ -284,3 +294,31 @@ Session locking follows naturally: once analysis runs, the session's resume snap
 2. **Soft-delete resumes** (is_deleted flag): solves the FK problem but doesn't solve the "which version was used" problem. A deleted resume preserves the row but not the edit history.
 
 3. **Embed resume text directly in TailoringJob** (no FK at all): already partially done via prompt_snapshot, but loses the ability to show "this job used your 'Technical' resume" in the UI. The snapshot table preserves both the content and the label/metadata link.
+
+**Update 2026-09-17** — deferred from Phase 1+ to Phase 2+; the Phase 0 nullable-FK fix still stands and still carries the outputs. Tracked as T-10 in remaining-sprints.md.
+
+---
+
+## ADR-018: uv for Backend Dependency Management
+
+**Date**: 2026-08-30 (recorded 2026-09-17, after the first leg landed)
+**Status**: Accepted — 13a shipped 2026-09-16; 13b, 13c and 13d planned
+
+**Decision**: Declare backend dependencies in `backend/pyproject.toml`, resolve and lock them with uv, and commit `uv.lock`. `requirements.txt` becomes generated output for one leg of the migration, then is deleted once the Dockerfile installs from the lock.
+
+**Rationale**: `requirements.txt` was a `pip freeze` — 41 pinned lines, hand-appended over months, in which the 15 packages this app actually asks for (11 runtime, 4 test-only) were indistinguishable from the 26 that merely came along. Nothing in the repo stated what the project requires, so nothing could be upgraded deliberately: every pin looked equally load-bearing and equally unexplained. Declaring roots separates "what this app needs" from "what that implies", and that separation is what makes an upgrade reviewable instead of a gamble.
+
+Choosing uv specifically: it reads a PEP 621 `[project]` table, so the declaration is tool-agnostic and survives a later change of tool — the lockfile is the only uv-shaped artifact in the repo. It also manages the interpreter, which matters here because dev and prod disagree about the Python version. Matching current practice was itself part of the reason: this is a public repo that doubles as evidence of how I work.
+
+**Structure**: The migration is split into legs so a red suite can name what broke. Packaging moves first with versions pinned (13a), then the consumers (13b), then versions with packaging fixed (13c), then two deferred declaration changes (13d). A `[tool.uv] constraint-dependencies` block holds every package at the pre-migration freeze until 13c deletes it — that diff *is* the upgrade. Sprint 13 in remaining-sprints.md has the leg-by-leg plan.
+
+**Consequences**:
+- A generated `requirements.txt` outlives the migration by one leg, so the Docker build keeps working while packaging changes underneath it.
+- Two virtualenvs coexist locally during 13a — the old `backend/venv` and uv's `backend/.venv`. The old one was deleted once 13a closed and the baseline freeze was safely captured.
+- Dev/prod interpreter skew became visible rather than new: 3.13.7 locally, 3.12 in the image. 13c has to pick one before it re-locks, since reading an upgrade diff on an interpreter nobody deploys proves little.
+- uv binds to an environment based on the working directory and does not say which one it picked. That cost an hour in 13a, when a stale root `.venv` answered instead of `backend/.venv`. The by-hand guards are in 13b's prework; a Makefile preflight target is the planned fix.
+
+**Alternatives considered**:
+- **Stay on `pip freeze`.** No migration cost, but the problem being solved is precisely that a freeze cannot tell a root from a transitive.
+- **pip-tools** (`requirements.in` → `requirements.txt`): declares roots, keeps pip, smaller move. Not chosen — it leaves interpreter management unsolved and offers no project manifest to grow into.
+- **Poetry or PDM**: both declare and lock. Not chosen over uv, and because the declaration lives in PEP 621 fields rather than tool-specific ones, switching later costs a re-lock rather than a rewrite.
