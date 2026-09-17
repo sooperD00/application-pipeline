@@ -439,8 +439,8 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 - [x] H-4 .dockerignore does not exclude backend/venv/ (the OLD venv) either. Whether it is
       currently entering the build context depends on the Dockerfile's COPY lines, which I
       did not read. Worth checking in 13b, where "image size is same or smaller" is already
-      a done-when — if the old venv has been shipping, that is where the size went. H-1
-      makes it moot. [13b]
+      a done-when — if the old venv has been shipping, that is where the size went. Deleting
+      the old venv (13a close items) makes it moot. [13b]
       Resolved 2026-09-16 in 13a commit 3 (da59650): `.dockerignore` excludes `**/venv` and
       `**/.venv`. Before that, `COPY backend/ .` copied a local backend/venv into local builds
       (Railway never had one, since it's gitignored). For 13b's image-size check, compare
@@ -468,7 +468,7 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
       test, test-frontend, lock-check (uv lock --check + uv sync --check), seed, run.
       Every uv target depends on preflight.
       Also check-context (`python3 scripts/check_docker_context.py --probe`), and any
-      docker-build target runs it first. (L1 of the overlap check, see Housekeeping.)
+      docker-build target runs it first. (Level 1 of the overlap check, see Housekeeping.)
       Do NOT carry over the 13a/13c scaffolding targets (dep_freeze compare, uv export) —
       they die with their legs.
       Gate: after 13c (open) AND after the mac move (closed 2026-09-16). make is not in
@@ -483,10 +483,10 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
       a second way to be in the wrong directory, not a fix.   [techdebt, Sprint 15]
 - [ ] T-1 `uv lock --check` as a pre-deploy gate — one line, no CI to put it in. Already in
       the doc's Out of Scope. When CI exists, run `python3 scripts/check_docker_context.py
-      --probe` in the same job. That's L3 of the overlap check: the only layer you can't skip,
+      --probe` in the same job. That's Level 3 of the overlap check: the only layer you can't skip,
       and `--probe` needs no real ignored files, so it works in CI. Try the workflow on a
       branch first (673f7a0's workflow failed on every push to main). ~45 min. [Phase N]
-- [ ] T-3 tests for `scripts/check_docker_context.py` (L4 of the overlap check), only if the
+- [ ] T-3 tests for `scripts/check_docker_context.py` (Level 4 of the overlap check), only if the
       script grows or others rely on it. Unit tests for the pure functions (probe paths,
       glob → file name, Dockerfile COPY parsing), plus one Docker test that skips when Docker
       is off. 1–2 files, ~1–2 h. [Phase N]
