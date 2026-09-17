@@ -74,8 +74,11 @@ every push. Reverted in fe8794e (deploy green again). Then:
 | c1755c8 | check moved to `scripts/`; README Quick Start → Checks says when to run it |
 | 47a2b07 | sprint13 freeze paths point at `docs/DEVLOG/sprints/sprint13/` |
 
-The first attempt is parked on branch `idea/dockerignore-check`. Lesson for the Landed line: a "stash"
-commit on main is live (CI and Railway both run it), so park experiments on a branch.
+The first attempt is parked in `test-vehicles/dockerignore-check/`. It sat on branch
+`idea/dockerignore-check` until the same day, when the branch was folded into main and deleted.
+Lesson for the Landed line: a "stash" commit on main is live (CI and Railway both run it). Park inert
+ideas in `test-vehicles/`, and use a short-lived branch only for changes that must sit in their real
+location (workflows, root configs, app code).
 
 ### 13b — flip the consumers, delete requirements.txt (consumer flip) --- planned
 
@@ -193,9 +196,9 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
 - [ ] [SPRINT-13-CLEANUP] remember to use `--python 3.13.7` in 13c
 - [ ] [SPRINT-14-CLEANUP] H-6 (new): dev/prod interpreter skew. You develop on 3.13.7, you ship on 3.12. This predates the sprint — uv just made it visible. Resolving it means either bumping the image or pinning dev down, and both touch the Dockerfile, so it can't happen before 13b.
 - [ ] [SPRINT-14-CLEANUP]: .gitignore/.dockerignore overlap check. The first attempt (673f7a0)
-      broke the Railway deploy and was reverted (fe8794e). It's parked on branch
-      `idea/dockerignore-check` in `test-vehicles/dockerignore-check/`, whose README has the
-      details. `scripts/check_docker_context.py` is on main (see the Sprint 13a close-out).
+      broke the Railway deploy and was reverted (fe8794e). It's parked in
+      `test-vehicles/dockerignore-check/`, whose README has the details.
+      `scripts/check_docker_context.py` is on main (see the Sprint 13a close-out).
       How far to take it, lightest first:
       L0 documented command: done (README Quick Start → Checks)
       L1 task runner: see the Makefile item in Tech Debt

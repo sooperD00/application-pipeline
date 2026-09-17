@@ -230,6 +230,7 @@ ApplicationPipeline/
 ├── scripts/
 │   └── check_docker_context.py      # - [x] would Docker get a file git ignores? (see Quick Start → Checks)
 ├── test-vehicles/                   # - [x] quarantined spikes (kept out of the Docker build)
+│   ├── dockerignore-check/          # - [x] parked first attempt at the .gitignore/.dockerignore check
 │   └── schema-extraction/           # - [x] schema-extraction lab
 └── LICENSE                          # BSL 1.1 → Apache 2.0 (2029-03-01)
 ```
