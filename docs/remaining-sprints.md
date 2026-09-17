@@ -72,12 +72,15 @@ the sprint order that gets there lives here. Where Phase 1 ends is not decided y
 
 - 13 — Backend dependencies, pip → uv — in progress (13a done, 13b/13c/13d planned)
 - 14 — Tests — planned
-- 15 — Developer tooling — planned
-- 16 — Auth, magic link accounts — planned
-- 17 — Billing — planned
+- 15 — Code hygiene — planned
+- 16 — Developer tooling — planned
+- 17 — Auth, magic link accounts — planned
+- 18 — Billing, and the cost caps it depends on — planned
+- Frontend polish — parked, deliberately last and deliberately unnumbered
 
 Numbers are expectations, not commitments: they can be bumped, split or dropped. The one rule
-is that whatever a `[SPRINT-<N>-CLEANUP]` marker names has to exist in this list.
+is that whatever a `[SPRINT-<N>-CLEANUP]` marker names has to exist in this list — which is why
+the parked sprint has no number until something needs to point at it.
 
 ---
 
@@ -150,7 +153,7 @@ The first attempt is parked in `test-vehicles/dockerignore-check/`. It sat on br
       Windows machine, since it is untracked and no fetch or checkout would remove it. Safe
       once 13a closed: the baseline freeze is captured in `docs/DEVLOG/sprints/sprint13/` and
       pushed to the devlog repo, `compare` reads files rather than environments, and neither
-      13b nor 13c consumes the old venv. (Was H-1.)
+      13b nor 13c consumes the old venv. (Pulled from Housekeeping, 2026-09-17.)
 - [x] `.gitattributes` with `* text=auto eol=lf`, plus `git add --renormalize .` — done
       2026-09-17, in its own commit so it reverts cleanly. 29 tracked files were CRLF in the
       index against 87 LF, with no `.gitattributes` at all; 27 normalized, and every blob was
@@ -162,7 +165,8 @@ The first attempt is parked in `test-vehicles/dockerignore-check/`. It sat on br
       would break the container's shebang — that trap is closed by construction rather than by
       luck. And `dep_freeze.py`'s CRLF-preserving read and write helpers are vestigial as of
       this commit; harmless, and they die with the script in 13c.
-      (Was T-2, which only saw the requirements.txt symptom.)
+      (Pulled from Tech Debt, 2026-09-17, where it was filed as a requirements.txt symptom
+      rather than the repo-wide split it turned out to be.)
 
 ### 13b — flip the consumers, delete requirements.txt (consumer flip) --- planned
 
@@ -178,13 +182,16 @@ That cost an hour in 13a, when a stale root `.venv` answered instead of `backend
   bug, not a second option — delete it rather than working around it.
 - Repo-root `scripts/` is stdlib-only by design and needs no venv. Keep it that way: the
   context check has to run exactly when the environment is in doubt.
-- This Mac has neither venv yet, being a fresh clone. Sprint 15's Makefile is the planned
+- This Mac has neither venv yet, being a fresh clone. Sprint 16's Makefile is the planned
   guard (a preflight target that fails unless `sys.prefix` ends in `backend/.venv`).
 
 **Done when**
 - [ ] `docker build` succeeds installing from pyproject + uv.lock, with no requirements.txt in the repo
 - [ ] the built image runs migrations and starts uvicorn
-- [ ] image size is same or smaller — compare against a build from `da59650` or later, see H-4
+- [ ] image size is same or smaller — compare against a build from `da59650` or later, never
+      anything earlier. Until that commit `.dockerignore` excluded neither `**/venv` nor
+      `**/.venv`, so `COPY backend/ .` copied a local backend/venv into local builds and
+      whatever size that added is not prod's baseline. Railway never had one, being gitignored
 - [ ] `python3 scripts/check_docker_context.py --probe` exits 0 (13b edits the Dockerfile and `.dockerignore`)
 - [ ] `git ls-files --error-unmatch backend/requirements.txt` fails — the file is out of the index
 - [ ] `git grep -n requirements.txt -- ':!docs' ':!test-vehicles'` returns nothing. Use `git
@@ -222,8 +229,8 @@ upgrade diff in an environment nobody deploys. Two ways out, and this leg needs 
   stays single-factor, and it is the cheaper default.
 - or bump the image to 3.13. That is a real upgrade of its own and a second factor inside a leg
   that already moves every version — if you want it, it is its own leg, not a line here.
-The older note to re-lock with `--python 3.13.7` only holds if the image moves too. (Was H-6,
-and the [SPRINT-13-CLEANUP] interpreter note in Housekeeping.)
+The older note to re-lock with `--python 3.13.7` only holds if the image moves too. (Pulled
+from Housekeeping, 2026-09-17, where the skew and the note sat as two separate items.)
 
 **Done when**
 - [ ] constraint-dependencies is gone from pyproject and `uv lock --check` is clean
@@ -234,7 +241,7 @@ and the [SPRINT-13-CLEANUP] interpreter note in Housekeeping.)
       18 failures in test_tailoring.py (13a baseline: 106 collected, 88 passed, 18 failed)
 - [ ] docker build + run smoke passes
 - [ ] `docs/DEVLOG/sprints/sprint13/` deleted — after `compare`, the freeze artifacts have no
-      consumer left (was H-5)
+      consumer left (pulled from Housekeeping, 2026-09-17)
 
 **Commits**
 | # | | |
@@ -267,7 +274,7 @@ lock, and that is why they wait until 13c has read its upgrade diff.
 | 1 | drop a root | remove python-multipart, re-lock |
 | 2 | declare a root | `sqlalchemy[asyncio]`, re-lock |
 
-(Was H-2 and H-3, which had no real when.)
+(Pulled from Housekeeping, 2026-09-17, where both sat with no real when.)
 
 ### After Sprint 13 closes
 
@@ -286,7 +293,7 @@ as soon as the sprint is off the critical path.
 
 ### Out of Scope (13)
 - No CI exists. `uv lock --check` is a one-line pre-deploy gate once there's somewhere to run
-  it → Sprint 15 (Developer tooling), see T-1
+  it → Sprint 16 (Developer tooling), which owns the first CI job
 
 
 ---
@@ -296,14 +303,14 @@ as soon as the sprint is off the critical path.
 
 **Legs:** fix the red suite (bugfix), then fill the gaps (feature).
 
-Fill concrete gaps. The goal is confidence before auth (Sprint 16), and before CI, which can't
+Fill concrete gaps. The goal is confidence before auth (Sprint 17), and before CI, which can't
 live on a red suite.
 
 **First: the 18 failures.** `tests/test_tailoring.py` has 18 failing tests with one cause,
 session/DB wiring. They predate Sprint 13 and were not fixable inside it — the 13a baseline
 recorded the same 18 before and after the migration. Until they are green, every "test counts
-unchanged" done-when in this doc is measuring a suite that is already red. (Was a
-[SPRINT-13-CLEANUP] item in Housekeeping, which named the wrong sprint.)
+unchanged" done-when in this doc is measuring a suite that is already red. (Pulled out of
+Housekeeping, where it was marked for Sprint 13 — the wrong sprint.)
 
 Backend — new files:
 - `test_analysis.py`: batching logic (5-JD boundary, partial final batch), SSE event generation (`batch_start`, `jd_result`, `batch_complete`, `analysis_complete`), error/retry with mocked Claude client, meta-analysis accumulation across batches. This is the biggest gap — the core analysis flow has zero dedicated tests.
@@ -316,30 +323,97 @@ Frontend — extend existing:
 - `TailoringPage.test.jsx`: polling lifecycle test (advance fake timers, assert queued→processing→ready transition updates UI). Highest-complexity React test pattern — fake timers + async state + `act()` wrapping. Currently 12 tests cover rendering and button clicks but not the polling state machine.
 
 Frontend — audit:
-- Ownership/auth guard tests: verify that session-scoped pages handle "session not found" and "session belongs to different user" (setup for Sprint 16). This is the "multi-user safety" item — make it concrete now even though auth is a stub.
+- Ownership/auth guard tests: verify that session-scoped pages handle "session not found" and "session belongs to different user" (setup for Sprint 17). This is the "multi-user safety" item — make it concrete now even though auth is a stub.
+
+**Also in scope**
+- [ ] Extract shared test factories and mocks — `__tests__/factories.js` and `__tests__/mocks.js`
+      — but only if the same factory or mock has turned up in 3+ test files with an identical
+      shape by the time you are in there. Data models have to stabilize first, and this sprint
+      is when you find out whether they have.
 
 Context load: `test_analysis.py` is the heavy one — analysis.py is 330 lines, the SSE protocol has 4 event types, and the mocked Claude client needs to return structured JSON in batches. The rest are incremental additions to existing test files. Fits one context window.
 
 
-## Sprint 15 — Developer tooling --- planned
+## Sprint 15 — Code hygiene --- planned
+
+**Kind:** refactor — the suite is the invariant.
+
+Deprecations, dead files and small corrections, cleared before the next feature lands on top of
+them. Nothing here changes behaviour a user would notice, except the timestamps, which are
+wrong today.
+
+**Scope**
+- [ ] `datetime.utcnow()` deprecation warnings — switch to `datetime.now(datetime.UTC)` across
+      models.py (7 occurrences), tailoring.py (1), and jds.py (1, in the zip's notes.txt header)
+- [ ] `HTTP_422_UNPROCESSABLE_ENTITY` deprecation — FastAPI renamed it to
+      `HTTP_422_UNPROCESSABLE_CONTENT`. 11 occurrences: jds.py (2), resumes.py (4), sessions.py (5)
+- [ ] Timestamps read a day ahead in Oregon — stored UTC, displayed with no timezone
+      conversion. Tolerable while I was the only reader; the beta testers already see it
+- [ ] Delete `assets/react.svg` and `public/vite.svg` — leftover Vite scaffolding, unreferenced
+- [ ] Press Enter to submit the create-session form on SessionsPage.jsx — a simple wrap
+- [ ] Clear the tailoring jobs stuck at `queued` from before the `failed` status existed. The
+      Sprint 11 migration (`6bc0f4c28a4a`) added `failed` to the TailoringStatus enum but does
+      not backfill, so anything queued before it sits there forever. Manual SQL, or delete them
+- [ ] Delete `sync-prompts.sh`, or point it at something that exists. It copies a root
+      `prompts/` folder into a sibling clone at `../application-pipeline-prompts`; neither
+      folder exists on disk, and the private repo `sooperD00/application-pipeline-prompts` holds
+      nothing but a `.gitkeep` from three "prompt update" commits on 2026-03-01. The backup it
+      implies has never run once. Read the prompt-extraction item in Housekeeping first: if
+      extraction picks a different mechanism, this script is the wrong shape anyway and deleting
+      it is the honest move
+
+
+## Sprint 16 — Developer tooling --- planned
 
 **Kind:** feature — build the pipeline that isn't there.
 
-Payoff is real but shouldn't block auth: it buys back the hour uv's directory-bound
-environment costs, makes the context check something that actually runs, and gives
-`uv lock --check` and `--probe` a home. `673f7a0` would have been caught here rather than by
-Railway.
+Payoff is real but shouldn't block auth: it buys back the hour uv's directory-bound environment
+costs, makes the context check something that actually runs, and gives `uv lock --check` and
+`--probe` a home. `673f7a0` would have been caught here rather than by Railway.
 
-- Makefile wrapping the uv commands, with a preflight target — see the Makefile item in Tech Debt
-- Wire in `scripts/check_docker_context.py --probe` and `uv lock --check`
-- A first CI job, once the suite is green (Sprint 14)
+**Scope**
+- [ ] Makefile wrapping the uv commands, with a preflight target. uv binds to an environment
+      based on the working directory and says nothing about it — that cost an hour in 13a, when
+      a stale root `.venv` answered instead of `backend/.venv`, and 13b's prework is the
+      by-hand version of this guard. A recipe that cd's first removes the failure mode instead
+      of detecting it.
+      Targets: preflight (print sys.prefix, fail unless it ends in backend/.venv), sync, test,
+      test-frontend, lock-check (`uv lock --check` + `uv sync --check`), seed, run. Every uv
+      target depends on preflight. Also check-context (`python3
+      scripts/check_docker_context.py --probe`), and any docker-build target runs it first.
+      Do NOT carry over the 13a/13c scaffolding targets (dep_freeze compare, uv export) — they
+      die with their legs.
+      Gate: after 13c. The mac move closed 2026-09-16, and that is half of why this is worth
+      doing: make is not in Git Bash, it arrives with the Xcode CLT.
+      Watch: macOS ships GNU make 3.81 (2006 — Apple stopped at the GPLv3 line), so
+      `.ONESHELL:` silently does nothing. Each recipe line gets its own shell, so `cd backend`
+      on one line does not persist to the next. Write `cd backend && uv sync` on one line, or
+      brew a newer make (lands as `gmake` under /opt/homebrew unless you add the gnubin path).
+      Getting this wrong reproduces the exact bug the Makefile exists to prevent.
+      Success condition: it REPLACES typing uv directly. A wrapper used half the time is a
+      second way to be in the wrong directory, not a fix
+- [ ] A first CI job, once the suite is green (Sprint 14). `uv lock --check` is a one-line
+      pre-deploy gate with nowhere to run it today; put `python3 scripts/check_docker_context.py
+      --probe` in the same job, since `--probe` needs no real ignored files and so works in a
+      fresh clone. Try the workflow on a branch first — 673f7a0's workflow failed on every push
+      to main. ~45 min
+- [ ] Decide how far to take the .gitignore/.dockerignore overlap check. The first attempt
+      (673f7a0) broke the Railway deploy and was reverted (fe8794e); it is parked in
+      `test-vehicles/dockerignore-check/`, whose README has the details. (That README is frozen
+      at what it knew on 2026-09-16 and calls this Sprint 14 — read it as this sprint.)
+      `scripts/check_docker_context.py` is already on main. Lightest first:
+      Level 0, documented command: done (README Quick Start → Checks)
+      Level 1, task runner: the Makefile item above
+      Level 2, git hook: either the pre-commit framework (1 file + `pre-commit install` on each
+         machine) or `.githooks/` + `git config core.hooksPath .githooks`. Run it only on commits
+         that touch an ignore file or the Dockerfile. Needs Docker running, and `--no-verify`
+         skips it. ~20–30 min. The same hook file can run a Python linter later.
+         Probably skip it: Level 1 plus Level 3 cover the same ground
+      Level 3, CI: the CI item above
+      Level 4, tests for the script: in Tech Debt, worth it only if the script grows
 
-Candidate scope when this gets planned: the levels in the Housekeeping overlap-check item, and
-T-1, T-3 and T-4 in Tech Debt. Skip the git-hook level — a Makefile plus CI covers it, and
-`--no-verify` makes a hook optional anyway.
 
-
-## Sprint 16 — Auth, magic link accounts --- planned
+## Sprint 17 — Auth, magic link accounts --- planned
 
 Cookie auth shipped in Sprint 12. Anonymous sessions work, data is isolated per browser, beta testers are unblocked.
 
@@ -353,172 +427,195 @@ beta") and `auth_token_expires_at` is never set, while the data model documents 
 anonymous users. 30 is right while I am the anonymous user; 7 is the intent once there is a
 login to convert into. One of the two has to change when accounts land.
 
+**Also in scope**
+- [ ] `api/client.js` has no retry logic and no token refresh. Both belong with real accounts:
+      a token that can expire needs a refresh path, and a fetch wrapper that never retries turns
+      every transient blip into a failure the user has to interpret
+
 Cookie auth covers beta. This becomes relevant when persistence beyond 30 days matters or when users want to switch devices.
 
 
-## Sprint 17 — Billing --- planned
+## Sprint 18 — Billing --- planned
 
-Not planned in detail here yet; the notes live outside the repo. This entry exists so the
-number is real and Phase 1's scope is visible in one place.
+Not planned in detail here yet; the notes live outside the repo. This entry exists so the number
+is real and Phase 1's scope is visible in one place.
 
 Prerequisite already named in the Phase 1 overview: per-user cost caps and metering. My API key
-pays for every beta session today.
+pays for every beta session today, so the limits work that has been piling up belongs here with
+it.
+
+**Scope — cost and limits**
+- [ ] Cap retries on `createTailoringJob`, front end and back. There is no runaway loop to worry
+      about; the cap is what limits my spend against my own API key. Friends testing now, and
+      later a set dollar subscription or batch package per paying user, with à-la-carte pricing
+      as an option. `tailoring.py` is where the backend half lands
+- [ ] Give polling exponential backoff. It is 3s forever until terminal today, which is chatty
+      if someone leaves the tab open overnight — increase the interval after 60s
+- [ ] Add AbortController to the SSE and polling fetches. `analyzeSession()` has none, so
+      `useSSE.abort()` cancels the reader but not the fetch and the backend generator keeps
+      running; TailoringPage polling has the same pattern. Harmless for a single user, since the
+      results still write to the DB, but it is paid-for work nobody is waiting on
+- [ ] Decide where the retry budget lives, once there is real usage to look at. The Analyze
+      button re-enables immediately on error via `finally { setIsAnalyzing(false) }`, with no
+      retry counter, cooldown, or backend cap. Gate it at the API/billing layer, on the button,
+      or both. Per-session cost tracking from Sprint 3 is the precedent to extend. Acceptable
+      risk for MVP; revisit after the first real-user sessions
+
+
+## Frontend polish — parked, last in Phase 1
+
+**Kind:** decide when it gets planned. A grab-bag has no single ordering heuristic, and choosing
+one now would be pretending.
+
+No number until it is scheduled. A number is a promise of order and this one is deliberately
+last; it takes the next free number the day something in source needs to point at it.
+
+Quarantined UI and product judgment: ideas I am not ready to finalize, kept here so they are not
+lost and do not leak into sprints that have real functionality and quality work to do. Nothing
+in this list blocks anything.
+
+**Scope**
+- [ ] Make the JD cards an actual playing-card aspect ratio — they are longer horizontally
+      today — then spread them like a ribbon instead of not overlapping at all. Generous, equal
+      spacing before analysis, so the start of each title and subtitle is readable. After
+      analysis: Apply cards trickled to the left with no overlap, Maybe ribbon-spread in the
+      middle at medium overlap, No spread tight on the right at high overlap
+- [ ] Card grid sort: once analysis starts, sort by [status_priority, number] instead of number
+      alone, so Apply cards float to the top after each `batch_complete` and the user sees which
+      JDs survived in real time. Toggle on session status — by number while active, since paste
+      order matters during data entry, by status while analyzing or complete. Small change to
+      SessionDetailPage's `mergedJds` sort comparator
+- [ ] Edit and delete JD cards in `sessions/:id`, reusing the resume card implementation
+- [ ] Show the Claude analysis per JD somewhere. There is no place to read it today, and it is
+      usually a good chart of skill matches plus a summary
+- [ ] "Download all" button — a zip laid out as
+      `session_title_timestamp/[company_role_timestamp]/[files]`, so a user who trusts the
+      output can take everything at once, open it, check it themselves and apply
+- [ ] Add a meta analysis over the tailored resumes — all of them, or at least within one
+      session — answering whether tailoring was worth it. Tells me as the dev how worthwhile
+      this part of the tool is, and tells the user their money did something beyond what the
+      analyze phase already said. Could be as simple as sending the finished resumes and JDs
+      through a fresh Claude call and displaying the result in a box
+- [ ] Move or duplicate Tab 4's "Batch Tailor All" onto Tab 1 next to Analyze — placement
+      decision, not a feature
+- [ ] Flag jobs whose JD status changed after tailoring (apply → maybe). They still show on
+      Tab 4, which is intentional since the output exists, but a "JD status changed to maybe"
+      indicator would explain why it is there
+- [ ] Say "Re-analyze" instead of "Analyze" when `session.status === 'complete'`
+- [ ] Render MetaAnalysis as markdown. It is whitespace-pre-wrap plain text today, so bold and
+      lists would not render — fine while the analysis prompt doesn't ask for markdown, and a
+      lightweight renderer is the fix when it does
+- [ ] JDPasteForm: auto-populate company and role from the first lines of pasted text (in-code
+      TODO), and make that extraction a user-toggleable preference (second in-code TODO)
+- [ ] NotFoundPage: update the 404 copy once `/tracking` becomes the index route (ADR-016
+      scope). In-code TODO
+- [ ] Replace the browser-native `title` tooltip on locked tabs — "Select or create a session to
+      unlock this step" — with a custom component. The 1s delay is hardcoded in the browser, not
+      in the app, so a component is the only way to make it feel instant
+- [ ] Load Inter and JetBrains Mono, or stop naming them. Tailwind's `@theme` references both
+      and nothing fetches them, so the app renders in system fonts. Add a `<link>` to index.html
+      when typography starts to matter — or never, if system fonts are fine
+- [ ] Retry UX on the SessionLayout fetch. A transient error currently means navigating away and
+      back; a retry button is the whole fix
+- [ ] Loading skeleton or optimistic insert on addJD. The card grid waits for `refreshSession()`
+      to resolve, which is fine locally and may not be in production
+- [ ] Guard unsaved changes on the resume form. Clicking Edit mid-create silently overwrites
+      what was typed
+- [ ] Session picker: the /sessions list page is the picker today, and it is simpler and
+      sufficient. A nav dropdown was in an old sprint spec and is deferred, not dropped — if it
+      comes back it reads from the same `listSessions()` endpoint
+
 
 ---
 
 ## Housekeeping (any sprint)
 
-- [ ] [SPRINT-15-CLEANUP]: .gitignore/.dockerignore overlap check. The first attempt (673f7a0)
-      broke the Railway deploy and was reverted (fe8794e). It's parked in
-      `test-vehicles/dockerignore-check/`, whose README has the details. (That README is frozen
-      at what it knew on 2026-09-16 and calls this Sprint 14 — read it as Sprint 15.)
-      `scripts/check_docker_context.py` is on main (see the Sprint 13a close-out).
-      How far to take it, lightest first:
-      Level 0, documented command: done (README Quick Start → Checks)
-      Level 1, task runner: see the Makefile item in Tech Debt
-      Level 2, git hook: either the pre-commit framework (1 file + `pre-commit install` on
-         each machine) or `.githooks/` + `git config core.hooksPath .githooks`. Run it only on
-         commits that touch an ignore file or the Dockerfile. Needs Docker running, and
-         `--no-verify` skips it. ~20–30 min. The same hook file can run a Python linter later.
-         Probably skip it: Level 1 plus Level 3 covers the same ground.
-      Level 3, CI: see T-1
-      Level 4, tests for the script: see T-3
-- [ ] Surface the model in the app, and make it changeable without editing code. Today it is
+What's left here is Phase 1 work with no sprint yet, which is not the same as "can be added to
+any sprint" — worth a decision on the next planning pass.
+
+- [ ] H-1 Surface the model in the app, and make it changeable without editing code. Today it is
       `default_model` in config.py, overridable by the `DEFAULT_MODEL` env var (README →
       Choosing the Model). `model_used` is already stored per tailoring job, so the data exists
-      and nothing displays it. Candidate scope for the Phase 1 app/dev metrics work, where cost
-      per model belongs anyway. Whether the *user* picks is a later decision.
-- [ ] `datetime.utcnow()` deprecation warnings — switch to `datetime.now(datetime.UTC)` across models.py (7 occurrences), tailoring.py (1), and jds.py (1, in the zip's notes.txt header)
-- [ ] `HTTP_422_UNPROCESSABLE_ENTITY` deprecation — FastAPI renamed to `HTTP_422_UNPROCESSABLE_CONTENT`. 11 occurrences across jds.py (2), resumes.py (4), sessions.py (5).
-- [ ] Timestamps showing 1 day ahead in Oregon (UTC storage, no timezone conversion). Tolerable while I'm the only one reading them, but the beta testers already see this.
-- [ ] assets/react.svg and public/vite.svg still in tree — harmless, clean up whenever
-- [ ] api/client.js has no retry logic or token refresh — Phase 1 (auth)
-- [ ] Tailwind @theme uses Inter/JetBrains Mono but doesn't load them from Google Fonts — add <link> to index.html when you care about typography (or never if system fonts are fine)
-- [ ] add press enter to submit form on SessionsPage.jsx (a simple wrap that Claude can do)
-- [ ] ability to Edit/Delete JD cards in sessions/:id (use same implementation as for edit/delete resume cards)
-- [ ] Card grid sort: after analysis starts, sort by [status_priority, number] instead of just number. Apply cards float to top after each batch_complete, giving the user real-time feedback on which JDs survived. Toggle: sort by number when status=active (paste order matters during data entry), sort by status when analyzing/complete. Small change in SessionDetailPage's mergedJds sort comparator.
-- [ ] make the JD cards have an aspect ratio like an actual playing card (right now it's longer horizontally); then, make them in a ribbon spread instead of currently they don't overalp at all. Use ~generous and equal spacing at first (before analysis) so user can see beginning of title/subtitle. But then after analysis, make the "Apply" cards trickled to the left not overlapping, then ribbon spread the "maybe" results in the middle with medium overlap, and ribon spred the "no" results with very tight spacing / high overlap on the right.
-- [ ] No AbortController on SSE or polling fetches. `analyzeSession()` has no AbortController — useSSE.abort() cancels the reader but doesn't abort the fetch, so the backend generator keeps running. Same pattern on TailoringPage polling. Harmless for single-user MVP (results still write to DB), but wasteful. Phase 1.
-- [ ] MetaAnalysis text is rendered as whitespace-pre-wrap plain text. If Claude's meta_analysis includes markdown formatting (bold, lists), it won't render. Could add a lightweight markdown renderer later, but plain text is fine for MVP — the analysis prompt doesn't ask for markdown.
-- [ ] The Analyze button always says "Analyze" even for re-analysis. Could say "Re-analyze" when session.status === 'complete'. Polish, not function.
-- [ ] Add a meta analysis to tailored resumes, either "all" or maybe that's too much... at least in 1 session... to see if it was even worth it to tailor. This gives me (the dev) feedback on how worthwhile this part of the tool is, and gives the user feedback that this was actually worth the money, rather than just having claude pick "apply to these 6 out of 25 and use resume #1" from the "analyze" phase on its own. This could just be sending the completed tailored resumes and JDs through a fresh claude call and asking for this analysis and displying in a box.
-- [ ] Tab 4 "Batch Tailor All" button could also live on Tab 1 (next to Analyze) — Nicole will decide placement later
-- [ ] Jobs where the JD status changed AFTER tailoring (apply → maybe) still show on Tab 4. This is intentional (output exists), but could add a visual indicator "JD status changed to maybe" in a future sprint.
-- [ ] Polling has no exponential backoff — 3s forever until terminal. Fine for MVP, but if someone leaves the tab open overnight it's chatty. Phase 1: increase interval after 60s.
-- [ ] JDPasteForm.jsx: auto-populate company/role from first lines of pasted text (in-code TODO line 71). Also: make company/role extraction a user-toggleable preference (line 52). Phase 1 polish.
-- [ ] NotFoundPage.jsx: update 404 copy once `/tracking` becomes the index route (ADR-016 scope, Phase 1+). In-code TODO line 15.
-- [ ] Sprint 11 migration (`6bc0f4c28a4a`) added `failed` to the TailoringStatus enum but doesn't retroactively fix stale rows. If you have old jobs stuck at `queued` from before Sprint 11, they'll stay there. Manual SQL or just delete them.
-- [ ] add a "download all" button (downloads zip with folder structure like session_title_timestamp/[company_role_timestamp_folders]/[files] so user can just get them all if they've iterated a process that they don't usually have to chat with claude to revise and can just open and check by themselves before doing the apply
-- [ ] onRetry cap for createTailoringJob (FE and BE). no runaway loop to worry about here but, need to make a cap to limit my cost (hitting my claude API key) for 1) friends testing and 2) probably my first real paying users will just have a limit for a set dollar subscription or batch package 3) I can add like... a-la-carte pricing later if I want.). `tailoring.py` update for later (unless we think my friends are gonna hit this 400 times...).
-- [ ] TailoringPage: extract useTailoringData hook (polling, fetchJobs, derivations) when Phase N inline chat adds enough complexity that the page's render body obscures the JSX. Currently ~15 lines of derivation logic — comfortable, but one more feature tips it.
-- [ ] The "failed" error paths in tailoring.py are repetitive (6x the same pattern: set status, add, commit, return). A context manager or decorator could DRY this up. Not worth the abstraction for 6 lines each, but note it if it grows.
-- [x] H-4 .dockerignore does not exclude backend/venv/ (the OLD venv) either. Whether it is
-      currently entering the build context depends on the Dockerfile's COPY lines, which I
-      did not read. Worth checking in 13b, where "image size is same or smaller" is already
-      a done-when — if the old venv has been shipping, that is where the size went. Deleting
-      the old venv (13a close items) makes it moot. [13b]
-      Resolved 2026-09-16 in 13a commit 3 (da59650): `.dockerignore` excludes `**/venv` and
-      `**/.venv`. Before that, `COPY backend/ .` copied a local backend/venv into local builds
-      (Railway never had one, since it's gitignored). For 13b's image-size check, compare
-      against a build from da59650 or later.
-- [ ] H-7 Delete `sync-prompts.sh`, or point it at something that exists. It copies a root
-      `prompts/` folder into a sibling clone at `../application-pipeline-prompts`; neither
-      folder exists on disk, and the private repo `sooperD00/application-pipeline-prompts`
-      holds nothing but a `.gitkeep` from three "prompt update" commits on 2026-03-01. The
-      backup it implies has never run once. Worth settling with T-5 in view: if prompt
-      extraction picks a different mechanism, this script is the wrong shape anyway, and
-      deleting it is the honest move.
-
-## Tech Debt (deferred, maybe long term)
-- [ ] Phase 1+: extract repeated Tailwind class strings into shared component styles.
-- [ ] Phase 1+: extract shared test factories and mocks once data models stabilize, especially if same factory/mock appears in 3+ test files and the shape is identical. `__tests__/factories.js` and `__tests__/mocks.js`
-- [ ] tooltip "Select or create a session to unlock this step" appears after 1s delay = browser-native `title` attribute behavior (delay hardcoded in the browser, not my app). Add a custom tooltip component to make it ~instant (polish)
-- [ ] Phase 1: SessionLayout fetch has no retry/error-retry UX — user must manually navigate away and back on transient errors. Fine for single-user MVP; Phase 1 adds retry button.
-- [ ] Phase 1: The session picker is the /sessions list page (click a row to enter). A nav dropdown picker was mentioned in sprint spec — deferred; the list page approach is simpler and sufficient. If dropdown is wanted later, it reads from the same listSessions() endpoint.
-- [ ] Phase 1: No loading skeleton / optimistic UI on addJD — the card grid waits for refreshSession() to resolve. Acceptable latency for local dev; may want optimistic insert for prod. Phase 1.
-- [ ] Phase 1: No "unsaved changes" guard on the form — if you click Edit while mid-create, the form overwrites silently. Acceptable for single-user MVP; revisit in Phase 1 multi-user.
-- [ ] Phase N. line-clamp-3 depends on -webkit-line-clamp which is non-standard but supported in all modern browsers. If it ever breaks, fall back to a JS truncation.
-- [ ] Phase N: observe behavior post-launch. The Analyze button re-enables immediately on error via `finally { setIsAnalyzing(false) }`. No retry budget or rate limiting exists yet. Monitor real usage for repeated error-retry loops before deciding whether to add a retry counter, cooldown timer, or backend cost cap. Backend concern to gate at the API/billing layer? or also on the button? Precedent: Sprint 3 batch analysis already has per-session cost tracking that could be extended. Status: Acceptable risk for MVP. Revisit after first real-user sessions.
-- [ ] Phase N: The jdOverrides state overlay pattern works but creates a brief window where context jds and overrides can disagree (between stream end and refreshSession resolving). This is harmless — the override data matches what the backend wrote — but a more robust pattern would be to optimistically update the context itself. Phase 1 if it causes issues.
-- [ ] Phase N: On "only apply jobs in Tab 4"- a nuance. The batch-tailor endpoint only creates jobs for apply-status JDs (backend enforced). The listSessionTailoringJobs endpoint returns all tailoring jobs that exist for the session — so if a JD was "apply" when tailored but later changed to "maybe," its job still shows up. I'll show whatever the backend returns rather than client-side filtering, since the output exists and is useful regardless of current status. The per-JD "Tailor" button on each card will only be active for apply-status JDs without an existing job. gotta figure out exactly how we want to deal with this in Phase N when we let users change "apply" status to "maybe" or whatever.
-- [ ] Phase N: currently no place to see the claude analysis for each JD (usually he returns a nice chart of skill matches and summary)
-- [ ] [SPRINT-15-CLEANUP] Makefile wrapping the uv commands — uv binds to an
-      environment based on the working directory and says nothing about it (cost an
-      hour in 13a when a stale root .venv answered instead of backend/.venv; the hand
-      guards are in 13b's prework). A recipe that cd's first removes the failure mode
-      instead of detecting it.
-      Targets: preflight (print sys.prefix, fail unless it ends in backend/.venv), sync,
-      test, test-frontend, lock-check (uv lock --check + uv sync --check), seed, run.
-      Every uv target depends on preflight.
-      Also check-context (`python3 scripts/check_docker_context.py --probe`), and any
-      docker-build target runs it first. (Level 1 of the overlap check, see Housekeeping.)
-      Do NOT carry over the 13a/13c scaffolding targets (dep_freeze compare, uv export) —
-      they die with their legs.
-      Gate: after 13c (open) AND after the mac move (closed 2026-09-16). make is not in
-      Git Bash; it arrives with the Xcode CLT, which is what makes this worth doing at all.
-      Watch: macOS ships GNU make 3.81 (2006 — Apple stopped at the GPLv3 line), so
-      `.ONESHELL:` silently does nothing. Each recipe line gets its own shell, so
-      `cd backend` on one line does not persist to the next. Write
-      `cd backend && uv sync` on one line, or brew a newer make (lands as `gmake` under
-      /opt/homebrew unless you add the gnubin path). Getting this wrong reproduces the
-      exact bug the Makefile exists to prevent.
-      Success condition: it REPLACES typing uv directly. A wrapper used half the time is
-      a second way to be in the wrong directory, not a fix.   [techdebt, Sprint 15]
-- [ ] T-1 `uv lock --check` as a pre-deploy gate — one line, no CI to put it in. Already in
-      the doc's Out of Scope. When CI exists, run `python3 scripts/check_docker_context.py
-      --probe` in the same job. That's Level 3 of the overlap check: the only layer you can't skip,
-      and `--probe` needs no real ignored files, so it works in CI. Try the workflow on a
-      branch first (673f7a0's workflow failed on every push to main). ~45 min. [Phase N]
-- [ ] T-3 tests for `scripts/check_docker_context.py` (Level 4 of the overlap check), only if the
-      script grows or others rely on it. Unit tests for the pure functions (probe paths,
-      glob → file name, Dockerfile COPY parsing), plus one Docker test that skips when Docker
-      is off. 1–2 files, ~1–2 h. [Phase N]
-- [ ] T-4 `--diff` mode for the same script. The check catches shipping files git ignores,
-      not excluding files the app needs. Compare the build context before and after a
-      `.dockerignore` edit (done by hand for ea7213e). Until then, a docker build plus a smoke
-      test covers that direction. [Phase N]
-- [ ] T-5 Get the system prompts out of the public repo — pick the mechanism first, then
+      and nothing displays it. Belongs with the Phase 1 app/dev metrics work, where cost per
+      model belongs anyway. Whether the *user* picks is a later decision
+- [ ] H-2 Get the system prompts out of the public repo — pick the mechanism first, then
       extract. ADR-013 carries the reasoning: this is IP protection ahead of public attention,
-      not functionality, and the Phase 1 overview wants the decision made before traffic
-      arrives rather than after. Two open questions block the work:
+      not functionality, and the Phase 1 overview wants the decision made before traffic arrives
+      rather than after. Two open questions block the work:
       - Where the files live. The README tree says `backend/app/prompts/`; `sync-prompts.sh`
-        expects a root `prompts/` (see H-7). Either way, `.gitignore` and `.dockerignore` both
-        exclude `prompts` at any depth, so the files would reach neither GitHub nor a Docker
-        build.
+        expects a root `prompts/` (Sprint 15 deletes or fixes that script). Either way,
+        `.gitignore` and `.dockerignore` both exclude `prompts` at any depth, so the files would
+        reach neither GitHub nor a Docker build.
       - How they reach production. Railway builds from the GitHub snapshot, where git-ignored
-        files never exist, so "loaded at startup" needs another route in. ADR-013 lists env
-        vars and a private submodule.
+        files never exist, so "loaded at startup" needs another route in. ADR-013 lists env vars
+        and a private submodule.
       What is actually exposed today, checked 2026-09-16: `ANALYSIS_SYSTEM_PROMPT` in
       `services/analysis.py` (committed 2026-03-04) and `TAILORING_SYSTEM_PROMPT` in
-      `services/tailoring.py` (2026-03-05), with `services/claude.py` quoting one in a
-      docstring. Both are already in the public history, so extracting them hides future edits,
-      not these versions. Public by design and staying that way: `docs/original-prompts.md` and
-      the seeded PromptTemplate defaults in `seed.py`.
+      `services/tailoring.py` (2026-03-05), with `services/claude.py` quoting one in a docstring.
+      Both are already in the public history, so extracting them hides future edits, not these
+      versions. Public by design and staying that way: `docs/original-prompts.md` and the seeded
+      PromptTemplate defaults in `seed.py`.
       Watch: the in-code TODO in `analysis.py` pulls the opposite direction — it would move the
-      analysis prompt into the user-editable PromptTemplate table rather than into a file.
-      Those are two different futures; pick one before either gets half-built. [Phase 1]
-- [ ] T-6 Build the Activities layer — `routers/activities.py`, `services/activities.py`, and
+      analysis prompt into the user-editable PromptTemplate table rather than into a file. Those
+      are two different futures; pick one before either gets half-built
+- [ ] H-3 Build the Activities layer — `routers/activities.py`, `services/activities.py`, and
       the frontend that makes them visible. The data model is already there: Activity table,
       ActivityType enum, and the cascade templates designed in service-layer-notes.md, with
       nothing reading or writing any of it. The core flow (paste → analyze → tailor → download)
       doesn't need it, so it waits for the Full Tracker in the Phase 1 tracking work, which is
       what makes it visible and useful. The README tree and architecture.md already list the
-      endpoints as `[ ]` planned. [Phase 1]
-- [ ] T-7 Add the optional per-JD resume picker. Today every resume the user has, up to 3, is
-      concatenated into the prompt — `_format_resumes()` in tailoring.py and `_resume_block()`
-      in analysis.py — and nothing selects among them, for content or for formatting. That
-      default stays, because the model blends across versions in a way a human skimming three
-      documents can't. This adds an override, not a new default. Backend: optional `resume_ids` body param on the analyze and
-      batch-tailor endpoints, filter the resume query when present, fall back to all resumes
-      when absent. Frontend: resume chip selector in the Tab 4 kickoff modal, default "All".
-      It would also make `resume_id` on TailoringJob mean something — today it stores
-      `resumes[0].id` to satisfy the FK, which reads like a choice nobody made.
+      endpoints as `[ ]` planned
+
+## Tech Debt (deferred, maybe long term)
+
+Phase 2 and later. Anything that turns out to be Phase 1 belongs in a sprint or in Housekeeping,
+not here.
+
+- [ ] T-1 Phase 2+: extract repeated Tailwind class strings into shared component styles
+- [ ] T-2 Phase 2+: TailoringPage — extract a `useTailoringData` hook (polling, fetchJobs,
+      derivations) when inline chat adds enough complexity that the page's render body obscures
+      the JSX. ~15 lines of derivation logic today, which is comfortable, but one more feature
+      tips it
+- [ ] T-3 Phase 2+: the `failed` error paths in tailoring.py repeat the same 6-line pattern six
+      times (set status, add, commit, return). A context manager or decorator would DRY it up.
+      Not worth the abstraction at six, worth revisiting if it grows
+- [ ] T-4 Phase 2+: `line-clamp-3` depends on `-webkit-line-clamp`, which is non-standard but
+      supported in every modern browser. A contingency, not a task: if it ever breaks, fall back
+      to JS truncation
+- [ ] T-5 Phase 2+: the `jdOverrides` state overlay works but leaves a brief window where
+      context jds and overrides can disagree — between stream end and `refreshSession()`
+      resolving. Harmless, since the override data matches what the backend wrote; the more
+      robust pattern updates the context itself. Revisit if it ever causes a visible bug
+- [ ] T-6 Phase 2+: decide what Tab 4 does with jobs whose JD status changed. The batch-tailor
+      endpoint only creates jobs for apply-status JDs (backend enforced), but
+      `listSessionTailoringJobs` returns every job the session has, so a JD that was "apply"
+      when tailored and is "maybe" now still appears. Showing whatever the backend returns is
+      the current answer, since the output exists and is useful either way, and the per-JD
+      "Tailor" button stays inactive for anything that isn't apply-status without a job. Needs a
+      real answer once users reclassify freely
+- [ ] T-7 Phase 2+: tests for `scripts/check_docker_context.py` (Level 4 of the overlap check),
+      only if the script grows or someone else relies on it. Unit tests for the pure functions
+      (probe paths, glob → file name, Dockerfile COPY parsing), plus one Docker test that skips
+      when Docker is off. 1–2 files, ~1–2 h
+- [ ] T-8 Phase 2+: `--diff` mode for the same script. The check catches shipping files git
+      ignores; it does not catch excluding files the app needs. Compare the build context before
+      and after a `.dockerignore` edit — done by hand for ea7213e. Until then, a docker build
+      plus a smoke test covers that direction
+- [ ] T-9 Phase 2+: add the optional per-JD resume picker. Today every resume the user has, up
+      to 3, is concatenated into the prompt — `_format_resumes()` in tailoring.py and
+      `_resume_block()` in analysis.py — and nothing selects among them, for content or for
+      formatting. That default stays, because the model blends across versions in a way a human
+      skimming three documents can't. This adds an override, not a new default. Backend:
+      optional `resume_ids` body param on the analyze and batch-tailor endpoints, filter the
+      resume query when present, fall back to all resumes when absent. Frontend: resume chip
+      selector in the Tab 4 kickoff modal, default "All". It would also make `resume_id` on
+      TailoringJob mean something — today it stores `resumes[0].id` to satisfy the FK, which
+      reads like a choice nobody made.
       Note: `analyzeSession()`, `batchTailor()` and `createTailoringJob()` in client.js were
-      scaffolded with exactly this parameter before any endpoint accepted it. The phantom
-      params came out in Sprints 10 and 11, so it comes back with real plumbing behind it.
-      [Phase 1+]
-- [ ] T-8 Resume snapshots — see ADR-017. A `session_resume_snapshots` table, session locking,
-      and a clone-session action, so an analysis references the resume text as it was when it
-      ran instead of whatever the resume says today. Costs the ADR follow-through, a new table,
-      migrations, service changes and frontend work: a full context window, so it arrives as
-      its own sprint rather than as an item. [Phase 1+]
+      scaffolded with exactly this parameter before any endpoint accepted it. The phantom params
+      came out in Sprints 10 and 11, so it comes back with real plumbing behind it
+- [ ] T-10 Phase 2+: resume snapshots — see ADR-017. A `session_resume_snapshots` table, session
+      locking, and a clone-session action, so an analysis references the resume text as it was
+      when it ran instead of whatever the resume says today. Costs the ADR follow-through, a new
+      table, migrations, service changes and frontend work: a full context window, so it arrives
+      as its own sprint rather than as an item
