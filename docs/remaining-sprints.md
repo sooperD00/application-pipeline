@@ -366,35 +366,6 @@ pays for every beta session today.
 
 ---
 
-## Deferred from Phase 0
-
-**Prompts — IP and extraction** (ADR-013). Pull the prompts out of the repo. This is about IP
-protection before the repo gets public attention, not about functionality, and the placeholder
-`backend/app/prompts/` in the README tree is where the files were meant to go. Checked
-2026-09-16:
-- The two system prompts are string constants: `ANALYSIS_SYSTEM_PROMPT` in `services/analysis.py` (committed 2026-03-04) and `TAILORING_SYSTEM_PROMPT` in `services/tailoring.py` (committed 2026-03-05). `services/claude.py` only mentions one in a docstring. The repo is public, so both are also in its public history; extracting them now hides future edits, not these versions.
-- Also public: `docs/original-prompts.md`, and the seeded PromptTemplate defaults in `backend/scripts/seed.py` (public by design, per ADR-013).
-- The backup setup was never used. `sync-prompts.sh` copies a root `prompts/` folder into a sibling clone at `../application-pipeline-prompts`, and neither folder exists. The private repo `sooperD00/application-pipeline-prompts` holds only a `.gitkeep` (three "prompt update" commits, all from 2026-03-01).
-- Open question: where the files live. The README tree says `backend/app/prompts/`, but `sync-prompts.sh` expects a root `prompts/`. Either way, `.gitignore` and `.dockerignore` both exclude `prompts` at any depth, so the files reach neither GitHub nor a Docker build.
-- Open question: how they reach production. Railway builds from the GitHub snapshot, where git-ignored files never exist, so "loaded at startup" needs another way in (ADR-013 lists env vars and a private submodule).
-- The in-code TODO in `analysis.py` ("move this to PromptTemplate table") points the other way: it would move the analysis system prompt into the user-editable table instead of into a file.
-
-**Activities** (`routers/activities.py`, `services/activities.py`): The data model is in place (Activity table, ActivityType enum, cascade templates designed in service-layer-notes.md), but no router, service, or frontend exists. The README tree and architecture.md list these as Phase 0 scope, but they aren't needed for the core flow (paste → analyze → tailor → download). Deferring to Phase 1 when the Full Tracker makes them visible and useful.
-
-**Resume input for analysis and tailoring.** Every resume the user has, up to 3, is sent as text in the prompt: `_format_resumes()` in tailoring.py and `_resume_block()` in analysis.py each concatenate all of them. Nothing selects one — not for content, not for formatting. The model reads whatever text sits in the resume fields and decides what to draw on per JD, which is the intended behaviour and stays the default. Blending across versions is something a human can't do at all.
-
-`resume_id` on TailoringJob is not a record of a choice: `resumes[0].id` is stored to satisfy the FK. Read it as "one of the resumes that went in", not "the resume used".
-
-Phase 1+ adds an optional override: per-JD resume picker in the Tab 4 kickoff modal where the user can select a single resume or a subset instead of sending all three. Backend changes: add an optional `resume_ids` body param to the analyze and batch-tailor endpoints, filter the resume query when present, fall back to "all resumes" when absent. Frontend: resume chip selector in the tailoring kickoff UI, default state = "All". That is also what would finally make `resume_id` mean something — the user constrains the input set, so the FK records a decision someone actually made.
-
-(Note: `analyzeSession()`, `batchTailor()`, and `createTailoringJob()` in client.js were scaffolded with a `resume_id` parameter anticipating this feature. The backend endpoints never accepted it — they fetch all resumes internally. The phantom params were cleaned up in Sprint 10 (`analyzeSession`) and Sprint 11 (`batchTailor`, `createTailoringJob`) respectively. When resume selection is implemented, the parameter comes back with real plumbing behind it.)
-
-**Resume snapshot architecture** see ADR-017
-session_resume_snapshots table, session locking, clone session. Phase 1+.
-ADR, a new table, migrations, service changes, and frontend work - a full context window (large sprint).
-
----
-
 ## Housekeeping (any sprint)
 
 - [ ] [SPRINT-15-CLEANUP]: .gitignore/.dockerignore overlap check. The first attempt (673f7a0)
@@ -450,6 +421,13 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
       `**/.venv`. Before that, `COPY backend/ .` copied a local backend/venv into local builds
       (Railway never had one, since it's gitignored). For 13b's image-size check, compare
       against a build from da59650 or later.
+- [ ] H-7 Delete `sync-prompts.sh`, or point it at something that exists. It copies a root
+      `prompts/` folder into a sibling clone at `../application-pipeline-prompts`; neither
+      folder exists on disk, and the private repo `sooperD00/application-pipeline-prompts`
+      holds nothing but a `.gitkeep` from three "prompt update" commits on 2026-03-01. The
+      backup it implies has never run once. Worth settling with T-5 in view: if prompt
+      extraction picks a different mechanism, this script is the wrong shape anyway, and
+      deleting it is the honest move.
 
 ## Tech Debt (deferred, maybe long term)
 - [ ] Phase 1+: extract repeated Tailwind class strings into shared component styles.
@@ -499,3 +477,48 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
       not excluding files the app needs. Compare the build context before and after a
       `.dockerignore` edit (done by hand for ea7213e). Until then, a docker build plus a smoke
       test covers that direction. [Phase N]
+- [ ] T-5 Get the system prompts out of the public repo — pick the mechanism first, then
+      extract. ADR-013 carries the reasoning: this is IP protection ahead of public attention,
+      not functionality, and the Phase 1 overview wants the decision made before traffic
+      arrives rather than after. Two open questions block the work:
+      - Where the files live. The README tree says `backend/app/prompts/`; `sync-prompts.sh`
+        expects a root `prompts/` (see H-7). Either way, `.gitignore` and `.dockerignore` both
+        exclude `prompts` at any depth, so the files would reach neither GitHub nor a Docker
+        build.
+      - How they reach production. Railway builds from the GitHub snapshot, where git-ignored
+        files never exist, so "loaded at startup" needs another route in. ADR-013 lists env
+        vars and a private submodule.
+      What is actually exposed today, checked 2026-09-16: `ANALYSIS_SYSTEM_PROMPT` in
+      `services/analysis.py` (committed 2026-03-04) and `TAILORING_SYSTEM_PROMPT` in
+      `services/tailoring.py` (2026-03-05), with `services/claude.py` quoting one in a
+      docstring. Both are already in the public history, so extracting them hides future edits,
+      not these versions. Public by design and staying that way: `docs/original-prompts.md` and
+      the seeded PromptTemplate defaults in `seed.py`.
+      Watch: the in-code TODO in `analysis.py` pulls the opposite direction — it would move the
+      analysis prompt into the user-editable PromptTemplate table rather than into a file.
+      Those are two different futures; pick one before either gets half-built. [Phase 1]
+- [ ] T-6 Build the Activities layer — `routers/activities.py`, `services/activities.py`, and
+      the frontend that makes them visible. The data model is already there: Activity table,
+      ActivityType enum, and the cascade templates designed in service-layer-notes.md, with
+      nothing reading or writing any of it. The core flow (paste → analyze → tailor → download)
+      doesn't need it, so it waits for the Full Tracker in the Phase 1 tracking work, which is
+      what makes it visible and useful. The README tree and architecture.md already list the
+      endpoints as `[ ]` planned. [Phase 1]
+- [ ] T-7 Add the optional per-JD resume picker. Today every resume the user has, up to 3, is
+      concatenated into the prompt — `_format_resumes()` in tailoring.py and `_resume_block()`
+      in analysis.py — and nothing selects among them, for content or for formatting. That
+      default stays, because the model blends across versions in a way a human skimming three
+      documents can't. This adds an override, not a new default. Backend: optional `resume_ids` body param on the analyze and
+      batch-tailor endpoints, filter the resume query when present, fall back to all resumes
+      when absent. Frontend: resume chip selector in the Tab 4 kickoff modal, default "All".
+      It would also make `resume_id` on TailoringJob mean something — today it stores
+      `resumes[0].id` to satisfy the FK, which reads like a choice nobody made.
+      Note: `analyzeSession()`, `batchTailor()` and `createTailoringJob()` in client.js were
+      scaffolded with exactly this parameter before any endpoint accepted it. The phantom
+      params came out in Sprints 10 and 11, so it comes back with real plumbing behind it.
+      [Phase 1+]
+- [ ] T-8 Resume snapshots — see ADR-017. A `session_resume_snapshots` table, session locking,
+      and a clone-session action, so an analysis references the resume text as it was when it
+      ran instead of whatever the resume says today. Costs the ADR follow-through, a new table,
+      migrations, service changes and frontend work: a full context window, so it arrives as
+      its own sprint rather than as an item. [Phase 1+]
