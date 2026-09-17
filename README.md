@@ -118,7 +118,7 @@ It lists anything git ignores that Docker would still copy into the build. Needs
 - [Decisions](docs/decisions.md) — architecture decision records
 - [Service Layer Notes](docs/service-layer-notes.md) — implementation TODOs and design notes
 - [Completed Sprints](docs/completed-sprints.md) — what shipped and when
-- [Remaining Sprints](docs/remaining-sprints.md) — what's next (Phase 0)
+- [Remaining Sprints](docs/remaining-sprints.md) — what's next (Phase 1)
 - [Original Prompts](docs/original-prompts.md) — the manual Claude prompts this automates
 
 ## Repo Structure
