@@ -67,7 +67,7 @@ The AI sees all 25 JDs in one conversation (sent in batches of 5 for context man
 - Generates a tailored resume for each Apply JD
 - Generates a cover letter if requested
 - Drafts answers to application questions if provided
-- Uses the specific resume version you selected and the full analysis context from Stage 1
+- Reads every resume version you've saved, plus the full analysis context from Stage 1, and decides what to draw on for this particular JD
 
 **What you do**: Come back, review the outputs, make edits, export as docx. Submit applications.
 

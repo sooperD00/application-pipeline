@@ -12,7 +12,7 @@ Built around a proven workflow. Opinionated defaults, editable prompts, and anal
 - **Frontend**: React (Vite)
 - **LLM**: Claude API (Anthropic) — Opus 4.6 by default, configurable per call
 - **Background jobs**: FastAPI `BackgroundTasks` initially, upgrade to `arq`/Redis if needed
-- **Auth**: Cookie-based anonymous sessions (Sprint 12) → magic link accounts (Phase 1)
+- **Auth**: Cookie-based anonymous sessions (Phase 0) → magic link accounts (Phase 1)
 
 ## Data Model
 
@@ -99,8 +99,8 @@ Left side — compact table:
 
 **Tab 4: Tailoring**
 
-- "Apply All" button — uses JD + selected resume, no extras, kicks off up to 4 in parallel
-- Individual: click a JD → popup modal to add app questions, additional JD text, select resume version → "Go"
+- "Apply All" button — uses JD + every resume the user has, no extras, kicks off up to 4 in parallel
+- Individual: click a JD → popup modal to add app questions and additional JD text → "Go". Narrowing the resume set is a Phase 1+ override; by default all of them go in (see remaining-sprints.md)
 - Status boxes per JD: queued → processing → ready for review
 - Click "ready" → output view: tailored resume, cover letter, app question answers
 - Editable before export/download as docx
@@ -120,7 +120,7 @@ Left side — compact table:
 
 ### Phase 0 Deliverables
 
-All shipped (Sprints 1–12):
+All shipped:
 
 1. FastAPI project: SQLModel entities, Alembic migrations, Postgres on Railway
 2. Text cleaning utility
@@ -136,14 +136,22 @@ All shipped (Sprints 1–12):
 
 ## Phase 1 — "My Brother Can Use It Too"
 
-**Goal**: Two users. Persistence, tracker, and flow polished for someone who didn't design it.
+**Goal**: Two users, then paying ones. Persistence, tracker and flow polished for someone who
+didn't design it — plus the auth, billing and limits that make serving someone else safe. Where
+Phase 1 ends isn't decided yet; the sprint order that gets there lives in
+[remaining-sprints.md](remaining-sprints.md).
 
-- Magic link accounts — builds on Sprint 12's cookie auth. Email + token, converts anonymous User row into a permanent account (data carries over). See Sprint 14 in remaining-sprints.md.
+- Magic link accounts — builds on Phase 0's cookie auth. Email + token, converts anonymous User row into a permanent account (data carries over). Sprint order in [remaining-sprints.md](remaining-sprints.md).
+- Billing, moved up from Phase 3. Whoever pays needs metering and per-user cost caps first — today one API key pays for every session run by anyone.
+- Onboarding flow for first-time users
 - Tab 3: Review & Enrich table with all sections
 - Full Tracker on main nav with stage tracking and week groupings
 - Company matching across sessions
 - Prompt templates visible (read-only) per phase
-- Onboarding flow for first-time users
+- Metrics for the operator, not just the user: cost per session and per user, funnel data, error visibility
+- Data lifecycle: anonymous retention, anonymous → account conversion, and a delete-my-data path, with the terms and privacy policy that belong beside it
+- Job durability — BackgroundTasks die with the request (see [architecture.md](architecture.md))
+- Whatever tooling this phase warrants for quality and maintainability
 
 ---
 
@@ -162,7 +170,9 @@ All shipped (Sprints 1–12):
 
 ## Phase 3 — "People Pay For This"
 
-**Goal**: Analytics and monetization.
+**Goal**: Analytics. Payments themselves moved up to Phase 1 — a user who isn't family needs
+billing before they need a funnel dashboard — so the tier shapes below stay here as the pricing
+sketch rather than the build order.
 
 - Funnel analytics dashboard (session → apply → submitted → phone screen → interview → offer, broken down by metadata)
 - Time-series: applications per week vs. target, hit rate by search term and resume version
@@ -199,7 +209,7 @@ Batch Analysis (1 conversation per session):
   - Model: claude-opus-4-6 (configurable)
 
 Tailoring (1 conversation per Apply JD, up to 4 parallel):
-  - Context: JD + metadata + resume + Phase 1 analysis + app questions
+  - Context: JD + metadata + resumes + the batch analysis + app questions
   - Prompt assembled from composable templates: analysis + resume_generation
     + cover_letter (if requested) + app_answers (if app questions provided)
   - Output: structured (resume docx, cover letter, app answers as separate fields)
