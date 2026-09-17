@@ -63,12 +63,14 @@ the sprint order that gets there lives here. Where Phase 1 ends is not decided y
   error visibility
 - Per-user cost caps and rate limiting — my API key pays for every beta session today, and
   billing needs metering anyway
-- Data lifecycle — anonymous retention, anonymous → account conversion, and a delete-my-data
-  path, since this holds other people's resumes
-- Terms of service and a privacy policy, paired with that deletion path, before money moves
+- Data lifecycle — anonymous retention and anonymous → account conversion land in Sprint 18. A
+  delete-my-data path is deferred to public release (18's Out of Scope), which is the honest
+  place for it: it is a promise to keep, not a feature to ship early and half-wire
+- Terms of service and a privacy policy — due with 19d's go-live commit, which publishes the
+  public page Stripe's activation review reads
 - Job durability — BackgroundTasks die with the request; architecture.md routes this to
   arq/Redis once users are concurrent
-- Railway database backups
+- Railway database backups — Sprint 19's entry gate, since the credit ledger holds paid balances
 - Suite health, and whatever tooling this phase warrants for quality and maintainability
 
 **Sprints**
@@ -77,8 +79,9 @@ the sprint order that gets there lives here. Where Phase 1 ends is not decided y
 - 14 — Tests — planned
 - 15 — Code hygiene — planned
 - 16 — Developer tooling — planned
-- 17 — Auth, magic link accounts — planned
-- 18 — Billing, and the cost caps it depends on — planned
+- 17 — Custom domain — planned
+- 18 — Auth, magic link accounts — planned
+- 19 — Billing, and the cost caps it depends on — planned
 - Frontend polish — parked, deliberately last and deliberately unnumbered
 
 Numbers are expectations, not commitments: they can be bumped, split or dropped. The one rule
@@ -508,7 +511,41 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       Level 4, tests for the script: in Tech Debt, worth it only if the script grows
 
 
-## Sprint 17 — Auth, magic link accounts --- planned
+## Sprint 17 — Custom domain --- planned
+
+Move the app to a real hostname before anything external starts pointing at it.
+**Kind:** migration — consumer graph: DNS, then the app, then the docs.
+**Entry gate:** none. The only sprint in Phase 1 that depends on nothing.
+
+**Why now** Google's OAuth redirect URIs, Stripe's webhook endpoint and the website URL on the
+Stripe account are all registered against a host, in three different consoles. Registering them
+against `up.railway.app` and moving later means doing all three again, and costs every signed-in
+user a fresh sign-in. It is an afternoon plus a registration fee, and it is required before 18c.
+
+**Done when**
+- [ ] the app serves over HTTPS at the new domain
+- [ ] GET and HEAD requests to the `up.railway.app` URL answer with a 301 to the same path on
+      the domain; other methods and `/health` pass through
+- [ ] README's "Live at" link points at the domain
+
+**Commits**
+| # | | |
+|---|---|---|
+| 0 | buy and point | Register the domain, add it in Railway, add the DNS records Railway shows, wait for TLS (not a commit) |
+| 1 | redirect | Middleware in `main.py`: a GET or HEAD whose host ends in `.up.railway.app` gets a 301 to the same path on the domain; `/health` and other methods pass through |
+| 2 | flip the docs | README's "Live at" link |
+
+**Watch**
+- Cookies are host-scoped and do not follow the redirect. A tester arriving from the old URL
+  starts empty until 18c's sign-in exists. The 30-day cookie has already orphaned most pre-18
+  data, so tell testers instead of engineering around it.
+- A cheap throwaway name is fine — but rename *before* 18c, never after. Once sign-in lands, a
+  rename costs users one sign-in and costs you the three-console checklist above.
+- Avoid bargain TLDs if magic links ever become the second way in (18's Out of Scope). Some
+  spam filters score them as suspect.
+
+
+## Sprint 18 — Auth, magic link accounts --- planned
 
 Cookie auth shipped in Sprint 12. Anonymous sessions work, data is isolated per browser, beta testers are unblocked.
 
@@ -530,7 +567,7 @@ login to convert into. One of the two has to change when accounts land.
 Cookie auth covers beta. This becomes relevant when persistence beyond 30 days matters or when users want to switch devices.
 
 
-## Sprint 18 — Billing --- planned
+## Sprint 19 — Billing --- planned
 
 Not planned in detail here yet; the notes live outside the repo. This entry exists so the number
 is real and Phase 1's scope is visible in one place.
