@@ -5,9 +5,9 @@ Asks git which files it ignores, asks Docker which files it would send as build 
 prints the overlap. Neither ignore file is parsed here. Each tool answers for itself, so the
 syntax differences between .gitignore and .dockerignore can't fool the check.
 
-  python3 test-vehicles/dockerignore-check/check_docker_context.py           files on disk now
-  python3 test-vehicles/dockerignore-check/check_docker_context.py --probe   a fake file for every
-      ignore rule, in every folder the rule applies to, so gaps show up before a real file hits them
+  python3 scripts/check_docker_context.py           files on disk now
+  python3 scripts/check_docker_context.py --probe   a fake file for every ignore rule, in every
+      folder the rule applies to, so gaps show up before a real file hits them
 
 Run it from anywhere inside the repo. Docker must be running. It never changes your files, but
 each run leaves a build-cache entry the size of the context (`docker builder prune` clears them).

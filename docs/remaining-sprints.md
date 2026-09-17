@@ -180,7 +180,7 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
       moved start.sh), and was reverted in fe8794e. It's parked on branch
       `idea/dockerignore-check` in `test-vehicles/dockerignore-check/`, whose README covers what
       broke, what was learned, and the options. The script is on main now:
-      `test-vehicles/dockerignore-check/check_docker_context.py` asks git and Docker directly,
+      `scripts/check_docker_context.py` asks git and Docker directly,
       and `--probe` tests every ignore rule. Left: run it from a pre-commit hook or the
       Makefile. It needs Docker running.
 - [ ] `datetime.utcnow()` deprecation warnings — switch to `datetime.now(datetime.UTC)` across models.py (7 occurrences) and tailoring.py (1 occurrence)

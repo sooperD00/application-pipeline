@@ -6,7 +6,7 @@
 # and a bare name matches ONLY at the root. Use **/ for "at any depth"
 
 # Everything git ignores should be covered here. Check with:
-#   python3 test-vehicles/dockerignore-check/check_docker_context.py --probe
+#   python3 scripts/check_docker_context.py --probe
 
 # secrets
 **/.env

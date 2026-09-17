@@ -99,6 +99,17 @@ npm run dev
 
 Requires a `.env` with `ANTHROPIC_API_KEY` and `DATABASE_PUBLIC_URL`.
 
+### Checks
+
+Before a local `docker build`, and after editing any `.gitignore` or `.dockerignore`:
+
+```bash
+python3 scripts/check_docker_context.py --probe   # every ignore rule, tested with fake files
+python3 scripts/check_docker_context.py           # the files on your disk right now
+```
+
+It lists anything git ignores that Docker would still copy into the build. Needs Docker running; exit 0 means clean. Railway builds from GitHub, where ignored files don't exist, so this protects local builds.
+
 ## Docs
 
 - [Implementation Plan](docs/implementation-plan.md) — phased build roadmap
@@ -216,8 +227,9 @@ ApplicationPipeline/
 │   ├── remaining-sprints.md
 │   ├── service-layer-notes.md
 │   └── workflow.md
+├── scripts/
+│   └── check_docker_context.py      # - [x] would Docker get a file git ignores? (see Quick Start → Checks)
 ├── test-vehicles/                   # - [x] quarantined spikes (kept out of the Docker build)
-│   ├── dockerignore-check/          # - [x] check_docker_context.py: would Docker get a file git ignores?
 │   └── schema-extraction/           # - [x] schema-extraction lab
 └── LICENSE                          # BSL 1.1 → Apache 2.0 (2029-03-01)
 ```
