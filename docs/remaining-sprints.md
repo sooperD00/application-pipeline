@@ -151,13 +151,18 @@ The first attempt is parked in `test-vehicles/dockerignore-check/`. It sat on br
       once 13a closed: the baseline freeze is captured in `docs/DEVLOG/sprints/sprint13/` and
       pushed to the devlog repo, `compare` reads files rather than environments, and neither
       13b nor 13c consumes the old venv. (Was H-1.)
-- [ ] Add `.gitattributes` with `* text=auto eol=lf`, then `git add --renormalize .`, as its
-      own commit so it reverts cleanly. 29 tracked files are CRLF in the index today —
-      LICENSE, `config.py`, `database.py`, `alembic/env.py`, `pyproject.toml`, `.env.example`
-      and everything under `docs/design/` and `docs/feedback/` — against 87 LF, with no
-      `.gitattributes` at all. That mix is why `dep_freeze.py` carries CRLF-preserving read and
-      write helpers. Renormalizing keeps either machine usable and stops generated files
-      re-diffing on line endings alone. (Was T-2, which only saw the requirements.txt symptom.)
+- [x] `.gitattributes` with `* text=auto eol=lf`, plus `git add --renormalize .` — done
+      2026-09-17, in its own commit so it reverts cleanly. 29 tracked files were CRLF in the
+      index against 87 LF, with no `.gitattributes` at all; 27 normalized, and every blob was
+      compared with CRs stripped to prove nothing but line endings moved.
+      `test-vehicles/dockerignore-check/` is exempt via `-text`: two of its files are
+      byte-for-byte copies of 673f7a0, and its README records their CRLF endings as one of the
+      findings, so normalizing them would have deleted the evidence they were parked to show.
+      Two side effects worth knowing. `start.sh` can now never be committed with CRLF, which
+      would break the container's shebang — that trap is closed by construction rather than by
+      luck. And `dep_freeze.py`'s CRLF-preserving read and write helpers are vestigial as of
+      this commit; harmless, and they die with the script in 13c.
+      (Was T-2, which only saw the requirements.txt symptom.)
 
 ### 13b — flip the consumers, delete requirements.txt (consumer flip) --- planned
 
