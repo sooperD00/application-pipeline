@@ -14,10 +14,12 @@ Two jobs, both pure enough to unit-test:
 This never contacts a registry and never chooses a version. Every number it emits came out
 of a freeze file you generated on your own machine.
 
-Usage (from backend/, old venv active for the baseline):
+Usage (from backend/, old venv active for the baseline). The freeze files live in
+docs/DEVLOG/sprints/sprint13/ (they were in ~/sprint13/ before the Mac move):
 
-    python scripts/dep_freeze.py constraints ~/sprint13/baseline-freeze.txt --write pyproject.toml
-    python scripts/dep_freeze.py compare ~/sprint13/baseline-freeze.txt ~/sprint13/uv-freeze.txt
+    S13=../docs/DEVLOG/sprints/sprint13
+    python scripts/dep_freeze.py constraints $S13/baseline-freeze.txt --write pyproject.toml
+    python scripts/dep_freeze.py compare $S13/baseline-freeze.txt $S13/uv-freeze.txt
 """
 
 from __future__ import annotations

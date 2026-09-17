@@ -223,8 +223,8 @@ ADR, a new table, migrations, service changes, and frontend work - a full contex
       `**/.venv`. Before that, `COPY backend/ .` copied a local backend/venv into local builds
       (Railway never had one, since it's gitignored). For 13b's image-size check, compare
       against a build from da59650 or later.
-- [ ] H-5 delete ~/sprint13/ — after 13c, not 13a. 13c re-runs `compare` against the same
-      baseline. [after 13c]
+- [ ] H-5 delete docs/DEVLOG/sprints/sprint13/ (was ~/sprint13/ before the Mac move) — after
+      13c, not 13a. 13c re-runs `compare` against the same baseline. [after 13c]
 
 ## Tech Debt (deferred, maybe long term)
 - [ ] Phase 1+: extract repeated Tailwind class strings into shared component styles.
