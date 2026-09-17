@@ -20,12 +20,12 @@ dependencies = [
     "pydantic-settings",
     "python-docx",
     # [SPRINT-13-CLEANUP] python-multipart has no UploadFile/Form/File usage anywhere in app/.
-    # Kept so 13a's freeze diff stays empty -- removing it moves a second factor. Defer to
-    # housekeeping, see remaining-sprints.md, Out of Scope (13).
+    # Kept so 13a's freeze diff stays empty -- removing it moves a second factor. Removed in
+    # 13d, see remaining-sprints.md.
     "python-multipart",
     # [SPRINT-13-CLEANUP] greenlet arrives transitively rather than via a declared
     # sqlalchemy[asyncio] extra, so nothing states that this app needs async SQLAlchemy.
-    # Adding the extra moves a second factor. Defer to housekeeping, see Out of Scope (13).
+    # Adding the extra moves a second factor. Declared in 13d, see remaining-sprints.md.
     "sqlalchemy",
     "sqlmodel",
     "uvicorn",

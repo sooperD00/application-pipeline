@@ -25,9 +25,12 @@ README.md
 **/*.zip
 
 # venv
-# [SPRINT-13-CLEANUP] backend/.venv is created by `uv sync` in Sprint 13a and coexists with
-# the old backend/venv while requirements.txt is still the Docker consumer. Resolved in 13b,
-# when the Dockerfile installs from uv.lock. See remaining-sprints.md, Sprint 13a commit 3.
+# Both rules stay, whatever happens to the comment: `COPY backend/ .` would otherwise copy a
+# host venv into the image -- a macOS venv into a Linux one, or a second venv over the image's
+# own. `check_docker_context.py --probe` is the net that catches it.
+# [SPRINT-13-CLEANUP] The coexistence this note used to describe is over: the old pip venv
+# backend/venv was deleted 2026-09-17, and backend/.venv now comes from `uv sync`. 13b deletes
+# this marker and the note -- not the two rules. See remaining-sprints.md, Sprint 13b.
 **/.venv
 **/venv
 
