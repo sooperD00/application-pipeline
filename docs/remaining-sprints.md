@@ -64,7 +64,6 @@ the sprint order that gets there lives here. Where Phase 1 ends is not decided y
 - Terms of service and a privacy policy, paired with that deletion path, before money moves
 - Job durability — BackgroundTasks die with the request; architecture.md routes this to
   arq/Redis once users are concurrent
-- The ADR-013 prompt-extraction decision, before public traffic rather than after
 - Railway database backups
 - Suite health, and whatever tooling this phase warrants for quality and maintainability
 
@@ -358,7 +357,7 @@ wrong today.
       `prompts/` folder into a sibling clone at `../application-pipeline-prompts`; neither
       folder exists on disk, and the private repo `sooperD00/application-pipeline-prompts` holds
       nothing but a `.gitkeep` from three "prompt update" commits on 2026-03-01. The backup it
-      implies has never run once. Read the prompt-extraction item in Housekeeping first: if
+      implies has never run once. Read the prompt-extraction item in Tech Debt first: if
       extraction picks a different mechanism, this script is the wrong shape anyway and deleting
       it is the honest move
 
@@ -530,41 +529,18 @@ in this list blocks anything.
 
 ## Housekeeping (any sprint)
 
-What's left here is Phase 1 work with no sprint yet, which is not the same as "can be added to
-any sprint" — worth a decision on the next planning pass.
+One item, and it is here because it may not survive Phase 1 in this shape.
 
-- [ ] H-1 Surface the model in the app, and make it changeable without editing code. Today it is
-      `default_model` in config.py, overridable by the `DEFAULT_MODEL` env var (README →
-      Choosing the Model). `model_used` is already stored per tailoring job, so the data exists
-      and nothing displays it. Belongs with the Phase 1 app/dev metrics work, where cost per
-      model belongs anyway. Whether the *user* picks is a later decision
-- [ ] H-2 Get the system prompts out of the public repo — pick the mechanism first, then
-      extract. ADR-013 carries the reasoning: this is IP protection ahead of public attention,
-      not functionality, and the Phase 1 overview wants the decision made before traffic arrives
-      rather than after. Two open questions block the work:
-      - Where the files live. The README tree says `backend/app/prompts/`; `sync-prompts.sh`
-        expects a root `prompts/` (Sprint 15 deletes or fixes that script). Either way,
-        `.gitignore` and `.dockerignore` both exclude `prompts` at any depth, so the files would
-        reach neither GitHub nor a Docker build.
-      - How they reach production. Railway builds from the GitHub snapshot, where git-ignored
-        files never exist, so "loaded at startup" needs another route in. ADR-013 lists env vars
-        and a private submodule.
-      What is actually exposed today, checked 2026-09-16: `ANALYSIS_SYSTEM_PROMPT` in
-      `services/analysis.py` (committed 2026-03-04) and `TAILORING_SYSTEM_PROMPT` in
-      `services/tailoring.py` (2026-03-05), with `services/claude.py` quoting one in a docstring.
-      Both are already in the public history, so extracting them hides future edits, not these
-      versions. Public by design and staying that way: `docs/original-prompts.md` and the seeded
-      PromptTemplate defaults in `seed.py`.
-      Watch: the in-code TODO in `analysis.py` pulls the opposite direction — it would move the
-      analysis prompt into the user-editable PromptTemplate table rather than into a file. Those
-      are two different futures; pick one before either gets half-built
-- [ ] H-3 Build the Activities layer — `routers/activities.py`, `services/activities.py`, and
+- [ ] H-1 Build the Activities layer — `routers/activities.py`, `services/activities.py`, and
       the frontend that makes them visible. The data model is already there: Activity table,
       ActivityType enum, and the cascade templates designed in service-layer-notes.md, with
       nothing reading or writing any of it. The core flow (paste → analyze → tailor → download)
       doesn't need it, so it waits for the Full Tracker in the Phase 1 tracking work, which is
       what makes it visible and useful. The README tree and architecture.md already list the
       endpoints as `[ ]` planned
+      Design risk: this is the version designed in Phase 0, and the tracker's shape is still
+      open. It could be dropped for a different design rather than built as specified, which is
+      why it sits here instead of inside a sprint
 
 ## Tech Debt (deferred, maybe long term)
 
@@ -619,3 +595,29 @@ not here.
       when it ran instead of whatever the resume says today. Costs the ADR follow-through, a new
       table, migrations, service changes and frontend work: a full context window, so it arrives
       as its own sprint rather than as an item
+- [ ] T-11 Phase 2+: surface the model in the app, and make it changeable without editing
+      code. Today it is `default_model` in config.py, overridable by the `DEFAULT_MODEL` env
+      var (README → Choosing the Model). `model_used` is already stored per tailoring job, so
+      the data exists and nothing displays it. Cost per model belongs wherever the app/dev
+      metrics work lands — if that ships in Phase 1, this is a natural rider on it. Whether the
+      *user* picks is a later decision again
+- [ ] T-12 Phase 2+: get the system prompts out of the public repo — pick the mechanism
+      first, then extract. ADR-013 carries the reasoning: this is IP protection ahead of public
+      attention, not functionality. The real gate is traffic rather than a phase boundary —
+      decide before the repo gets attention, not after. Two open questions block the work:
+      - Where the files live. The README tree says `backend/app/prompts/`; `sync-prompts.sh`
+        expects a root `prompts/` (Sprint 15 deletes or fixes that script). Either way,
+        `.gitignore` and `.dockerignore` both exclude `prompts` at any depth, so the files would
+        reach neither GitHub nor a Docker build.
+      - How they reach production. Railway builds from the GitHub snapshot, where git-ignored
+        files never exist, so "loaded at startup" needs another route in. ADR-013 lists env vars
+        and a private submodule.
+      What is actually exposed today, checked 2026-09-16: `ANALYSIS_SYSTEM_PROMPT` in
+      `services/analysis.py` (committed 2026-03-04) and `TAILORING_SYSTEM_PROMPT` in
+      `services/tailoring.py` (2026-03-05), with `services/claude.py` quoting one in a docstring.
+      Both are already in the public history, so extracting them hides future edits, not these
+      versions. Public by design and staying that way: `docs/original-prompts.md` and the seeded
+      PromptTemplate defaults in `seed.py`.
+      Watch: the in-code TODO in `analysis.py` pulls the opposite direction — it would move the
+      analysis prompt into the user-editable PromptTemplate table rather than into a file. Those
+      are two different futures; pick one before either gets half-built
