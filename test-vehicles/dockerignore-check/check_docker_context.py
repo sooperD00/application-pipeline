@@ -71,7 +71,8 @@ def short(path):
 # ---------------------------------------------------------------- the two answers
 
 def git_ignores(repo):
-    """Untracked files git ignores. -z keeps unusual file names from being quoted."""
+    """Untracked paths git ignores. A path ending in "/" is a nested git repo: git names the
+    folder but not the files inside it. -z keeps unusual names from being quoted."""
     return set(nul_split(git(repo, "ls-files", "--others", "--ignored", "--exclude-standard", "-z")))
 
 
@@ -82,6 +83,19 @@ def docker_gets(context):
              "--output", f"type=local,dest={out}", str(context)],
             input="FROM scratch\nCOPY . /\n")
         return {p.relative_to(out).as_posix() for p in Path(out).rglob("*") if not p.is_dir()}
+
+
+def leaked(ignored, sent):
+    """{file Docker would get: the ignored path it falls under}. A file counts if git ignores
+    it, or if it sits inside an ignored nested repo."""
+    repos = tuple(p for p in ignored if p.endswith("/"))
+    out = {}
+    for f in sorted(sent):
+        if f in ignored:
+            out[f] = f
+        elif f.startswith(repos):
+            out[f] = next(r for r in repos if f.startswith(r))
+    return out
 
 
 def blame(repo, paths):
@@ -259,8 +273,8 @@ def files(n):
 def report(leaks, why, steps, probe):
     """Leaks grouped by the rule git blames: every real path, or one line per rule for fakes."""
     groups = {}
-    for p in leaks:
-        groups.setdefault(why.get(p, ("?", 0, "?")), []).append(p)
+    for p, under in leaks.items():
+        groups.setdefault(why.get(under, ("?", 0, "?")), []).append(p)
     rows, finals = [], 0
     for (src, line, pattern), paths in sorted(groups.items()):
         where = [landing(p, steps) for p in paths]
@@ -280,7 +294,7 @@ def report(leaks, why, steps, probe):
                 print(f"      {p:<44}  {text}")
             if len(paths) > SHOW:
                 more = sum(f for f, _ in where[SHOW:])
-                print(f"      ... and {files(len(paths) - SHOW)} more, {more} into the final image")
+                print(f"      ... and {len(paths) - SHOW} more, {more} of them into the final image")
     print(f"\n{files(len(leaks))} leaked, {finals} into the final image.")
     print("Cover them in .dockerignore. A bare name there only matches at the root, so write **/name.")
 
@@ -299,16 +313,18 @@ def main():
 
     if not probe:
         ignored = git_ignores(root)
-        leaks = sorted(ignored & docker_gets(root))
-        why = blame(root, leaks)
-        print(f"git ignores {files(len(ignored))} here. Docker would still get {len(leaks)} of them.")
+        leaks = leaked(ignored, docker_gets(root))
+        why = blame(root, sorted(set(leaks.values())))
+        repos = sum(p.endswith("/") for p in ignored)
+        found = files(len(ignored) - repos) + (f" and {repos} nested git repo" + "s" * (repos != 1) if repos else "")
+        print(f"git ignores {found} here. Docker would still get {files(len(leaks))} from them.")
     else:
         with tempfile.TemporaryDirectory(prefix="probe-context-") as tmp:
             tmp = Path(tmp)
             probes = build_probe_repo(root, tmp)
             ignored = git_ignores(tmp) & set(probes)
-            leaks = sorted(ignored & docker_gets(tmp))
-            why = blame(tmp, leaks)
+            leaks = leaked(ignored, docker_gets(tmp))
+            why = blame(tmp, sorted(set(leaks.values())))
         print(f"{files(len(probes))} faked, one per ignore rule per folder it applies to. "
               f"git ignores {len(ignored)}. Docker would still get {len(leaks)} of them.")
     if leaks:
