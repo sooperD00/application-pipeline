@@ -24,6 +24,9 @@ README.md
 .git
 **/*.zip
 
+# Railway
+**/.railway
+
 # venv
 # Both rules stay, whatever happens to the comment: `COPY backend/ .` would otherwise copy a
 # host venv into the image -- a macOS venv into a Linux one, or a second venv over the image's
