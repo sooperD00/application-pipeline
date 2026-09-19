@@ -77,6 +77,7 @@ the sprint order that gets there lives here. Where Phase 1 ends is not decided y
 
 - 13 — Backend dependencies, pip → uv — in progress (13a done, 13b/13c/13d planned)
 - 14 — Tests — planned
+- 15 — Consolidating Railway services into one project — planned
 - 16 — Code hygiene — planned
 - 17 — Developer tooling — planned
 - 18 — Custom domain — planned
@@ -366,7 +367,7 @@ puts the spend paths under test in the sprint where money starts touching them. 
 ownership/auth guard test ("session belongs to a different user") went to 19d, where the guard
 it tests actually exists — writing it here would have tested a stub.
 
-## Sprint [New] — consolidating Railway services into one project --- planned
+## Sprint 15 — consolidating Railway services into one project --- planned
 
 sprint type: cutover migration
 Why: the app is split across three Railway projects. Private networking stops at the project line, so anything crossing projects goes over public URLs, and forgotten services can keep billing.
