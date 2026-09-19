@@ -141,7 +141,7 @@ the environment is the thing in doubt.
 
 One setting, one place: `default_model` in `backend/app/config.py` — `claude-opus-4-6` today.
 Model choice is the main cost lever, since analysis is one conversation per session and
-tailoring is one per Apply JD. [ADR-003](docs/decisions.md) has the reasoning for Opus.
+tailoring is one per Apply JD. [ADR-003](docs/decisions/adr-003-claude-opus-default-model.md) has the reasoning for Opus.
 
 - **Change it without touching code**: set `DEFAULT_MODEL`. Pydantic-settings maps the field
   name to the env var, so `DEFAULT_MODEL=claude-sonnet-5` in `backend/.env` works locally, and
@@ -154,7 +154,7 @@ tailoring is one per Apply JD. [ADR-003](docs/decisions.md) has the reasoning fo
 - [Implementation Plan](docs/implementation-plan.md) — phased build roadmap
 - [Architecture](docs/architecture.md) — data model, API contracts, integration patterns
 - [Workflow](docs/workflow.md) — the human method this automates
-- [Decisions](docs/decisions.md) — architecture decision records
+- [Decisions](docs/decisions/) — architecture decision records, one file each
 - [Service Layer Notes](docs/service-layer-notes.md) — implementation TODOs and design notes
 - [Completed Sprints](docs/completed-sprints.md) — what shipped and when
 - [Remaining Sprints](docs/remaining-sprints.md) — what's next (Phase 1)
@@ -263,7 +263,7 @@ ApplicationPipeline/
 ├── docs/
 │   ├── architecture.md
 │   ├── completed-sprints.md
-│   ├── decisions.md
+│   ├── decisions/                   # - [x] one file per ADR, README.md is the index
 │   ├── implementation-plan.md
 │   ├── original-prompts.md
 │   ├── remaining-sprints.md

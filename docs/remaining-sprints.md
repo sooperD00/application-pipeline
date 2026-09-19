@@ -643,7 +643,7 @@ routes.
 **Commits**
 | # | | |
 |---|---|---|
-| 0 | decide in writing | Write ADR-019 in `decisions.md`: Google sign-in, per-browser hashed tokens, synchronizer CSRF, anonymous-first kept, and passwords and magic links as the runners-up with the reasons |
+| 0 | decide in writing | Write ADR-019 as `docs/decisions/adr-019-google-sign-in.md`: Google sign-in, per-browser hashed tokens, synchronizer CSRF, anonymous-first kept, and passwords and magic links as the runners-up with the reasons |
 | 1 | new beside old | Create `app/auth.py` with `get_current_user`; have `sessions.py` re-export it |
 | 2 | flip consumers | Point `jds.py`, `resumes.py`, `sessions.py`, and `conftest.py` at `app.auth` |
 | 3 | delete the old | Remove the re-export, the "shared auth stub" comments in `jds.py:42` and `resumes.py:27`, and the `main.py:7` docstring line that places auth in `sessions.py` |
