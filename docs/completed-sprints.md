@@ -19,7 +19,7 @@ sprint moves here.
 
 The app is live. One Railway service serves everything — FastAPI backend + built React frontend as static files.
 
-**Cookie auth shipped.** Replaced the `get_current_user` stub (select first user from DB) with cookie-based anonymous sessions. Each browser gets a unique `auth_token` on first visit → own User row → fully isolated data. `secure` flag conditional on `ENVIRONMENT` setting so cookies work on both localhost and Railway HTTPS. Phase 1 adds Google sign-in that adopts the anonymous user's data (Sprint 18).
+**Cookie auth shipped.** Replaced the `get_current_user` stub (select first user from DB) with cookie-based anonymous sessions. Each browser gets a unique `auth_token` on first visit → own User row → fully isolated data. `secure` flag conditional on `ENVIRONMENT` setting so cookies work on both localhost and Railway HTTPS. Phase 1 adds Google sign-in that adopts the anonymous user's data (Sprint 19).
 
 **Single-service deploy (Option 1 from the original plan).** Multi-stage Dockerfile: node:20 builds the React frontend, python:3.12-slim runs the backend and serves the built `dist/` as static files via FastAPI's `StaticFiles` mount. Catch-all route serves `index.html` for react-router-dom deep links (bookmarks and refresh work). `start.sh` runs `alembic upgrade head` then starts uvicorn. Railway injects `PORT=8080`; uvicorn reads it via `${PORT:-8000}`.
 

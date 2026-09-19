@@ -63,25 +63,25 @@ the sprint order that gets there lives here. Where Phase 1 ends is not decided y
   error visibility
 - Per-user cost caps and rate limiting — my API key pays for every beta session today, and
   billing needs metering anyway
-- Data lifecycle — anonymous retention and anonymous → account conversion land in Sprint 18. A
-  delete-my-data path is deferred to public release (18's Out of Scope), which is the honest
+- Data lifecycle — anonymous retention and anonymous → account conversion land in Sprint 19. A
+  delete-my-data path is deferred to public release (19's Out of Scope), which is the honest
   place for it: it is a promise to keep, not a feature to ship early and half-wire
-- Terms of service and a privacy policy — due with 19d's go-live commit, which publishes the
+- Terms of service and a privacy policy — due with 20d's go-live commit, which publishes the
   public page Stripe's activation review reads
 - Job durability — BackgroundTasks die with the request; architecture.md routes this to
   arq/Redis once users are concurrent
-- Railway database backups — Sprint 19's entry gate, since the credit ledger holds paid balances
+- Railway database backups — Sprint 20's entry gate, since the credit ledger holds paid balances
 - Suite health, and whatever tooling this phase warrants for quality and maintainability
 
 **Sprints**
 
 - 13 — Backend dependencies, pip → uv — in progress (13a done, 13b/13c/13d planned)
 - 14 — Tests — planned
-- 15 — Code hygiene — planned
-- 16 — Developer tooling — planned
-- 17 — Custom domain — planned
-- 18 — User authentication, Google sign-in — planned
-- 19 — Billing, and the cost caps it depends on — planned
+- 16 — Code hygiene — planned
+- 17 — Developer tooling — planned
+- 18 — Custom domain — planned
+- 19 — User authentication, Google sign-in — planned
+- 20 — Billing, and the cost caps it depends on — planned
 - Frontend polish — parked, deliberately last and deliberately unnumbered
 
 Numbers are expectations, not commitments: they can be bumped, split or dropped. The one rule
@@ -190,7 +190,7 @@ That cost an hour in 13a, when a stale root `.venv` answered instead of `backend
   bug, not a second option — delete it rather than working around it.
 - Repo-root `scripts/` is stdlib-only by design and needs no venv. Keep it that way: the
   context check has to run exactly when the environment is in doubt.
-- This Mac has neither venv yet, being a fresh clone. Sprint 16's Makefile is the planned
+- This Mac has neither venv yet, being a fresh clone. Sprint 17's Makefile is the planned
   guard (a preflight target that fails unless `sys.prefix` ends in `backend/.venv`).
 
 **Done when**
@@ -241,8 +241,8 @@ The older note to re-lock with `--python 3.13.7` only holds if the image moves t
 from Housekeeping, 2026-09-17, where the skew and the note sat as two separate items.)
 
 Whichever wins, move every consumer in one commit: the Dockerfile base image,
-`backend/.python-version`, and Sprint 16's CI pin once that job exists. This is Sprint 18's
-entry gate as well as 13c's decision — 18 adds `authlib`, `itsdangerous` and `httpx2`, and new
+`backend/.python-version`, and Sprint 17's CI pin once that job exists. This is Sprint 19's
+entry gate as well as 13c's decision — 19 adds `authlib`, `itsdangerous` and `httpx2`, and new
 packages should resolve against one interpreter.
 
 **Done when**
@@ -307,7 +307,7 @@ as soon as the sprint is off the critical path.
 
 ### Out of Scope (13)
 - No CI exists. `uv lock --check` is a one-line pre-deploy gate once there's somewhere to run
-  it → Sprint 16 (Developer tooling), which owns the first CI job
+  it → Sprint 17 (Developer tooling), which owns the first CI job
 
 
 ---
@@ -317,7 +317,7 @@ as soon as the sprint is off the critical path.
 
 **Legs:** fix the red suite (bugfix), then fill the gaps (feature).
 
-Fill concrete gaps. The goal is confidence before auth (Sprint 18), and before CI, which can't
+Fill concrete gaps. The goal is confidence before auth (Sprint 19), and before CI, which can't
 live on a red suite.
 
 ### 14a — restore a green suite (bugfix) --- planned
@@ -361,9 +361,9 @@ Frontend — extend existing:
       is when you find out whether they have.
 
 **Moved out, 2026-09-17.** Three items left this sprint for one that owns them better.
-`test_analysis.py` and the six `failed`-path tests in `test_tailoring.py` went to 19a, which
+`test_analysis.py` and the six `failed`-path tests in `test_tailoring.py` went to 20a, which
 puts the spend paths under test in the sprint where money starts touching them. The
-ownership/auth guard test ("session belongs to a different user") went to 18d, where the guard
+ownership/auth guard test ("session belongs to a different user") went to 19d, where the guard
 it tests actually exists — writing it here would have tested a stub.
 
 ## Sprint [New] — consolidating Railway services into one project --- planned
@@ -404,7 +404,7 @@ Cleanup
 - Update README and docs that name the old projects or URLs.
 - Delete ~/railway-audit, or fold its summary into docs.
 
-## Sprint 15 — Code hygiene --- planned
+## Sprint 16 — Code hygiene --- planned
 
 **Legs:** timestamps (migration), then the rest (refactor). The timestamp work moves a column
 type across ten tables; everything else is a rename or a deletion. One red suite, one cause.
@@ -413,13 +413,13 @@ Deprecations, dead files and small corrections, cleared before the next feature 
 them. Nothing here changes behaviour a user would notice, except the timestamps, which are
 wrong today.
 
-### 15a — timezone-aware timestamps (migration) --- planned
+### 16a — timezone-aware timestamps (migration) --- planned
 
 The `datetime.utcnow()` deprecation, taken as the obvious one-line swap to
 `datetime.now(datetime.UTC)`, **breaks prod while the tests stay green**. Every timestamp
 column is `sa.DateTime()` — timestamp *without* time zone. asyncpg raises a DataError when an
 aware datetime is bound to a naive column, and SQLite silently ignores tzinfo, so the suite
-never sees it. Sprint 18 adds token expiry and Sprint 19 adds purchase history, which is
+never sees it. Sprint 19 adds token expiry and Sprint 20 adds purchase history, which is
 exactly where the next writer reaches for `datetime.now(UTC)`.
 
 The "timestamps read a day ahead in Oregon" bug is the same bug seen from the frontend — stored
@@ -455,14 +455,14 @@ UTC, serialized without an offset, rendered as local. It closes here.
 - Push commits 2 and 3 together. Once the models reject naive datetimes, any leftover
   `utcnow()` raises at write time.
 - Autogenerate renders `UTCDateTime` by its import path. In this migration and every later one
-  (18b, 19b, 19c), write `sa.DateTime(timezone=True)` instead.
+  (19b, 20b, 20c), write `sa.DateTime(timezone=True)` instead.
 - `DateTime(timezone=True)` alone isn't enough. SQLite still hands back naive datetimes, and
   comparing one to `utc_now()` raises TypeError (reproduced). The decorator's read side is what
-  keeps Sprint 18's expiry checks testable.
-- `users.auth_token_expires_at` is on the list and 18b deletes it. Migrate it anyway: it keeps
+  keeps Sprint 19's expiry checks testable.
+- `users.auth_token_expires_at` is on the list and 19b deletes it. Migrate it anyway: it keeps
   this a single mechanical pass, and skipping it makes the grep-clean done-when a special case.
 
-### 15b — deprecations and dead files (refactor) --- planned
+### 16b — deprecations and dead files (refactor) --- planned
 
 **Kind:** refactor — the suite is the invariant.
 
@@ -470,7 +470,7 @@ UTC, serialized without an offset, rendered as local. It closes here.
 - [ ] `HTTP_422_UNPROCESSABLE_ENTITY` deprecation — FastAPI renamed it to
       `HTTP_422_UNPROCESSABLE_CONTENT`. 11 occurrences: jds.py (2), resumes.py (4),
       sessions.py (5). Agents copy the patterns they find, so retire the deprecated name before
-      Sprint 18 writes new routes. Done when `grep -rn --include='*.py'
+      Sprint 19 writes new routes. Done when `grep -rn --include='*.py'
       HTTP_422_UNPROCESSABLE_ENTITY backend/app` returns nothing, the deprecation warning is
       gone from pytest output, and test counts are unchanged
 - [ ] Delete `assets/react.svg` and `public/vite.svg` — leftover Vite scaffolding, unreferenced
@@ -487,7 +487,7 @@ UTC, serialized without an offset, rendered as local. It closes here.
       it is the honest move
 
 
-## Sprint 16 — Developer tooling --- planned
+## Sprint 17 — Developer tooling --- planned
 
 **Kind:** feature — build the pipeline that isn't there.
 
@@ -518,7 +518,7 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       second way to be in the wrong directory, not a fix
 - [ ] A first CI job, once the suite is green (Sprint 14), with Railway's Wait for CI turned on
       behind it. `uv lock --check` is a one-line pre-deploy gate with nowhere to run it today,
-      and Sprint 18 rewrites the dependency every route uses — a red suite should stop that
+      and Sprint 19 rewrites the dependency every route uses — a red suite should stop that
       deploy.
       Workflow: `.github/workflows/ci.yml` on `push: branches: [main]`, which is the only
       trigger Railway offers Wait for CI for. Backend `uv lock --check`, `uv sync --locked`,
@@ -530,7 +530,7 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       the Railway deploy shows SKIPPED, then revert and confirm the revert deploys.
       Try the workflow on a branch first — 673f7a0's workflow failed on every push to main.
       Watch: the suite runs on SQLite, so CI cannot see Postgres-only failures like the one
-      15a exists to fix. CI proves the tests pass; it does not prove Postgres accepts the
+      16a exists to fix. CI proves the tests pass; it does not prove Postgres accepts the
       writes. ~45 min
 - [ ] Decide how far to take the .gitignore/.dockerignore overlap check. The first attempt
       (673f7a0) broke the Railway deploy and was reverted (fe8794e); it is parked in
@@ -548,7 +548,7 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       Level 4, tests for the script: in Tech Debt, worth it only if the script grows
 
 
-## Sprint 17 — Custom domain --- planned
+## Sprint 18 — Custom domain --- planned
 
 Move the app to a real hostname before anything external starts pointing at it.
 **Kind:** migration — consumer graph: DNS, then the app, then the docs.
@@ -557,7 +557,7 @@ Move the app to a real hostname before anything external starts pointing at it.
 **Why now** Google's OAuth redirect URIs, Stripe's webhook endpoint and the website URL on the
 Stripe account are all registered against a host, in three different consoles. Registering them
 against `up.railway.app` and moving later means doing all three again, and costs every signed-in
-user a fresh sign-in. It is an afternoon plus a registration fee, and it is required before 18c.
+user a fresh sign-in. It is an afternoon plus a registration fee, and it is required before 19c.
 
 **Done when**
 - [ ] the app serves over HTTPS at the new domain
@@ -574,35 +574,35 @@ user a fresh sign-in. It is an afternoon plus a registration fee, and it is requ
 
 **Watch**
 - Cookies are host-scoped and do not follow the redirect. A tester arriving from the old URL
-  starts empty until 18c's sign-in exists. The 30-day cookie has already orphaned most pre-18
+  starts empty until 19c's sign-in exists. The 30-day cookie has already orphaned most pre-19
   data, so tell testers instead of engineering around it.
-- A cheap throwaway name is fine — but rename *before* 18c, never after. Once sign-in lands, a
+- A cheap throwaway name is fine — but rename *before* 19c, never after. Once sign-in lands, a
   rename costs users one sign-in and costs you the three-console checklist above.
-- Avoid bargain TLDs if magic links ever become the second way in (18's Out of Scope). Some
+- Avoid bargain TLDs if magic links ever become the second way in (19's Out of Scope). Some
   spam filters score them as suspect.
 
 
-## Sprint 18 — User authentication --- planned
+## Sprint 19 — User authentication --- planned
 
 Add Google sign-in on top of per-browser login tokens and CSRF protection, keeping the app
 anonymous-first.
 **Kind:** feature
-**Legs:** extract, migrate, sign in, surface, protect. 18a moves code and 18b moves token
-storage, both with behavior fixed. 18c–18d add identity (factor 1: who the user is). 18e rolls
-out CSRF (factor 2: request integrity). Merging 18c and 18e means a red suite can't say whether
+**Legs:** extract, migrate, sign in, surface, protect. 19a moves code and 19b moves token
+storage, both with behavior fixed. 19c–19d add identity (factor 1: who the user is). 19e rolls
+out CSRF (factor 2: request integrity). Merging 19c and 19e means a red suite can't say whether
 sign-in or CSRF broke it.
-**Entry gate:** 14a (green suite) required before 18a — this sprint rewrites the dependency
-every route uses, and a red baseline can't tell you what you broke. Sprint 17 (custom domain)
-required before 18c. 13c (one Python), 15 (timestamps and the 422 rename) and 16 (CI behind
-Railway's Wait for CI) recommended before 18a.
+**Entry gate:** 14a (green suite) required before 19a — this sprint rewrites the dependency
+every route uses, and a red baseline can't tell you what you broke. Sprint 18 (custom domain)
+required before 19c. 13c (one Python), 16 (timestamps and the 422 rename) and 17 (CI behind
+Railway's Wait for CI) recommended before 19a.
 
 **Why now** Every browser is its own user, and nothing lets a person reach their data from a
 second browser. The cookie is set once, when the user row is created, with a 30-day lifetime
 and no refresh. Any tester whose first visit was more than 30 days ago was silently handed a
-new, empty user, and their old rows sit in Postgres, unreachable. Sprint 19 also can't sell
+new, empty user, and their old rows sit in Postgres, unreachable. Sprint 20 also can't sell
 credits to an anonymous cookie: a paid balance would die with the cookie.
 
-**Decision** Google sign-in over passwords and over magic links (ADR-019, written in 18a).
+**Decision** Google sign-in over passwords and over magic links (ADR-019, written in 19a).
 Google wins because passwords still need reset and email-verification flows and magic links
 need an email provider, a token table and expiry logic — all three need email infrastructure
 this project does not have; because Google supplies a verified email; and because there is no
@@ -611,17 +611,17 @@ table as a *second* way in for people who won't use Google (Out of Scope, below)
 
 **Decides: anonymous retention.** The cookie is 30 days today (`sessions.py:84`, "30 days for
 beta") and `auth_token_expires_at` is never set, while `architecture.md` documents 7 days for
-anonymous users. Neither survives this sprint as written: 18b moves expiry into `auth_tokens`
-and holds it at 30 days unchanged, and 18c makes it slide on use. The 7-day intent was written
+anonymous users. Neither survives this sprint as written: 19b moves expiry into `auth_tokens`
+and holds it at 30 days unchanged, and 19c makes it slide on use. The 7-day intent was written
 for a world where anonymous data expired *because* there was nothing to convert into; sliding
 expiry on a browser that can adopt into an account is the better answer. `architecture.md`'s
-User table is the doc that changes, at 18b.
+User table is the doc that changes, at 19b.
 
 **Reference** Two FMH files are checked in beside the sprint notes:
 `docs/DEVLOG/sprints/sprint17-18/auth-FMH-not-this-project.py` and
 `auth_service-FMH-not-this-project.py`. Read them for the *cookie helper* —
 `_set_session_cookies` sets the HTTP-only credential and the JS-readable `csrf_token` together,
-which is the pattern 18e ports — and skip the rest: `auth_service.py` is the password design
+which is the pattern 19e ports — and skip the rest: `auth_service.py` is the password design
 that lost, and the register/login route shapes don't apply. Also from FMH, not in this repo:
 `app/dependencies.py` (`get_current_user`, `csrf_protect`), `app/services/session_service.py`,
 the session model, the frontend that reads `csrf_token` and sends `X-CSRF-Token`, and FMH's
@@ -631,7 +631,7 @@ routes.
 > Claims below marked "reproduced" or "verified" were checked on 2026-09-16 against a scratch
 > copy of this repo at the locked dependency versions. They are findings, not expectations.
 
-### 18a — extract the auth dependency to `app/auth.py` (refactor) --- planned
+### 19a — extract the auth dependency to `app/auth.py` (refactor) --- planned
 
 **Done when**
 - [ ] `get_current_user` lives in `backend/app/auth.py`, and `grep -rn --include='*.py' "def get_current_user" backend/app` returns exactly one hit
@@ -651,7 +651,7 @@ routes.
 `jds.py` already dodges a circular import with a function-level `settings` import; don't create
 a second one.
 
-### 18b — move login tokens to a per-browser table (migration) --- planned
+### 19b — move login tokens to a per-browser table (migration) --- planned
 
 **Done when**
 - [ ] an `auth_tokens` table holds one row per browser: `user_id` (FK, cascade delete), `token_hash` (unique), `csrf_token`, `created_at`, `expires_at`, `last_seen_at`
@@ -660,7 +660,7 @@ a second one.
 - [ ] a new browser gets exactly one `users` row and one `auth_tokens` row
 - [ ] no raw token is stored: `users.auth_token` and `users.auth_token_expires_at` are gone
 - [ ] existing tests pass with only their `User(auth_token=…)` fixtures edited, and `test_auth.py` covers new, returning, and unknown-token browsers
-- [ ] `architecture.md`'s User table matches: both columns gone, `auth_tokens` documented, and the 7-day anonymous note replaced by what 18c actually does
+- [ ] `architecture.md`'s User table matches: both columns gone, `auth_tokens` documented, and the 7-day anonymous note replaced by what 19c actually does
 
 **Commits**
 | # | | |
@@ -682,9 +682,9 @@ a second one.
   `hashlib.sha256(token.encode()).hexdigest()` and `secrets.token_urlsafe(32)`. Those are the
   same calls `app/auth.py` makes, so the hash can't drift between the migration and the app.
 - Keep expiry and cookie lifetime exactly as they are (30 days, never refreshed). Sliding
-  expiry is a behavior change and belongs to 18c.
+  expiry is a behavior change and belongs to 19c.
 
-### 18c — Google sign-in (feature) --- planned
+### 19c — Google sign-in (feature) --- planned
 
 **Done when**
 - [ ] signing in on a fresh browser keeps that browser's sessions and resumes (the anonymous user is adopted)
@@ -695,7 +695,7 @@ a second one.
 - [ ] `GET /api/auth/me` returns `email` (null when anonymous) and `is_anonymous`
 - [ ] tokens slide in the database: use within the lifetime extends `expires_at` (at most one write a day), and an expired row is rejected
 - [ ] a Google account whose `email_verified` is false is refused
-- [ ] sign-in works at Sprint 17's domain on Railway, not only on localhost
+- [ ] sign-in works at Sprint 18's domain on Railway, not only on localhost
 
 **Commits**
 | # | | |
@@ -737,7 +737,7 @@ a second one.
 - FMH's `MeResponse` has `email: str` and `role`. This app needs a nullable `email`,
   `is_anonymous`, and no `role`, or anonymous users get a 500.
 
-### 18d — sign-in in the UI (feature) --- planned
+### 19d — sign-in in the UI (feature) --- planned
 
 **Done when**
 - [ ] the nav shows "Sign in with Google" for anonymous browsers, and the account email plus "Sign out" when signed in
@@ -756,13 +756,13 @@ a second one.
 **Watch** Sign-in has to be a full-page navigation. `fetch` can't follow a redirect to Google's
 consent screen.
 
-### 18e — CSRF protection (migration) --- planned
+### 19e — CSRF protection (migration) --- planned
 
 Kind is migration because consumers order the commits: issue the token, teach every sender,
 then enforce.
 
 **Done when**
-- [ ] every POST, PATCH, and DELETE under `/api` returns 403 without a matching `X-CSRF-Token` (Sprint 19's Stripe webhook excepted), and GETs are unaffected
+- [ ] every POST, PATCH, and DELETE under `/api` returns 403 without a matching `X-CSRF-Token` (Sprint 20's Stripe webhook excepted), and GETs are unaffected
 - [ ] the app works end to end in a browser: create a session, paste a JD, analyze (SSE), tailor, download, edit and delete a resume, sign out
 - [ ] a browser whose cookie expired mid-page recovers on its next mutation: one 403, one `GET /api/auth/me`, one successful retry
 - [ ] domain tests override `csrf_protect` alongside `get_current_user`, and `test_auth.py` exercises the real one
@@ -783,35 +783,35 @@ then enforce.
 - A POST with an expired cookie mints a fresh anonymous row whose token the page doesn't have
   yet. That's the retry path, not a bug.
 - FMH exempts register and login because no session exists yet. Here every browser has a token
-  row from its first request, so nothing is exempt except Sprint 19's Stripe webhook, which
+  row from its first request, so nothing is exempt except Sprint 20's Stripe webhook, which
   lives on its own router without `csrf_protect`.
 
-### Out of Scope (18)
+### Out of Scope (19)
 - Magic links for people who won't use Google, as a second way in to the same `users` table → public release
 - Returning to the originating page after sign-in needs an allowlisted `next` parameter (open-redirect risk) → H-2
-- Rescuing testers' orphaned pre-18 data: re-parent manually after they sign in; their resume text identifies them → H-3
+- Rescuing testers' orphaned pre-19 data: re-parent manually after they sign in; their resume text identifies them → H-3
 - Deleting an account and its data → public release
 - Rate limiting the auth routes: Google absorbs credential attacks, and logout and `/me` are cheap → T-13
-- Sprint 16's Makefile and ignore-overlap check are good for this sprint but don't block it → they stay in 16
-- **Decide at 18e close:** whether the "`api/client.js` has no retry logic and no token refresh"
-  line is now closed. 18e adds the one retry that matters (the CSRF 403 replay), and opaque
+- Sprint 17's Makefile and ignore-overlap check are good for this sprint but don't block it → they stay in 17
+- **Decide at 19e close:** whether the "`api/client.js` has no retry logic and no token refresh"
+  line is now closed. 19e adds the one retry that matters (the CSRF 403 replay), and opaque
   session cookies never need a refresh path — so the argument is that the line is done and
   should be deleted rather than carried. Confirm that in the browser first: if a transient 5xx
   on analyze or tailor still surfaces as an uninterpretable failure, a general retry wrapper is
-  a real item and belongs in 19e beside the other client-side work
+  a real item and belongs in 20e beside the other client-side work
 
 
-## Sprint 19 — Billing --- planned
+## Sprint 20 — Billing --- planned
 
 Add prepaid credit billing: meter Claude usage per user, gate spend on a credit balance, and
 sell credit packs through Stripe Checkout.
 **Kind:** feature
-**Legs:** test, meter, charge, sell, then trim the client. 19a puts the spend paths under test
-before money touches them. 19b records cost and charges nothing. 19c charges an internal ledger
-with no Stripe. 19d connects real payments. 19e is the client-side spend hygiene that has been
+**Legs:** test, meter, charge, sell, then trim the client. 20a puts the spend paths under test
+before money touches them. 20b records cost and charges nothing. 20c charges an internal ledger
+with no Stripe. 20d connects real payments. 20e is the client-side spend hygiene that has been
 waiting for a reason. Each leg can go red for one reason: spend-path behavior, metering, ledger
 math, Stripe, or the client.
-**Entry gate:** Sprint 18 done; a Stripe account in test mode with its keys in the dev `.env`;
+**Entry gate:** Sprint 19 done; a Stripe account in test mode with its keys in the dev `.env`;
 the Stripe CLI installed and logged in; Railway Postgres backups confirmed, since the ledger
 will hold paid balances.
 
@@ -822,7 +822,7 @@ discard the result (`_tokens` at `analysis.py:252` and `tailoring.py:318`), and 
 is declared at `models.py:262` and never written. Credit packs amortize Stripe's 30¢ fixed fee
 (`cost-notes.txt`) and skip subscription lifecycle states until public release.
 
-### 19a — put the spend paths under test, fix the stuck analysis (bugfix) --- planned
+### 20a — put the spend paths under test, fix the stuck analysis (bugfix) --- planned
 
 **Done when**
 - [ ] `test_analysis.py` covers batching (the 5-JD boundary and a partial final batch), event order (`batch_start`, `jd_result`, `batch_complete`, `analysis_complete`), retry then error, and meta-analysis carried across batches, against a mocked Claude client
@@ -845,11 +845,11 @@ is declared at `models.py:262` and never written. Credit packs amortize Stripe's
   Starlette: the plain `finally` left the status at `analyzing`, and the shielded one reset it.
 - The request's `db` can be mid-commit when the cancel lands, so the cleanup opens its own session.
 - `docx` generation errors don't fail a tailoring job: the text is still saved and the job goes
-  `ready`. 19c decides whether that job is billable.
+  `ready`. 20c decides whether that job is billable.
 - `anyio` arriving only through Starlette is the same transitive-luck pattern 13d closes for
   greenlet. Declare it.
 
-### 19b — meter Claude usage per user (feature) --- planned
+### 20b — meter Claude usage per user (feature) --- planned
 
 **Done when**
 - [ ] every Claude call that returns writes exactly one `api_usage` row (one per analysis batch, one per tailoring attempt), even when the job fails afterward
@@ -868,7 +868,7 @@ is declared at `models.py:262` and never written. Credit packs amortize Stripe's
 | 5 | delete the old | Drop `tailoring_jobs.api_cost_cents` (never written) |
 
 **Watch**
-- Add `api_usage` to 18c's merge. Otherwise deleting a merged anonymous user fails on the
+- Add `api_usage` to 19c's merge. Otherwise deleting a merged anonymous user fails on the
   foreign key.
 - The analysis conversation re-sends its whole history every batch, so input tokens grow batch
   over batch. Later batches cost more; that's the pricing, not a metering bug.
@@ -878,7 +878,7 @@ is declared at `models.py:262` and never written. Credit packs amortize Stripe's
 - `pricing.py` has to know the model id `config.py` actually ships (`default_model`, overridable
   by `DEFAULT_MODEL`), not the one ADR-003 wrote down.
 
-### 19c — credit ledger and spend gate (feature) --- planned
+### 20c — credit ledger and spend gate (feature) --- planned
 
 **Done when**
 - [ ] a `credit_ledger` row records every grant and debit in integer micro-dollars; balance is `SUM(amount)` per user, and no code path updates or deletes a row
@@ -906,9 +906,9 @@ is declared at `models.py:262` and never written. Credit packs amortize Stripe's
   stops being fine.
 - Keep the pricing rule in one function (`debit_for(usage)`). The ledger stores micro-dollars
   either way, so flat pricing and cost × markup differ only there.
-- 19a's shielded cleanup never debits. Debits belong to completed work only.
+- 20a's shielded cleanup never debits. Debits belong to completed work only.
 
-### 19d — sell credit packs through Stripe Checkout (feature) --- planned
+### 20d — sell credit packs through Stripe Checkout (feature) --- planned
 
 **Done when**
 - [ ] a signed-in user buys a pack in test mode and the balance rises exactly once, including when Stripe resends the event
@@ -944,9 +944,9 @@ is declared at `models.py:262` and never written. Credit packs amortize Stripe's
 - Stripe's activation review reads the public page. It has to load without a password and can't
   look under construction.
 
-### 19e — client-side spend hygiene (feature) --- planned
+### 20e — client-side spend hygiene (feature) --- planned
 
-Four client-side items that have been waiting for a reason to be worth doing. The gate in 19c is
+Four client-side items that have been waiting for a reason to be worth doing. The gate in 20c is
 that reason: once a retry costs the user money and an abandoned tab costs them a debit, these
 stop being politeness and start being correctness.
 
@@ -955,24 +955,24 @@ stop being politeness and start being correctness.
       chatty if someone leaves the tab open overnight — increase the interval after 60s
 - [ ] `analyzeSession()` and the `TailoringPage` polling both take an `AbortController`, and
       `useSSE.abort()` aborts the fetch rather than only cancelling the reader. Note the
-      corrected premise from 19a: the backend is not left running forever, but until the fetch
+      corrected premise from 20a: the backend is not left running forever, but until the fetch
       is actually aborted the server does not see the disconnect, so the abort is what makes
-      19a's shielded cleanup fire promptly instead of whenever the socket eventually drops
+      20a's shielded cleanup fire promptly instead of whenever the socket eventually drops
 - [ ] the retry budget has a decided home, written down. The Analyze button re-enables
       immediately on error via `finally { setIsAnalyzing(false) }`, with no retry counter,
-      cooldown, or backend cap. 19c's `require_credits` is now the obvious place — confirm that
+      cooldown, or backend cap. 20c's `require_credits` is now the obvious place — confirm that
       is enough, or add a button-level cooldown on top of it
 - [ ] **Decide: is the "cap retries on `createTailoringJob`, front end and back" item still
-      needed?** It was written when my API key paid for every retry. After 19c the user's own
+      needed?** It was written when my API key paid for every retry. After 20c the user's own
       balance does, which is the argument for deleting the line — a cap on top of a paid gate
       protects nobody. Delete it if that holds. Keep it if the floor check's non-reservation
-      (see 19c's Watch) makes a double-click meaningfully expensive. `tailoring.py` is where the
+      (see 20c's Watch) makes a double-click meaningfully expensive. `tailoring.py` is where the
       backend half would land
 
 **Watch** This leg is frontend-heavy and touches the two pages the rest of the sprint already
 changed. Land it last so a red frontend suite means the client, not the ledger.
 
-### Out of Scope (19)
+### Out of Scope (20)
 - Subscription with a monthly cap, as a monthly grant row on the same ledger → public release
 - Stripe's LLM token billing (private preview), which automates cost × markup → revisit if the pricing rule becomes pure pass-through
 - Automated refunds via `charge.refunded`: refund in the Stripe dashboard, then add a negative row with `grant_credits.py` → T-14
@@ -981,7 +981,7 @@ changed. Land it last so a red frontend suite means the client, not the ledger.
 - Free credits for anonymous visitors (the implementation plan's Free Trial Flow) → business rule, public release
 - A sweeper that marks stale `processing` tailoring jobs `failed` after a redeploy strands them; the real fix, arq + Redis, is already Phase 1+ in `architecture.md` → H-4
 - A Postgres service container in CI, so tests can see Postgres-only failures → T-16
-- The rest of Sprint 14 (`test_jds.py` downloads and CRUD, the `TailoringPage` polling test) stays there. Its ownership/auth-guard item moved to 18d, and its analysis and failure-path items moved to 19a
+- The rest of Sprint 14 (`test_jds.py` downloads and CRUD, the `TailoringPage` polling test) stays there. Its ownership/auth-guard item moved to 19d, and its analysis and failure-path items moved to 20a
 
 
 ## Frontend polish — parked, last in Phase 1
@@ -1053,7 +1053,7 @@ in this list blocks anything.
 ## Housekeeping (any sprint)
 
 Four items. H-1 is here because it may not survive Phase 1 in this shape; H-2 to H-4 are the
-shed from planning Sprints 18 and 19 — real work, no sprint earned yet.
+shed from planning Sprints 19 and 20 — real work, no sprint earned yet.
 
 - [ ] H-1 Build the Activities layer — `routers/activities.py`, `services/activities.py`, and
       the frontend that makes them visible. The data model is already there: Activity table,
@@ -1068,19 +1068,19 @@ shed from planning Sprints 18 and 19 — real work, no sprint earned yet.
 - [ ] H-2 Return to the originating page after sign-in. A user who opens a session URL while
       signed out lands on `/sessions` instead of where they were going. The fix is a `next`
       parameter, allowlisted to same-origin paths or it is an open redirect. Small, but not
-      small enough to bolt onto 18c's callback while adopt, merge and switch are already in
-      flight. (From Sprint 18's Out of Scope, 2026-09-17.)
-- [ ] H-3 Re-parent the testers' orphaned pre-18 data. The 30-day cookie with no refresh has
+      small enough to bolt onto 19c's callback while adopt, merge and switch are already in
+      flight. (From Sprint 19's Out of Scope, 2026-09-17.)
+- [ ] H-3 Re-parent the testers' orphaned pre-19 data. The 30-day cookie with no refresh has
       already handed returning testers new empty users, and their old rows sit in Postgres
       unreachable. After they sign in, match on resume text and re-point `sessions`, `resumes`
       and `prompt_templates` at the account. Manual SQL against prod, once per tester — not
       worth automating for seven people, and worth doing while they still remember what they
-      pasted. (From Sprint 18's Out of Scope, 2026-09-17.)
+      pasted. (From Sprint 19's Out of Scope, 2026-09-17.)
 - [ ] H-4 Sweep stale `processing` tailoring jobs. A redeploy strands anything mid-flight,
       because BackgroundTasks die with the request, and a stranded job polls forever. Marking
       them `failed` on startup is the cheap fix; the real fix is arq + Redis, already Phase 1+
       in architecture.md. Do the cheap one only once a redeploy actually strands a job someone
-      is waiting on. (From Sprint 19's Out of Scope, 2026-09-17.)
+      is waiting on. (From Sprint 20's Out of Scope, 2026-09-17.)
 
 ## Tech Debt (deferred, maybe long term)
 
@@ -1146,7 +1146,7 @@ not here.
       attention, not functionality. The real gate is traffic rather than a phase boundary —
       decide before the repo gets attention, not after. Two open questions block the work:
       - Where the files live. The README tree says `backend/app/prompts/`; `sync-prompts.sh`
-        expects a root `prompts/` (Sprint 15 deletes or fixes that script). Either way,
+        expects a root `prompts/` (Sprint 16 deletes or fixes that script). Either way,
         `.gitignore` and `.dockerignore` both exclude `prompts` at any depth, so the files would
         reach neither GitHub nor a Docker build.
       - How they reach production. Railway builds from the GitHub snapshot, where git-ignored
@@ -1163,18 +1163,18 @@ not here.
       are two different futures; pick one before either gets half-built
 - [ ] T-13 Phase 2+: rate limit the auth routes. Google absorbs credential attacks — there is no
       password to spray — and `/api/auth/logout` and `/api/auth/me` are cheap. Worth doing when
-      there is enough traffic for abuse to cost something. (From Sprint 18's Out of Scope,
+      there is enough traffic for abuse to cost something. (From Sprint 19's Out of Scope,
       2026-09-17.)
 - [ ] T-14 Phase 2+: automated refunds via Stripe's `charge.refunded` webhook. Until then the
       manual path works and is two steps: refund in the Stripe dashboard, then add a negative
       row with `scripts/grant_credits.py`. The ledger is append-only either way. (From Sprint
-      19's Out of Scope, 2026-09-17.)
+      20's Out of Scope, 2026-09-17.)
 - [ ] T-15 Phase 2+: prompt caching on the analysis conversation. It re-sends its whole history
       every batch, so input tokens grow batch over batch and later batches cost more. Caching
-      the stable prefix is the fix. Wait until 19b's `api_usage` rows show what that growth
+      the stable prefix is the fix. Wait until 20b's `api_usage` rows show what that growth
       actually costs — the cache-write and cache-read token columns are in the schema precisely
-      so this is measurable before it is optimized. (From Sprint 19's Out of Scope, 2026-09-17.)
+      so this is measurable before it is optimized. (From Sprint 20's Out of Scope, 2026-09-17.)
 - [ ] T-16 Phase 2+: a Postgres service container in CI. The suite runs on SQLite, so CI cannot
-      see Postgres-only failures — the 15a timestamptz class of bug is invisible to a green CI
+      see Postgres-only failures — the 16a timestamptz class of bug is invisible to a green CI
       run. Worth it once a Postgres-only failure has actually reached prod twice. (From Sprint
-      19's Out of Scope, 2026-09-17.)
+      20's Out of Scope, 2026-09-17.)

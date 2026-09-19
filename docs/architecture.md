@@ -27,7 +27,7 @@ Seven core entities, each a SQLModel table. Foreign keys are explicit. No deep n
 | email | str, nullable | null for anonymous sessions |
 | auth_token | str | cookie-based, always present |
 | created_at | datetime | |
-| auth_token_expires_at | datetime, nullable | not set yet — the beta cookie carries a 30-day max-age instead. Sprint 18b moves expiry into an `auth_tokens` table at the same 30 days and drops this column; 18c makes it slide on use. The older "7 days for anonymous" intent does not survive that: it was written for a world where anonymous data expired *because* there was nothing to convert into. See remaining-sprints.md, Sprint 18 |
+| auth_token_expires_at | datetime, nullable | not set yet — the beta cookie carries a 30-day max-age instead. Sprint 19b moves expiry into an `auth_tokens` table at the same 30 days and drops this column; 19c makes it slide on use. The older "7 days for anonymous" intent does not survive that: it was written for a world where anonymous data expired *because* there was nothing to convert into. See remaining-sprints.md, Sprint 19 |
 
 ### Resume
 
