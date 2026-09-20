@@ -21,7 +21,7 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       test-frontend, lock-check (`uv lock --check` + `uv sync --check`), seed, run. Every uv
       target depends on preflight. Also check-context (`python3
       scripts/check_docker_context.py --probe`), and any docker-build target runs it first.
-      Do NOT carry over the [s-a75ff1-a]/13c scaffolding targets (dep_freeze compare, uv export) — they
+      Do NOT carry over the [s-a75ff1-a] and [s-a75ff1-c] scaffolding targets (dep_freeze compare, uv export) — they
       die with their legs.
       Gate: after [s-a75ff1-c]. The mac move closed 2026-09-16, and that is half of why this is worth
       doing: make is not in Git Bash, it arrives with the Xcode CLT.
@@ -51,7 +51,8 @@ costs, makes the context check something that actually runs, and gives `uv lock 
 - [ ] Decide how far to take the .gitignore/.dockerignore overlap check. The first attempt
       (673f7a0) broke the Railway deploy and was reverted (fe8794e); it is parked in
       `test-vehicles/dockerignore-check/`, whose README has the details. (That README is frozen
-      at what it knew on 2026-09-16 and calls this [s-41441e] — read it as this sprint.)
+      at what it knew on 2026-09-16 and calls this work "Sprint 14", the numbering of the day —
+      read it as this sprint.)
       `scripts/check_docker_context.py` is already on main. Lightest first:
       Level 0, documented command: done (README Quick Start → Checks)
       Level 1, task runner: the Makefile item above
@@ -86,7 +87,12 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       example tag already lives, and keep a line-level escape hatch, `<!-- no-lint -->` in
       Markdown and `# no-lint` in source, for the case where prose has to carry a bad form.
       ADR-021's illustrative `[s-9cf8b9]` would otherwise fail a "every tag resolves" check for
-      the same reason
+      the same reason.
+      Watch: prose quotes old numbering on purpose, and a converter cannot hear the quotation
+      marks. The migration rewrote "the old Sprint 18 scope bullet" into a tag for a different
+      sprint, and a frozen README that "calls this Sprint 14" into a tag for another one again.
+      Both read as ordinary references and both were wrong; a sweep after the fact found them.
+      Anything phrased as *the old N* or *calls this N* is a quotation, and quotations are data
 - [ ] Port `scripts/readinglist.sh`, or replace it. It came from another project: it slices
       `## Sprint 2C` out of a single plan document and reads `docs/DECISIONS.md` with `D-04a`
       IDs, so it does not run here. After ADR-021's migration its main job is gone — a sprint

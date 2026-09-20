@@ -74,7 +74,7 @@ is declared at `models.py:262` and never written. Credit packs amortize Stripe's
   foreign key.
 - The analysis conversation re-sends its whole history every batch, so input tokens grow batch
   over batch. Later batches cost more; that's the pricing, not a metering bug.
-- The old [s-17c7e9] scope bullet claimed Sprint 3 "already has per-session cost tracking that
+- The old scope bullet for this sprint claimed Sprint 3 "already has per-session cost tracking that
   could be extended." It does not — nothing writes a cost anywhere. That bullet is gone with
   this rewrite; the claim is recorded here so it doesn't get re-derived from the git history.
 - `pricing.py` has to know the model id `config.py` actually ships (`default_model`, overridable
