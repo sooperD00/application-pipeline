@@ -547,6 +547,17 @@ costs, makes the context check something that actually runs, and gives `uv lock 
          Probably skip it: Level 1 plus Level 3 cover the same ground
       Level 3, CI: the CI item above
       Level 4, tests for the script: in Tech Debt, worth it only if the script grows
+- [ ] Decide whether the planning tags are worth a linter yet (ADR-021). Candidates, in the
+      order they pay off: every cleanup marker names a sprint or leg that exists; markers naming
+      an already-completed sprint are overdue cleanup; `plan.md` lists every file in `remaining/`
+      exactly once and every row resolves to a file; the planned order is a topological sort of
+      the stated dependencies; and the housekeeping and tech-debt counts get reported, since
+      nothing renumbers those lists any more. Suspect lines get printed, not judged — no regex
+      can tell a sprint reference from a test count, which is what the tag scheme exists to fix.
+      Shape it like `check_docker_context.py`: stdlib-only in `scripts/`, runs from anywhere,
+      exit 0 clean / 1 findings / 2 couldn't check, one line in README → Checks.
+      Watch: don't write it while the layout is still moving. A linter against a moving spec is
+      wasted work, and ADR-021's migration is the thing that has to settle first
 
 
 ## Sprint 18 — Custom domain --- planned

@@ -27,3 +27,4 @@ rule writes 020.
 | 016 | [Entity Lifecycle and Route Hierarchy (Phase ?)](adr-016-entity-lifecycle-and-routes.md) | Accepted | 2026-03-11 |
 | 017 | [Resume Snapshots — Living Documents vs. Point-in-Time References (Phase 2+)](adr-017-resume-snapshots.md) | Proposed | 2026-03-12 |
 | 018 | [uv for Backend Dependency Management](adr-018-uv-for-backend-dependencies.md) | Accepted | 2026-08-30 |
+| 021 | [Planning System — Sprint Files, Stable IDs, and In-Source Cleanup Markers](adr-021-planning-system.md) | Proposed | 2026-09-19 |
