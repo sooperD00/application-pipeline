@@ -5,7 +5,7 @@
 **Phase**: 1
 <!-- was Sprint 15 before ADR-021 -->
 
-sprint type: cutover migration
+**Kind:** migration — consumer graph: the database, then the callers, then the dev environment.
 Why: the app is split across three Railway projects. Private networking stops at the project line, so anything crossing projects goes over public URLs, and forgotten services can keep billing.
 
 Constraints

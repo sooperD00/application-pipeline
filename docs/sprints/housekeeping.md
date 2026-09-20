@@ -45,3 +45,13 @@ about fifty unassigned items, hold a planning session before adding features.
       no, these need either a second marker word or no marker and a line in a sprint file.
       The `(Sprint 6)`-style provenance notes in the routers and tests are not in scope: those
       are finished sprints, they never move, and git blame says the same thing.
+      Read 2026-09-20, and they do not all land in the same place. Four are work [s-77f2e3]
+      already lists — the Enter-to-submit preference, the company/role auto-populate, the
+      pre-populated-fields note beside it, and the 404 copy that waits on ADR-016 — so those
+      are ordinary sprint markers. `analysis.py:55` belongs to the prompt-extraction tech-debt
+      item, and ADR-013 already records that it pulls the opposite way from extraction, which
+      is the thing to settle before either gets half-built. `SessionsPage.jsx:12` — stale
+      sessions, with auto-archive, a manual button and a TTL warning as options — is in no
+      list at all and needs one. `main.py:4` is not work: it is a status line that says
+      "Phase 0, Sprint 12", and [s-26220f-a] is already scheduled to correct the auth claim
+      three lines below it.
