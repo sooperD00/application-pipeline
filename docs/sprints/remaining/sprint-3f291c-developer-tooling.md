@@ -63,12 +63,17 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       Level 3, CI: the CI item above
       Level 4, tests for the script: in Tech Debt, worth it only if the script grows
 - [ ] Decide whether the planning tags are worth a linter yet (ADR-021). Candidates, in the
-      order they pay off: every cleanup marker names a sprint or leg that exists; markers naming
-      an already-completed sprint are overdue cleanup; `plan.md` lists every file in `remaining/`
-      exactly once and every row resolves to a file; the planned order is a topological sort of
-      the stated dependencies; and the housekeeping and tech-debt counts get reported, since
-      nothing renumbers those lists any more. Suspect lines get printed, not judged — no regex
-      can tell a sprint reference from a test count, which is what the tag scheme exists to fix.
+      order they pay off: `TODO`, `FIXME`, `XXX` or `HACK` anywhere in source is a finding,
+      which is the one rule a tool enforces perfectly and the reason ADR-021 bans the words at
+      all; every tag resolves to something live, so a `[SPRINT-` marker names a real sprint or
+      leg and an `[h-`/`[t-` reference names an item still in its list — a tag whose item left
+      the list is how a promotion gets missed; markers naming an already-completed sprint are
+      overdue cleanup; `plan.md` lists every file in `remaining/` exactly once and every row
+      resolves to a file; the planned order is a topological sort of the stated dependencies;
+      and the counts get reported — housekeeping, tech debt, and how many source references
+      point at unscheduled work, which is the same crowding signal from the code's side.
+      Suspect lines get printed, not judged — no regex can tell a sprint reference from a test
+      count, which is what the tag scheme exists to fix.
       Shape it like `check_docker_context.py`: stdlib-only in `scripts/`, runs from anywhere,
       exit 0 clean / 1 findings / 2 couldn't check, one line in README → Checks.
       Watch: don't write it while the layout is still moving. A linter against a moving spec is

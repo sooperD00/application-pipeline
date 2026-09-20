@@ -84,6 +84,15 @@ docs/reading/reading-list-for-<id>-<leg>.txt     what one coding session was han
 - Never: `Sprint 19`, `19c`, a bare number, a sprint number in source outside a marker
 - Sprints 1 through 12 predate this record. They are numbered, they live in one archive file, and references to them by number stay as they are. Don't write new ones.
 
+## Tags in source
+
+- Never write `TODO`, `FIXME`, `XXX` or `HACK`. A tag is how future work is named here, and a banned word is something a tool can check perfectly, which a convention about prose is not.
+- `[SPRINT-<id>-<leg>-CLEANUP]` promises that this line changes or disappears at that leg. It expires, and the leg's done-when list proves it did.
+- `[h-<id>]` or `[t-<id>]` says the work is filed, unscheduled, and this is where it would land. It describes what is true now; it does not instruct. Use it where the code location is part of the information — "auto-archive stale sessions" means less without the page it lives on.
+- Promote when the work gets scheduled: an item that lands in a sprint takes that sprint's marker in source, and stops being a housekeeping reference.
+- Keep every comment true in the present tense. A line that only makes sense as an instruction is scheduled work, and takes a marker.
+- A tag in source is a cross-reference, never the record. The list holds the priority, the code holds the location, and the ID exists because the item is already filed.
+
 ## Plan a sprint
 
 - Plan in a session of its own, separate from coding. Planning and coding compete for the same attention and the same context.
@@ -112,7 +121,7 @@ docs/reading/reading-list-for-<id>-<leg>.txt     what one coding session was han
 - Run one leg at a time. The leg is already sized for the model named in `plan.md`.
 - Go back to planning when the plan is wrong or does not fit. Re-planning is cheaper than a leg that lands wrong.
 - Update the sprint file as the work moves — plans, items, gates, closing tasks — and let the commits carry the history. Do not narrate a superseded plan inside the file; the diff already says what changed.
-- Place a cleanup marker the moment you leave something for later, naming the leg that will remove it.
+- Place a cleanup marker the moment you leave something for later, naming the leg that will remove it. If no leg owns it yet, file it in `housekeeping.md` or `techdebt.md` and cite that ID instead — never leave the comment as the only record.
 - Add a Watch when you hit a trap, where the work is.
 
 Two kinds of prompt get confused, so they are named here. **App prompts** ship in the backend and go to the Claude API while the application runs; they are in this repo, and getting them out of it is tracked in `techdebt.md`. **Dev prompts** are assembled by hand from private templates to build this application; they are IP, they live in the private `<this-repo-name>-devlog` repo, and nothing here reproduces them. The planning artifacts that *are* public are the sprint files, `plan.md`, and the reading lists.
@@ -166,7 +175,7 @@ Do not reconcile these against each other or against `git log`. They measure dif
 - Never guess a destination. An item filed into the wrong sprint is worse than an item sitting in housekeeping, because the wrong sprint inherits it silently.
 - Keep the dated provenance line when an item moves, the way "(Pulled from Housekeeping, 2026-09-17)" reads today.
 - Nothing renumbers these lists. The count is reported, not maintained.
-- Source never cites an `[h-` or `[t-` item. Anything source points at is planned work and carries a cleanup marker instead.
+- Source may cite an `[h-` or `[t-` item, under the rules in Tags in source. What it may not do is be the only record: the ID exists because the item is in a list, and the day it gets a sprint the reference becomes that sprint's marker.
 
 **Consequences**
 - `plan.md` becomes the single point of failure. If it drifts, nothing resolves.
