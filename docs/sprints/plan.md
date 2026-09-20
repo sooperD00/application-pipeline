@@ -43,7 +43,7 @@ The counter continues at 013.
 
 Phase 0 is deployed. Phase 1 delivers auth, billing and onboarding, plus the tracking and
 metrics that make the funnel visible to the user and to me. The deliverables are designed in
-[implementation-plan.md, Phase 1](implementation-plan.md#phase-1--my-brother-can-use-it-too);
+[implementation-plan.md, Phase 1](../implementation-plan.md#phase-1--my-brother-can-use-it-too);
 the sprint order that gets there lives here. Where Phase 1 ends is not decided yet.
 
 **Delivering in Phase 1**

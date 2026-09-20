@@ -21,4 +21,4 @@ Session locking follows naturally: once analysis runs, the session's resume snap
 
 3. **Embed resume text directly in TailoringJob** (no FK at all): already partially done via prompt_snapshot, but loses the ability to show "this job used your 'Technical' resume" in the UI. The snapshot table preserves both the content and the label/metadata link.
 
-**Update 2026-09-17** — deferred from Phase 1+ to Phase 2+; the Phase 0 nullable-FK fix still stands and still carries the outputs. Tracked as [t-4baae5] in remaining-sprints.md.
+**Update 2026-09-17** — deferred from Phase 1+ to Phase 2+; the Phase 0 nullable-FK fix still stands and still carries the outputs. Tracked as [t-4baae5] in sprints/techdebt.md.

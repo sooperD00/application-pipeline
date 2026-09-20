@@ -12,7 +12,7 @@
  *
  * This is NOT a global context provider — it's scoped to the layout and
  * lives below the URL params, which remain the source of truth. See the
- * Sprint 8 rationale in remaining-sprints.md for why URL > context.
+ * Sprint 8 rationale in docs/sprints/completed/ for why URL > context.
  */
 import { useState, useEffect, useCallback, createContext, useContext } from 'react'
 import { useParams, Outlet } from 'react-router-dom'

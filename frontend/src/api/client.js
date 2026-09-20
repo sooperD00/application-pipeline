@@ -96,8 +96,8 @@ export function addJD(sessionId, { raw_text, company = '', role = '', compensati
  * Note: the endpoint takes no body. It fetches all of the user's resumes
  * internally (up to 3). The Sprint 7 scaffold had a phantom resume_id
  * param here — removed in Sprint 10 (first sprint where this is called
- * from UI). See remaining-sprints.md deferred section for the Phase 1+
- * resume selection feature that will re-add it with real plumbing.
+ * from UI). Resume selection is deferred to Phase 2+ (docs/sprints/techdebt.md)
+ * and will re-add the param with real plumbing behind it.
  *
  * Usage:
  *   const res = await analyzeSession(id)
@@ -131,8 +131,8 @@ export function listSessionTailoringJobs(sessionId) {
  *
  * No body — the backend fetches all user resumes internally.
  * Sprint 11: removed phantom resume_id param (same fix as analyzeSession
- * in Sprint 10). See remaining-sprints.md deferred section for Phase 1+
- * resume selection that will re-add it with real plumbing.
+ * in Sprint 10). Resume selection is deferred to Phase 2+ (docs/sprints/techdebt.md)
+ * and will re-add the param with real plumbing behind it.
  */
 export function batchTailor(sessionId, { force = false } = {}) {
   const qs = force ? '?force=true' : ''

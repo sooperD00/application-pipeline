@@ -100,7 +100,7 @@ Left side — compact table:
 **Tab 4: Tailoring**
 
 - "Apply All" button — uses JD + every resume the user has, no extras, kicks off up to 4 in parallel
-- Individual: click a JD → popup modal to add app questions and additional JD text → "Go". Narrowing the resume set is a Phase 1+ override; by default all of them go in (see remaining-sprints.md)
+- Individual: click a JD → popup modal to add app questions and additional JD text → "Go". Narrowing the resume set is a Phase 1+ override; by default all of them go in (see sprints/techdebt.md)
 - Status boxes per JD: queued → processing → ready for review
 - Click "ready" → output view: tailored resume, cover letter, app question answers
 - Editable before export/download as docx
@@ -139,9 +139,9 @@ All shipped:
 **Goal**: Two users, then paying ones. Persistence, tracker and flow polished for someone who
 didn't design it — plus the auth, billing and limits that make serving someone else safe. Where
 Phase 1 ends isn't decided yet; the sprint order that gets there lives in
-[remaining-sprints.md](remaining-sprints.md).
+[sprints/plan.md](sprints/plan.md).
 
-- Google sign-in — builds on Phase 0's cookie auth. Per-browser login tokens first, then OAuth; signing in adopts the anonymous User row into a permanent account and the data carries over. Chosen over magic links and passwords because both need email infrastructure this project doesn't have, and because there's no password database to defend once paid credits sit behind the login. Magic links stay on the table as a second way in, deferred to public release. ADR-019 (written in [s-26220f-a]) carries the reasoning; sprint order in [remaining-sprints.md](remaining-sprints.md).
+- Google sign-in — builds on Phase 0's cookie auth. Per-browser login tokens first, then OAuth; signing in adopts the anonymous User row into a permanent account and the data carries over. Chosen over magic links and passwords because both need email infrastructure this project doesn't have, and because there's no password database to defend once paid credits sit behind the login. Magic links stay on the table as a second way in, deferred to public release. ADR-019 (written in [s-26220f-a]) carries the reasoning; sprint order in [sprints/plan.md](sprints/plan.md).
 - Billing, moved up from Phase 3. Whoever pays needs metering and per-user cost caps first — today one API key pays for every session run by anyone.
 - Onboarding flow for first-time users
 - Tab 3: Review & Enrich table with all sections

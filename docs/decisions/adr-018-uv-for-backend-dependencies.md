@@ -9,7 +9,7 @@
 
 Choosing uv specifically: it reads a PEP 621 `[project]` table, so the declaration is tool-agnostic and survives a later change of tool — the lockfile is the only uv-shaped artifact in the repo. It also manages the interpreter, which matters here because dev and prod disagree about the Python version. Matching current practice was itself part of the reason: this is a public repo that doubles as evidence of how I work.
 
-**Structure**: The migration is split into legs so a red suite can name what broke. Packaging moves first with versions pinned ([s-a75ff1-a]), then the consumers ([s-a75ff1-b]), then versions with packaging fixed ([s-a75ff1-c]), then two deferred declaration changes ([s-a75ff1-d]). A `[tool.uv] constraint-dependencies` block holds every package at the pre-migration freeze until [s-a75ff1-c] deletes it — that diff *is* the upgrade. [s-a75ff1] in remaining-sprints.md has the leg-by-leg plan.
+**Structure**: The migration is split into legs so a red suite can name what broke. Packaging moves first with versions pinned ([s-a75ff1-a]), then the consumers ([s-a75ff1-b]), then versions with packaging fixed ([s-a75ff1-c]), then two deferred declaration changes ([s-a75ff1-d]). A `[tool.uv] constraint-dependencies` block holds every package at the pre-migration freeze until [s-a75ff1-c] deletes it — that diff *is* the upgrade. [s-a75ff1] has the leg-by-leg plan; docs/sprints/plan.md says where it lives.
 
 **Consequences**:
 - A generated `requirements.txt` outlives the migration by one leg, so the Docker build keeps working while packaging changes underneath it.

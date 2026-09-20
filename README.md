@@ -67,7 +67,7 @@ LinkedIn filtered search (last 24h, etc)
 
 Live at [application-pipeline-production.up.railway.app](https://application-pipeline-production.up.railway.app/). The core loop works end-to-end: paste JDs, kick off AI analysis, watch cards sort themselves green/yellow/red in real time, then kick off tailoring and download zip packages of tailored resumes, cover letters, and app answers. Cookie-based anonymous auth isolates data per browser — no login required. See [docs/implementation-plan.md](docs/implementation-plan.md) for the full roadmap.
 
-Phase 1 is in progress — auth, billing, onboarding, and the tracking that makes the funnel visible. What ships and in what order: [docs/remaining-sprints.md](docs/remaining-sprints.md).
+Phase 1 is in progress — auth, billing, onboarding, and the tracking that makes the funnel visible. What ships and in what order: [docs/sprints/plan.md](docs/sprints/plan.md).
 
 ![Card grid after analysis — green/yellow/red recommendations with rolling meta analysis](docs/img/_200-dollar-meta-analysis.PNG)
 
@@ -110,7 +110,7 @@ backend from `backend/`.
 `backend/requirements.txt` is generated from `uv.lock` by `uv export`, so dependency changes
 belong in `backend/pyproject.toml`, not in the txt file. The uv workflow replaces the venv and
 pip steps above in the next leg of the dependency sprint — see
-[docs/remaining-sprints.md](docs/remaining-sprints.md).
+[docs/sprints/plan.md](docs/sprints/plan.md).
 
 ### Tests
 
@@ -120,7 +120,7 @@ cd frontend && npm test
 ```
 
 Those 18 failures have one cause (session/DB wiring), predate the dependency sprint, and are
-scheduled — see [docs/remaining-sprints.md](docs/remaining-sprints.md). Counts measured
+scheduled — see [docs/sprints/plan.md](docs/sprints/plan.md). Counts measured
 2026-09-16.
 
 ### Checks
@@ -156,8 +156,7 @@ tailoring is one per Apply JD. [ADR-003](docs/decisions/adr-003-claude-opus-defa
 - [Workflow](docs/workflow.md) — the human method this automates
 - [Decisions](docs/decisions/) — architecture decision records, one file each
 - [Service Layer Notes](docs/service-layer-notes.md) — implementation TODOs and design notes
-- [Completed Sprints](docs/completed-sprints.md) — what shipped and when
-- [Remaining Sprints](docs/remaining-sprints.md) — what's next (Phase 1)
+- [Sprint Plan](docs/sprints/plan.md) — the order, what is left, and what shipped when
 - [Original Prompts](docs/original-prompts.md) — the manual Claude prompts this automates
 
 ## Repo Structure
@@ -262,12 +261,12 @@ ApplicationPipeline/
 │   └── package.json                    # - [x] React 19, Tailwind v4, Vitest
 ├── docs/
 │   ├── architecture.md
-│   ├── completed-sprints.md
 │   ├── decisions/                   # - [x] one file per ADR, README.md is the index
 │   ├── implementation-plan.md
 │   ├── original-prompts.md
-│   ├── remaining-sprints.md
+│   ├── reading/                     # - [x] reading lists, one per sprint leg
 │   ├── service-layer-notes.md
+│   ├── sprints/                     # - [x] plan.md, one file per sprint, housekeeping, tech debt
 │   ├── workflow.md
 │   ├── design/                      # - [x] design sessions, one file per person per session
 │   ├── feedback/                    # - [x] what testers said, and the asks that produced it

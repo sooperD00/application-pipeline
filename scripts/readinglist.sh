@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # readinglist.sh -- draft a sprint reading list from what the plan already says.
 #
+# NOT PORTED YET. Written for another project: it slices one big plan document and reads a
+# DECISIONS.md of D-rows. This repo has a file per sprint and a folder of ADRs, so the paths
+# and IDs below do not resolve here. Porting it is an item in the developer tooling sprint.
+#
 #   ./readinglist.sh 2C 3        # from "## Sprint 2C" up to "## Sprint 3"
 #
 # This produces a DRAFT. It found 9 of the 11 decisions Sprint 2C actually
