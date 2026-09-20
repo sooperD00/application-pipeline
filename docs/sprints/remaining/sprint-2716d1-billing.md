@@ -8,12 +8,12 @@
 Add prepaid credit billing: meter Claude usage per user, gate spend on a credit balance, and
 sell credit packs through Stripe Checkout.
 **Kind:** feature
-**Legs:** test, meter, charge, sell, then trim the client. 20a puts the spend paths under test
-before money touches them. 20b records cost and charges nothing. 20c charges an internal ledger
-with no Stripe. 20d connects real payments. 20e is the client-side spend hygiene that has been
+**Legs:** test, meter, charge, sell, then trim the client. leg a puts the spend paths under test
+before money touches them. leg b records cost and charges nothing. leg c charges an internal ledger
+with no Stripe. leg d connects real payments. leg e is the client-side spend hygiene that has been
 waiting for a reason. Each leg can go red for one reason: spend-path behavior, metering, ledger
 math, Stripe, or the client.
-**Entry gate:** Sprint 19 done; a Stripe account in test mode with its keys in the dev `.env`;
+**Entry gate:** [s-26220f] done; a Stripe account in test mode with its keys in the dev `.env`;
 the Stripe CLI installed and logged in; Railway Postgres backups confirmed, since the ledger
 will hold paid balances.
 
@@ -24,7 +24,7 @@ discard the result (`_tokens` at `analysis.py:252` and `tailoring.py:318`), and 
 is declared at `models.py:262` and never written. Credit packs amortize Stripe's 30¢ fixed fee
 (`cost-notes.txt`) and skip subscription lifecycle states until public release.
 
-## 20a — put the spend paths under test, fix the stuck analysis (bugfix) --- planned
+## leg a — put the spend paths under test, fix the stuck analysis (bugfix) --- planned
 
 **Done when**
 - [ ] `test_analysis.py` covers batching (the 5-JD boundary and a partial final batch), event order (`batch_start`, `jd_result`, `batch_complete`, `analysis_complete`), retry then error, and meta-analysis carried across batches, against a mocked Claude client
@@ -47,11 +47,11 @@ is declared at `models.py:262` and never written. Credit packs amortize Stripe's
   Starlette: the plain `finally` left the status at `analyzing`, and the shielded one reset it.
 - The request's `db` can be mid-commit when the cancel lands, so the cleanup opens its own session.
 - `docx` generation errors don't fail a tailoring job: the text is still saved and the job goes
-  `ready`. 20c decides whether that job is billable.
-- `anyio` arriving only through Starlette is the same transitive-luck pattern 13d closes for
+  `ready`. leg c decides whether that job is billable.
+- `anyio` arriving only through Starlette is the same transitive-luck pattern [s-a75ff1-d] closes for
   greenlet. Declare it.
 
-## 20b — meter Claude usage per user (feature) --- planned
+## leg b — meter Claude usage per user (feature) --- planned
 
 **Done when**
 - [ ] every Claude call that returns writes exactly one `api_usage` row (one per analysis batch, one per tailoring attempt), even when the job fails afterward
@@ -70,17 +70,17 @@ is declared at `models.py:262` and never written. Credit packs amortize Stripe's
 | 5 | delete the old | Drop `tailoring_jobs.api_cost_cents` (never written) |
 
 **Watch**
-- Add `api_usage` to 19c's merge. Otherwise deleting a merged anonymous user fails on the
+- Add `api_usage` to [s-26220f-c]'s merge. Otherwise deleting a merged anonymous user fails on the
   foreign key.
 - The analysis conversation re-sends its whole history every batch, so input tokens grow batch
   over batch. Later batches cost more; that's the pricing, not a metering bug.
-- The old Sprint 18 scope bullet claimed Sprint 3 "already has per-session cost tracking that
+- The old [s-17c7e9] scope bullet claimed Sprint 3 "already has per-session cost tracking that
   could be extended." It does not — nothing writes a cost anywhere. That bullet is gone with
   this rewrite; the claim is recorded here so it doesn't get re-derived from the git history.
 - `pricing.py` has to know the model id `config.py` actually ships (`default_model`, overridable
   by `DEFAULT_MODEL`), not the one ADR-003 wrote down.
 
-## 20c — credit ledger and spend gate (feature) --- planned
+## leg c — credit ledger and spend gate (feature) --- planned
 
 **Done when**
 - [ ] a `credit_ledger` row records every grant and debit in integer micro-dollars; balance is `SUM(amount)` per user, and no code path updates or deletes a row
@@ -108,9 +108,9 @@ is declared at `models.py:262` and never written. Credit packs amortize Stripe's
   stops being fine.
 - Keep the pricing rule in one function (`debit_for(usage)`). The ledger stores micro-dollars
   either way, so flat pricing and cost × markup differ only there.
-- 20a's shielded cleanup never debits. Debits belong to completed work only.
+- leg a's shielded cleanup never debits. Debits belong to completed work only.
 
-## 20d — sell credit packs through Stripe Checkout (feature) --- planned
+## leg d — sell credit packs through Stripe Checkout (feature) --- planned
 
 **Done when**
 - [ ] a signed-in user buys a pack in test mode and the balance rises exactly once, including when Stripe resends the event
@@ -146,9 +146,9 @@ is declared at `models.py:262` and never written. Credit packs amortize Stripe's
 - Stripe's activation review reads the public page. It has to load without a password and can't
   look under construction.
 
-## 20e — client-side spend hygiene (feature) --- planned
+## leg e — client-side spend hygiene (feature) --- planned
 
-Four client-side items that have been waiting for a reason to be worth doing. The gate in 20c is
+Four client-side items that have been waiting for a reason to be worth doing. The gate in leg c is
 that reason: once a retry costs the user money and an abandoned tab costs them a debit, these
 stop being politeness and start being correctness.
 
@@ -157,24 +157,24 @@ stop being politeness and start being correctness.
       chatty if someone leaves the tab open overnight — increase the interval after 60s
 - [ ] `analyzeSession()` and the `TailoringPage` polling both take an `AbortController`, and
       `useSSE.abort()` aborts the fetch rather than only cancelling the reader. Note the
-      corrected premise from 20a: the backend is not left running forever, but until the fetch
+      corrected premise from leg a: the backend is not left running forever, but until the fetch
       is actually aborted the server does not see the disconnect, so the abort is what makes
-      20a's shielded cleanup fire promptly instead of whenever the socket eventually drops
+      leg a's shielded cleanup fire promptly instead of whenever the socket eventually drops
 - [ ] the retry budget has a decided home, written down. The Analyze button re-enables
       immediately on error via `finally { setIsAnalyzing(false) }`, with no retry counter,
-      cooldown, or backend cap. 20c's `require_credits` is now the obvious place — confirm that
+      cooldown, or backend cap. leg c's `require_credits` is now the obvious place — confirm that
       is enough, or add a button-level cooldown on top of it
 - [ ] **Decide: is the "cap retries on `createTailoringJob`, front end and back" item still
-      needed?** It was written when my API key paid for every retry. After 20c the user's own
+      needed?** It was written when my API key paid for every retry. After leg c the user's own
       balance does, which is the argument for deleting the line — a cap on top of a paid gate
       protects nobody. Delete it if that holds. Keep it if the floor check's non-reservation
-      (see 20c's Watch) makes a double-click meaningfully expensive. `tailoring.py` is where the
+      (see leg c's Watch) makes a double-click meaningfully expensive. `tailoring.py` is where the
       backend half would land
 
 **Watch** This leg is frontend-heavy and touches the two pages the rest of the sprint already
 changed. Land it last so a red frontend suite means the client, not the ledger.
 
-## Out of Scope (20)
+## Out of Scope
 - Subscription with a monthly cap, as a monthly grant row on the same ledger → public release
 - Stripe's LLM token billing (private preview), which automates cost × markup → revisit if the pricing rule becomes pure pass-through
 - Automated refunds via `charge.refunded`: refund in the Stripe dashboard, then add a negative row with `grant_credits.py` → T-14
@@ -183,4 +183,4 @@ changed. Land it last so a red frontend suite means the client, not the ledger.
 - Free credits for anonymous visitors (the implementation plan's Free Trial Flow) → business rule, public release
 - A sweeper that marks stale `processing` tailoring jobs `failed` after a redeploy strands them; the real fix, arq + Redis, is already Phase 1+ in `architecture.md` → H-4
 - A Postgres service container in CI, so tests can see Postgres-only failures → T-16
-- The rest of Sprint 14 (`test_jds.py` downloads and CRUD, the `TailoringPage` polling test) stays there. Its ownership/auth-guard item moved to 19d, and its analysis and failure-path items moved to 20a
+- The rest of [s-41441e] (`test_jds.py` downloads and CRUD, the `TailoringPage` polling test) stays there. Its ownership/auth-guard item moved to [s-26220f-d], and its analysis and failure-path items moved to leg a

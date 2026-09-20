@@ -54,12 +54,12 @@ the sprint order that gets there lives here. Where Phase 1 ends is not decided y
   error visibility
 - Per-user cost caps and rate limiting — my API key pays for every beta session today, and
   billing needs metering anyway
-- Data lifecycle — anonymous retention and anonymous → account conversion land in Sprint 19. A
-  delete-my-data path is deferred to public release (19's Out of Scope), which is the honest
+- Data lifecycle — anonymous retention and anonymous → account conversion land in [s-26220f]. A
+  delete-my-data path is deferred to public release ([s-26220f]'s Out of Scope), which is the honest
   place for it: it is a promise to keep, not a feature to ship early and half-wire
-- Terms of service and a privacy policy — due with 20d's go-live commit, which publishes the
+- Terms of service and a privacy policy — due with [s-2716d1-d]'s go-live commit, which publishes the
   public page Stripe's activation review reads
 - Job durability — BackgroundTasks die with the request; architecture.md routes this to
   arq/Redis once users are concurrent
-- Railway database backups — Sprint 20's entry gate, since the credit ledger holds paid balances
+- Railway database backups — [s-2716d1]'s entry gate, since the credit ledger holds paid balances
 - Suite health, and whatever tooling this phase warrants for quality and maintainability

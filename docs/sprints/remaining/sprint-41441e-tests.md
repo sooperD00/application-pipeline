@@ -7,16 +7,16 @@
 
 **Legs:** fix the red suite (bugfix), then fill the gaps (feature).
 
-Fill concrete gaps. The goal is confidence before auth (Sprint 19), and before CI, which can't
+Fill concrete gaps. The goal is confidence before auth ([s-26220f]), and before CI, which can't
 live on a red suite.
 
-## 14a — restore a green suite (bugfix) --- planned
+## leg a — restore a green suite (bugfix) --- planned
 
 `tests/test_tailoring.py` has 18 failing tests with one cause, session/DB wiring. They predate
-Sprint 13 and were not fixable inside it — the 13a baseline recorded the same 18 before and
+[s-a75ff1] and were not fixable inside it — the [s-a75ff1-a] baseline recorded the same 18 before and
 after the migration. Until they are green, every "test counts unchanged" done-when in this doc
 is measuring a suite that is already red. (Pulled out of Housekeeping, where it was marked for
-Sprint 13 — the wrong sprint.)
+[s-a75ff1] — the wrong sprint.)
 
 **Done when**
 - [ ] the 18 failures pass, and nothing else changes: 0 failed, same collected count
@@ -28,10 +28,10 @@ Sprint 13 — the wrong sprint.)
 | 0 | reproduce | Run pytest. `test_list_sessions: assert 0 == 2` is the tell: every request runs as a fresh anonymous user instead of `seeded_user` (artifact, not a commit) |
 | 1 | fix | In the `client` fixture, add `app.dependency_overrides[get_current_user] = lambda: seeded_user` beside the `get_session` override. Fix the stale comment |
 
-**Watch** Land after 13c closes. 13c's done-when compares test counts against the 13a baseline,
+**Watch** Land after [s-a75ff1-c] closes. [s-a75ff1-c]'s done-when compares test counts against the [s-a75ff1-a] baseline,
 and this changes them (verified in a scratch copy: 88 passed → 106 passed).
 
-## 14b — fill the gaps (feature) --- planned
+## leg b — fill the gaps (feature) --- planned
 
 Backend — new file:
 - `test_jds.py`: zip package download (ADR-014), docx download, JD CRUD (PATCH fields, status
@@ -51,7 +51,7 @@ Frontend — extend existing:
       is when you find out whether they have.
 
 **Moved out, 2026-09-17.** Three items left this sprint for one that owns them better.
-`test_analysis.py` and the six `failed`-path tests in `test_tailoring.py` went to 20a, which
+`test_analysis.py` and the six `failed`-path tests in `test_tailoring.py` went to [s-2716d1-a], which
 puts the spend paths under test in the sprint where money starts touching them. The
-ownership/auth guard test ("session belongs to a different user") went to 19d, where the guard
+ownership/auth guard test ("session belongs to a different user") went to [s-26220f-d], where the guard
 it tests actually exists — writing it here would have tested a stub.

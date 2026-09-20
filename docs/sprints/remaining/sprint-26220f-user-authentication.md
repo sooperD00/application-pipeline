@@ -8,22 +8,22 @@
 Add Google sign-in on top of per-browser login tokens and CSRF protection, keeping the app
 anonymous-first.
 **Kind:** feature
-**Legs:** extract, migrate, sign in, surface, protect. 19a moves code and 19b moves token
-storage, both with behavior fixed. 19c–19d add identity (factor 1: who the user is). 19e rolls
-out CSRF (factor 2: request integrity). Merging 19c and 19e means a red suite can't say whether
+**Legs:** extract, migrate, sign in, surface, protect. leg a moves code and leg b moves token
+storage, both with behavior fixed. leg c–leg d add identity (factor 1: who the user is). leg e rolls
+out CSRF (factor 2: request integrity). Merging leg c and leg e means a red suite can't say whether
 sign-in or CSRF broke it.
-**Entry gate:** 14a (green suite) required before 19a — this sprint rewrites the dependency
-every route uses, and a red baseline can't tell you what you broke. Sprint 18 (custom domain)
-required before 19c. 13c (one Python), 16 (timestamps and the 422 rename) and 17 (CI behind
-Railway's Wait for CI) recommended before 19a.
+**Entry gate:** [s-41441e-a] (green suite) required before leg a — this sprint rewrites the dependency
+every route uses, and a red baseline can't tell you what you broke. [s-17c7e9] (custom domain)
+required before leg c. [s-a75ff1-c] (one Python), [s-26be17] (timestamps and the 422 rename) and [s-3f291c] (CI behind
+Railway's Wait for CI) recommended before leg a.
 
 **Why now** Every browser is its own user, and nothing lets a person reach their data from a
 second browser. The cookie is set once, when the user row is created, with a 30-day lifetime
 and no refresh. Any tester whose first visit was more than 30 days ago was silently handed a
-new, empty user, and their old rows sit in Postgres, unreachable. Sprint 20 also can't sell
+new, empty user, and their old rows sit in Postgres, unreachable. [s-2716d1] also can't sell
 credits to an anonymous cookie: a paid balance would die with the cookie.
 
-**Decision** Google sign-in over passwords and over magic links (ADR-019, written in 19a).
+**Decision** Google sign-in over passwords and over magic links (ADR-019, written in leg a).
 Google wins because passwords still need reset and email-verification flows and magic links
 need an email provider, a token table and expiry logic — all three need email infrastructure
 this project does not have; because Google supplies a verified email; and because there is no
@@ -32,17 +32,17 @@ table as a *second* way in for people who won't use Google (Out of Scope, below)
 
 **Decides: anonymous retention.** The cookie is 30 days today (`sessions.py:84`, "30 days for
 beta") and `auth_token_expires_at` is never set, while `architecture.md` documents 7 days for
-anonymous users. Neither survives this sprint as written: 19b moves expiry into `auth_tokens`
-and holds it at 30 days unchanged, and 19c makes it slide on use. The 7-day intent was written
+anonymous users. Neither survives this sprint as written: leg b moves expiry into `auth_tokens`
+and holds it at 30 days unchanged, and leg c makes it slide on use. The 7-day intent was written
 for a world where anonymous data expired *because* there was nothing to convert into; sliding
 expiry on a browser that can adopt into an account is the better answer. `architecture.md`'s
-User table is the doc that changes, at 19b.
+User table is the doc that changes, at leg b.
 
 **Reference** Two FMH files are checked in beside the sprint notes:
 `docs/DEVLOG/sprints/sprint17-18/auth-FMH-not-this-project.py` and
 `auth_service-FMH-not-this-project.py`. Read them for the *cookie helper* —
 `_set_session_cookies` sets the HTTP-only credential and the JS-readable `csrf_token` together,
-which is the pattern 19e ports — and skip the rest: `auth_service.py` is the password design
+which is the pattern leg e ports — and skip the rest: `auth_service.py` is the password design
 that lost, and the register/login route shapes don't apply. Also from FMH, not in this repo:
 `app/dependencies.py` (`get_current_user`, `csrf_protect`), `app/services/session_service.py`,
 the session model, the frontend that reads `csrf_token` and sends `X-CSRF-Token`, and FMH's
@@ -52,7 +52,7 @@ routes.
 > Claims below marked "reproduced" or "verified" were checked on 2026-09-16 against a scratch
 > copy of this repo at the locked dependency versions. They are findings, not expectations.
 
-## 19a — extract the auth dependency to `app/auth.py` (refactor) --- planned
+## leg a — extract the auth dependency to `app/auth.py` (refactor) --- planned
 
 **Done when**
 - [ ] `get_current_user` lives in `backend/app/auth.py`, and `grep -rn --include='*.py' "def get_current_user" backend/app` returns exactly one hit
@@ -72,7 +72,7 @@ routes.
 `jds.py` already dodges a circular import with a function-level `settings` import; don't create
 a second one.
 
-## 19b — move login tokens to a per-browser table (migration) --- planned
+## leg b — move login tokens to a per-browser table (migration) --- planned
 
 **Done when**
 - [ ] an `auth_tokens` table holds one row per browser: `user_id` (FK, cascade delete), `token_hash` (unique), `csrf_token`, `created_at`, `expires_at`, `last_seen_at`
@@ -81,7 +81,7 @@ a second one.
 - [ ] a new browser gets exactly one `users` row and one `auth_tokens` row
 - [ ] no raw token is stored: `users.auth_token` and `users.auth_token_expires_at` are gone
 - [ ] existing tests pass with only their `User(auth_token=…)` fixtures edited, and `test_auth.py` covers new, returning, and unknown-token browsers
-- [ ] `architecture.md`'s User table matches: both columns gone, `auth_tokens` documented, and the 7-day anonymous note replaced by what 19c actually does
+- [ ] `architecture.md`'s User table matches: both columns gone, `auth_tokens` documented, and the 7-day anonymous note replaced by what leg c actually does
 
 **Commits**
 | # | | |
@@ -103,9 +103,9 @@ a second one.
   `hashlib.sha256(token.encode()).hexdigest()` and `secrets.token_urlsafe(32)`. Those are the
   same calls `app/auth.py` makes, so the hash can't drift between the migration and the app.
 - Keep expiry and cookie lifetime exactly as they are (30 days, never refreshed). Sliding
-  expiry is a behavior change and belongs to 19c.
+  expiry is a behavior change and belongs to leg c.
 
-## 19c — Google sign-in (feature) --- planned
+## leg c — Google sign-in (feature) --- planned
 
 **Done when**
 - [ ] signing in on a fresh browser keeps that browser's sessions and resumes (the anonymous user is adopted)
@@ -116,7 +116,7 @@ a second one.
 - [ ] `GET /api/auth/me` returns `email` (null when anonymous) and `is_anonymous`
 - [ ] tokens slide in the database: use within the lifetime extends `expires_at` (at most one write a day), and an expired row is rejected
 - [ ] a Google account whose `email_verified` is false is refused
-- [ ] sign-in works at Sprint 18's domain on Railway, not only on localhost
+- [ ] sign-in works at [s-17c7e9]'s domain on Railway, not only on localhost
 
 **Commits**
 | # | | |
@@ -154,16 +154,16 @@ a second one.
   JWT) in the callback; store no Google tokens.
 - Authlib 1.8 prefers `httpx2` (first on PyPI in May 2026) and doesn't declare it. Without it,
   Authlib falls back to the `httpx` that `anthropic` pulls in and warns. That is the same
-  arriving-by-transitive-luck pattern 13d exists to close for greenlet — declare the root.
+  arriving-by-transitive-luck pattern [s-a75ff1-d] exists to close for greenlet — declare the root.
 - FMH's `MeResponse` has `email: str` and `role`. This app needs a nullable `email`,
   `is_anonymous`, and no `role`, or anonymous users get a 500.
 
-## 19d — sign-in in the UI (feature) --- planned
+## leg d — sign-in in the UI (feature) --- planned
 
 **Done when**
 - [ ] the nav shows "Sign in with Google" for anonymous browsers, and the account email plus "Sign out" when signed in
 - [ ] signing in lands on `/sessions`, and signing out lands on `/sessions` as a fresh anonymous browser
-- [ ] a session URL owned by another user shows the existing "Session not found" state, and a test covers it (the ownership/auth guard item moved here from Sprint 14)
+- [ ] a session URL owned by another user shows the existing "Session not found" state, and a test covers it (the ownership/auth guard item moved here from [s-41441e])
 - [ ] existing frontend tests pass
 
 **Commits**
@@ -177,13 +177,13 @@ a second one.
 **Watch** Sign-in has to be a full-page navigation. `fetch` can't follow a redirect to Google's
 consent screen.
 
-## 19e — CSRF protection (migration) --- planned
+## leg e — CSRF protection (migration) --- planned
 
 Kind is migration because consumers order the commits: issue the token, teach every sender,
 then enforce.
 
 **Done when**
-- [ ] every POST, PATCH, and DELETE under `/api` returns 403 without a matching `X-CSRF-Token` (Sprint 20's Stripe webhook excepted), and GETs are unaffected
+- [ ] every POST, PATCH, and DELETE under `/api` returns 403 without a matching `X-CSRF-Token` ([s-2716d1]'s Stripe webhook excepted), and GETs are unaffected
 - [ ] the app works end to end in a browser: create a session, paste a JD, analyze (SSE), tailor, download, edit and delete a resume, sign out
 - [ ] a browser whose cookie expired mid-page recovers on its next mutation: one 403, one `GET /api/auth/me`, one successful retry
 - [ ] domain tests override `csrf_protect` alongside `get_current_user`, and `test_auth.py` exercises the real one
@@ -204,19 +204,19 @@ then enforce.
 - A POST with an expired cookie mints a fresh anonymous row whose token the page doesn't have
   yet. That's the retry path, not a bug.
 - FMH exempts register and login because no session exists yet. Here every browser has a token
-  row from its first request, so nothing is exempt except Sprint 20's Stripe webhook, which
+  row from its first request, so nothing is exempt except [s-2716d1]'s Stripe webhook, which
   lives on its own router without `csrf_protect`.
 
-## Out of Scope (19)
+## Out of Scope
 - Magic links for people who won't use Google, as a second way in to the same `users` table → public release
 - Returning to the originating page after sign-in needs an allowlisted `next` parameter (open-redirect risk) → H-2
-- Rescuing testers' orphaned pre-19 data: re-parent manually after they sign in; their resume text identifies them → H-3
+- Rescuing testers' orphaned data from before [s-26220f]: re-parent manually after they sign in; their resume text identifies them → H-3
 - Deleting an account and its data → public release
 - Rate limiting the auth routes: Google absorbs credential attacks, and logout and `/me` are cheap → T-13
-- Sprint 17's Makefile and ignore-overlap check are good for this sprint but don't block it → they stay in 17
-- **Decide at 19e close:** whether the "`api/client.js` has no retry logic and no token refresh"
-  line is now closed. 19e adds the one retry that matters (the CSRF 403 replay), and opaque
+- [s-3f291c]'s Makefile and ignore-overlap check are good for this sprint but don't block it → they stay in [s-3f291c]
+- **Decide at leg e close:** whether the "`api/client.js` has no retry logic and no token refresh"
+  line is now closed. leg e adds the one retry that matters (the CSRF 403 replay), and opaque
   session cookies never need a refresh path — so the argument is that the line is done and
   should be deleted rather than carried. Confirm that in the browser first: if a transient 5xx
   on analyze or tailor still surfaces as an uninterpretable failure, a general retry wrapper is
-  a real item and belongs in 20e beside the other client-side work
+  a real item and belongs in [s-2716d1-e] beside the other client-side work

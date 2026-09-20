@@ -12,7 +12,7 @@ Move the app to a real hostname before anything external starts pointing at it.
 **Why now** Google's OAuth redirect URIs, Stripe's webhook endpoint and the website URL on the
 Stripe account are all registered against a host, in three different consoles. Registering them
 against `up.railway.app` and moving later means doing all three again, and costs every signed-in
-user a fresh sign-in. It is an afternoon plus a registration fee, and it is required before 19c.
+user a fresh sign-in. It is an afternoon plus a registration fee, and it is required before [s-26220f-c].
 
 **Done when**
 - [ ] the app serves over HTTPS at the new domain
@@ -29,9 +29,9 @@ user a fresh sign-in. It is an afternoon plus a registration fee, and it is requ
 
 **Watch**
 - Cookies are host-scoped and do not follow the redirect. A tester arriving from the old URL
-  starts empty until 19c's sign-in exists. The 30-day cookie has already orphaned most pre-19
-  data, so tell testers instead of engineering around it.
-- A cheap throwaway name is fine — but rename *before* 19c, never after. Once sign-in lands, a
+  starts empty until [s-26220f-c]'s sign-in exists. The 30-day cookie has already orphaned most
+  data from before [s-26220f], so tell testers instead of engineering around it.
+- A cheap throwaway name is fine — but rename *before* [s-26220f-c], never after. Once sign-in lands, a
   rename costs users one sign-in and costs you the three-console checklist above.
-- Avoid bargain TLDs if magic links ever become the second way in (19's Out of Scope). Some
+- Avoid bargain TLDs if magic links ever become the second way in ([s-26220f]'s Out of Scope). Some
   spam filters score them as suspect.

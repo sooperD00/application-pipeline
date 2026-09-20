@@ -141,7 +141,7 @@ didn't design it — plus the auth, billing and limits that make serving someone
 Phase 1 ends isn't decided yet; the sprint order that gets there lives in
 [remaining-sprints.md](remaining-sprints.md).
 
-- Google sign-in — builds on Phase 0's cookie auth. Per-browser login tokens first, then OAuth; signing in adopts the anonymous User row into a permanent account and the data carries over. Chosen over magic links and passwords because both need email infrastructure this project doesn't have, and because there's no password database to defend once paid credits sit behind the login. Magic links stay on the table as a second way in, deferred to public release. ADR-019 (written in Sprint 19a) carries the reasoning; sprint order in [remaining-sprints.md](remaining-sprints.md).
+- Google sign-in — builds on Phase 0's cookie auth. Per-browser login tokens first, then OAuth; signing in adopts the anonymous User row into a permanent account and the data carries over. Chosen over magic links and passwords because both need email infrastructure this project doesn't have, and because there's no password database to defend once paid credits sit behind the login. Magic links stay on the table as a second way in, deferred to public release. ADR-019 (written in [s-26220f-a]) carries the reasoning; sprint order in [remaining-sprints.md](remaining-sprints.md).
 - Billing, moved up from Phase 3. Whoever pays needs metering and per-user cost caps first — today one API key pays for every session run by anyone.
 - Onboarding flow for first-time users
 - Tab 3: Review & Enrich table with all sections

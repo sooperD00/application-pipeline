@@ -62,7 +62,7 @@ not here.
       attention, not functionality. The real gate is traffic rather than a phase boundary —
       decide before the repo gets attention, not after. Two open questions block the work:
       - Where the files live. The README tree says `backend/app/prompts/`; `sync-prompts.sh`
-        expects a root `prompts/` (Sprint 16 deletes or fixes that script). Either way,
+        expects a root `prompts/` ([s-26be17] deletes or fixes that script). Either way,
         `.gitignore` and `.dockerignore` both exclude `prompts` at any depth, so the files would
         reach neither GitHub nor a Docker build.
       - How they reach production. Railway builds from the GitHub snapshot, where git-ignored
@@ -79,18 +79,18 @@ not here.
       are two different futures; pick one before either gets half-built
 - [ ] T-13 Phase 2+: rate limit the auth routes. Google absorbs credential attacks — there is no
       password to spray — and `/api/auth/logout` and `/api/auth/me` are cheap. Worth doing when
-      there is enough traffic for abuse to cost something. (From Sprint 19's Out of Scope,
+      there is enough traffic for abuse to cost something. (From [s-26220f]'s Out of Scope,
       2026-09-17.)
 - [ ] T-14 Phase 2+: automated refunds via Stripe's `charge.refunded` webhook. Until then the
       manual path works and is two steps: refund in the Stripe dashboard, then add a negative
       row with `scripts/grant_credits.py`. The ledger is append-only either way. (From Sprint
-      20's Out of Scope, 2026-09-17.)
+      [s-2716d1]'s Out of Scope, 2026-09-17.)
 - [ ] T-15 Phase 2+: prompt caching on the analysis conversation. It re-sends its whole history
       every batch, so input tokens grow batch over batch and later batches cost more. Caching
-      the stable prefix is the fix. Wait until 20b's `api_usage` rows show what that growth
+      the stable prefix is the fix. Wait until [s-2716d1-b]'s `api_usage` rows show what that growth
       actually costs — the cache-write and cache-read token columns are in the schema precisely
-      so this is measurable before it is optimized. (From Sprint 20's Out of Scope, 2026-09-17.)
+      so this is measurable before it is optimized. (From [s-2716d1]'s Out of Scope, 2026-09-17.)
 - [ ] T-16 Phase 2+: a Postgres service container in CI. The suite runs on SQLite, so CI cannot
-      see Postgres-only failures — the 16a timestamptz class of bug is invisible to a green CI
+      see Postgres-only failures — the [s-26be17-a] timestamptz class of bug is invisible to a green CI
       run. Worth it once a Postgres-only failure has actually reached prod twice. (From Sprint
-      20's Out of Scope, 2026-09-17.)
+      [s-2716d1]'s Out of Scope, 2026-09-17.)

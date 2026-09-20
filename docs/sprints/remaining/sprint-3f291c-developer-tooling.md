@@ -13,17 +13,17 @@ costs, makes the context check something that actually runs, and gives `uv lock 
 
 **Scope**
 - [ ] Makefile wrapping the uv commands, with a preflight target. uv binds to an environment
-      based on the working directory and says nothing about it — that cost an hour in 13a, when
-      a stale root `.venv` answered instead of `backend/.venv`, and 13b's prework is the
+      based on the working directory and says nothing about it — that cost an hour in [s-a75ff1-a], when
+      a stale root `.venv` answered instead of `backend/.venv`, and [s-a75ff1-b]'s prework is the
       by-hand version of this guard. A recipe that cd's first removes the failure mode instead
       of detecting it.
       Targets: preflight (print sys.prefix, fail unless it ends in backend/.venv), sync, test,
       test-frontend, lock-check (`uv lock --check` + `uv sync --check`), seed, run. Every uv
       target depends on preflight. Also check-context (`python3
       scripts/check_docker_context.py --probe`), and any docker-build target runs it first.
-      Do NOT carry over the 13a/13c scaffolding targets (dep_freeze compare, uv export) — they
+      Do NOT carry over the [s-a75ff1-a]/13c scaffolding targets (dep_freeze compare, uv export) — they
       die with their legs.
-      Gate: after 13c. The mac move closed 2026-09-16, and that is half of why this is worth
+      Gate: after [s-a75ff1-c]. The mac move closed 2026-09-16, and that is half of why this is worth
       doing: make is not in Git Bash, it arrives with the Xcode CLT.
       Watch: macOS ships GNU make 3.81 (2006 — Apple stopped at the GPLv3 line), so
       `.ONESHELL:` silently does nothing. Each recipe line gets its own shell, so `cd backend`
@@ -32,26 +32,26 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       Getting this wrong reproduces the exact bug the Makefile exists to prevent.
       Success condition: it REPLACES typing uv directly. A wrapper used half the time is a
       second way to be in the wrong directory, not a fix
-- [ ] A first CI job, once the suite is green (Sprint 14), with Railway's Wait for CI turned on
+- [ ] A first CI job, once the suite is green ([s-41441e]), with Railway's Wait for CI turned on
       behind it. `uv lock --check` is a one-line pre-deploy gate with nowhere to run it today,
-      and Sprint 19 rewrites the dependency every route uses — a red suite should stop that
+      and [s-26220f] rewrites the dependency every route uses — a red suite should stop that
       deploy.
       Workflow: `.github/workflows/ci.yml` on `push: branches: [main]`, which is the only
       trigger Railway offers Wait for CI for. Backend `uv lock --check`, `uv sync --locked`,
       `uv run pytest`; frontend `npm ci`, `npm test`. Use `astral-sh/setup-uv`, set
-      `working-directory: backend` on every uv step, pin Python to whatever 13c decided and
+      `working-directory: backend` on every uv step, pin Python to whatever [s-a75ff1-c] decided and
       Node to 20. Put `python3 scripts/check_docker_context.py --probe` in the same job, since
       `--probe` needs no real ignored files and so works in a fresh clone.
       Prove the gate rather than assuming it: push a deliberately red commit to `main`, confirm
       the Railway deploy shows SKIPPED, then revert and confirm the revert deploys.
       Try the workflow on a branch first — 673f7a0's workflow failed on every push to main.
       Watch: the suite runs on SQLite, so CI cannot see Postgres-only failures like the one
-      16a exists to fix. CI proves the tests pass; it does not prove Postgres accepts the
+      [s-26be17-a] exists to fix. CI proves the tests pass; it does not prove Postgres accepts the
       writes. ~45 min
 - [ ] Decide how far to take the .gitignore/.dockerignore overlap check. The first attempt
       (673f7a0) broke the Railway deploy and was reverted (fe8794e); it is parked in
       `test-vehicles/dockerignore-check/`, whose README has the details. (That README is frozen
-      at what it knew on 2026-09-16 and calls this Sprint 14 — read it as this sprint.)
+      at what it knew on 2026-09-16 and calls this [s-41441e] — read it as this sprint.)
       `scripts/check_docker_context.py` is already on main. Lightest first:
       Level 0, documented command: done (README Quick Start → Checks)
       Level 1, task runner: the Makefile item above

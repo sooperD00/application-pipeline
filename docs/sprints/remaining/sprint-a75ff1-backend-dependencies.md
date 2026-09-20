@@ -14,9 +14,9 @@ invent a local one). Also: requirements.txt is a pip freeze —
 41 pinned lines, hand-appended since, in which the 15 packages this app actually asks for (11
 runtime, 4 test-only) are indistinguishable from the 26 that came along for the ride. Nothing
 declares what this project actually requires, so nothing can be upgraded deliberately.
-(Planning guessed 13 roots in 20 transitives; counted at 13a close, it was 15 in 41.)
+(Planning guessed 13 roots in 20 transitives; counted at leg a close, it was 15 in 41.)
 
-## 13a — requirements.txt → uv (migration) --- done 2026-09-16
+## leg a — requirements.txt → uv (migration) --- done 2026-09-16
 
 **Done when**
 - [x] `uv pip freeze` matches the pre-migration `pip freeze` exactly — same packages,
@@ -72,9 +72,9 @@ The first attempt is parked in `test-vehicles/dockerignore-check/`. It sat on br
 
 - [x] Delete `backend/venv`, the pre-migration pip venv — done 2026-09-17, by hand on the
       Windows machine, since it is untracked and no fetch or checkout would remove it. Safe
-      once 13a closed: the baseline freeze is captured in `docs/DEVLOG/sprints/sprint13/` and
+      once leg a closed: the baseline freeze is captured in `docs/DEVLOG/sprints/sprint13/` and
       pushed to the devlog repo, `compare` reads files rather than environments, and neither
-      13b nor 13c consumes the old venv. (Pulled from Housekeeping, 2026-09-17.)
+      leg b nor leg c consumes the old venv. (Pulled from Housekeeping, 2026-09-17.)
 - [x] `.gitattributes` with `* text=auto eol=lf`, plus `git add --renormalize .` — done
       2026-09-17, in its own commit so it reverts cleanly. 29 tracked files were CRLF in the
       index against 87 LF, with no `.gitattributes` at all; 27 normalized, and every blob was
@@ -85,16 +85,16 @@ The first attempt is parked in `test-vehicles/dockerignore-check/`. It sat on br
       Two side effects worth knowing. `start.sh` can now never be committed with CRLF, which
       would break the container's shebang — that trap is closed by construction rather than by
       luck. And `dep_freeze.py`'s CRLF-preserving read and write helpers are vestigial as of
-      this commit; harmless, and they die with the script in 13c.
+      this commit; harmless, and they die with the script in leg c.
       (Pulled from Tech Debt, 2026-09-17, where it was filed as a requirements.txt symptom
       rather than the repo-wide split it turned out to be.)
 
-## 13b — flip the consumers, delete requirements.txt (consumer flip) --- planned
+## leg b — flip the consumers, delete requirements.txt (consumer flip) --- planned
 
 **Prework (before the first `uv sync` on a machine)**
 
 uv picks its environment from the directory you run it in and never says which one it picked.
-That cost an hour in 13a, when a stale root `.venv` answered instead of `backend/.venv`.
+That cost an hour in leg a, when a stale root `.venv` answered instead of `backend/.venv`.
 
 - Run uv from `backend/`. From anywhere else, `uv --directory backend run ...`.
 - Check before trusting any number: `uv run python -c "import sys; print(sys.prefix)"` has to
@@ -103,7 +103,7 @@ That cost an hour in 13a, when a stale root `.venv` answered instead of `backend
   bug, not a second option — delete it rather than working around it.
 - Repo-root `scripts/` is stdlib-only by design and needs no venv. Keep it that way: the
   context check has to run exactly when the environment is in doubt.
-- This Mac has neither venv yet, being a fresh clone. Sprint 17's Makefile is the planned
+- This Mac has neither venv yet, being a fresh clone. [s-3f291c]'s Makefile is the planned
   guard (a preflight target that fails unless `sys.prefix` ends in `backend/.venv`).
 
 **Done when**
@@ -113,11 +113,11 @@ That cost an hour in 13a, when a stale root `.venv` answered instead of `backend
       anything earlier. Until that commit `.dockerignore` excluded neither `**/venv` nor
       `**/.venv`, so `COPY backend/ .` copied a local backend/venv into local builds and
       whatever size that added is not prod's baseline. Railway never had one, being gitignored
-- [ ] `python3 scripts/check_docker_context.py --probe` exits 0 (13b edits the Dockerfile and `.dockerignore`)
+- [ ] `python3 scripts/check_docker_context.py --probe` exits 0 (leg b edits the Dockerfile and `.dockerignore`)
 - [ ] `git ls-files --error-unmatch backend/requirements.txt` fails — the file is out of the index
 - [ ] `git grep -n requirements.txt -- ':!docs' ':!test-vehicles'` returns nothing. Use `git
       grep`, which reads tracked files only: a plain `grep -rn .` also reads `.git/`, where
-      13b's own delete-commit message will match, plus `backend/.venv` and
+      leg b's own delete-commit message will match, plus `backend/.venv` and
       `frontend/node_modules` once those exist. Tracked references to clear: `Dockerfile`
       (COPY and pip install), `.dockerignore` (the venv comment), and `README.md` (Quick Start
       and the repo tree).
@@ -130,16 +130,16 @@ That cost an hour in 13a, when a stale root `.venv` answered instead of `backend
 | 3 | delete the old | `git rm backend/requirements.txt` |
 
 **Watch** start.sh calls bare `alembic` and `uvicorn` off PATH. It consumes *where packages
-land*, not requirements.txt, so 13a's inventory missed it. Satisfy it by putting the venv's
+land*, not requirements.txt, so leg a's inventory missed it. Satisfy it by putting the venv's
 bin on PATH in the image rather than rewriting start.sh — fewer files move, and start.sh
 stays runnable outside Docker.
 
-**Watch** `.dockerignore`'s `**/.venv` and `**/venv` rules stay after this leg. What 13b
+**Watch** `.dockerignore`'s `**/.venv` and `**/venv` rules stay after this leg. What leg b
 clears is the comment above them, not the rules: `COPY backend/ .` would otherwise copy a host
 venv into the image — a macOS venv into a Linux image, or a second one over the image's own.
 The `--probe` done-when above is the net that catches it.
 
-## 13c — remove the scaffolding, take the upgrade (version upgrade) --- planned
+## leg c — remove the scaffolding, take the upgrade (version upgrade) --- planned
 
 **Kind:** upgrade
 
@@ -154,8 +154,8 @@ The older note to re-lock with `--python 3.13.7` only holds if the image moves t
 from Housekeeping, 2026-09-17, where the skew and the note sat as two separate items.)
 
 Whichever wins, move every consumer in one commit: the Dockerfile base image,
-`backend/.python-version`, and Sprint 17's CI pin once that job exists. This is Sprint 19's
-entry gate as well as 13c's decision — 19 adds `authlib`, `itsdangerous` and `httpx2`, and new
+`backend/.python-version`, and [s-3f291c]'s CI pin once that job exists. This is [s-26220f]'s
+entry gate as well as leg c's decision — [s-26220f] adds `authlib`, `itsdangerous` and `httpx2`, and new
 packages should resolve against one interpreter.
 
 **Done when**
@@ -165,7 +165,7 @@ packages should resolve against one interpreter.
 - [ ] `dep_freeze.py compare` re-run against the same baseline and its output read. It is
       expected to differ now; that difference is the upgrade stated in package terms
 - [ ] test counts: 106 collected − 29 from `test_dep_freeze.py` = 77 collected, with the same
-      18 failures in test_tailoring.py (13a baseline: 106 collected, 88 passed, 18 failed)
+      18 failures in test_tailoring.py (leg a baseline: 106 collected, 88 passed, 18 failed)
 - [ ] docker build + run smoke passes
 - [ ] `docs/DEVLOG/sprints/sprint13/` deleted — after `compare`, the freeze artifacts have no
       consumer left (pulled from Housekeeping, 2026-09-17)
@@ -181,16 +181,16 @@ packages should resolve against one interpreter.
 the anthropic SDK all move fast. If this blows the appetite, cut scope not time: upgrade a
 named subset and leave the rest locked.
 
-## 13d — dependency hygiene (refactor) --- planned
+## leg d — dependency hygiene (refactor) --- planned
 
 **Kind:** refactor — the suite is the invariant.
 
-The two second-factor items 13a tagged and deferred. Both are declaration-only, both move the
-lock, and that is why they wait until 13c has read its upgrade diff.
+The two second-factor items leg a tagged and deferred. Both are declaration-only, both move the
+lock, and that is why they wait until leg c has read its upgrade diff.
 
 **Done when**
 - [ ] `python-multipart` is gone from pyproject and the suite is unchanged — zero
-      UploadFile/Form/File usage anywhere in app/, confirmed in 13a
+      UploadFile/Form/File usage anywhere in app/, confirmed in leg a
 - [ ] `sqlalchemy[asyncio]` is declared, so nothing relies on greenlet arriving transitively
 - [ ] `uv lock --check` clean, docker build + run smoke passes
 - [ ] no `[SPRINT-13-CLEANUP]` markers are left in the repo
@@ -203,7 +203,7 @@ lock, and that is why they wait until 13c has read its upgrade diff.
 
 (Pulled from Housekeeping, 2026-09-17, where both sat with no real when.)
 
-## After Sprint 13 closes
+## After this sprint closes
 
 Two items that have nothing to do with dependencies but need a when, parked here so they land
 as soon as the sprint is off the critical path.
@@ -218,6 +218,6 @@ as soon as the sprint is off the critical path.
       module level, so the lab cannot start — `--dry-run` included. It should still exist on
       the Windows machine.
 
-## Out of Scope (13)
+## Out of Scope
 - No CI exists. `uv lock --check` is a one-line pre-deploy gate once there's somewhere to run
-  it → Sprint 17 (Developer tooling), which owns the first CI job
+  it → [s-3f291c] (Developer tooling), which owns the first CI job

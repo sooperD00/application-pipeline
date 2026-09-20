@@ -12,13 +12,13 @@ Deprecations, dead files and small corrections, cleared before the next feature 
 them. Nothing here changes behaviour a user would notice, except the timestamps, which are
 wrong today.
 
-## 16a — timezone-aware timestamps (migration) --- planned
+## leg a — timezone-aware timestamps (migration) --- planned
 
 The `datetime.utcnow()` deprecation, taken as the obvious one-line swap to
 `datetime.now(datetime.UTC)`, **breaks prod while the tests stay green**. Every timestamp
 column is `sa.DateTime()` — timestamp *without* time zone. asyncpg raises a DataError when an
 aware datetime is bound to a naive column, and SQLite silently ignores tzinfo, so the suite
-never sees it. Sprint 19 adds token expiry and Sprint 20 adds purchase history, which is
+never sees it. [s-26220f] adds token expiry and [s-2716d1] adds purchase history, which is
 exactly where the next writer reaches for `datetime.now(UTC)`.
 
 The "timestamps read a day ahead in Oregon" bug is the same bug seen from the frontend — stored
@@ -54,14 +54,14 @@ UTC, serialized without an offset, rendered as local. It closes here.
 - Push commits 2 and 3 together. Once the models reject naive datetimes, any leftover
   `utcnow()` raises at write time.
 - Autogenerate renders `UTCDateTime` by its import path. In this migration and every later one
-  (19b, 20b, 20c), write `sa.DateTime(timezone=True)` instead.
+  ([s-26220f-b], [s-2716d1-b], [s-2716d1-c]), write `sa.DateTime(timezone=True)` instead.
 - `DateTime(timezone=True)` alone isn't enough. SQLite still hands back naive datetimes, and
   comparing one to `utc_now()` raises TypeError (reproduced). The decorator's read side is what
-  keeps Sprint 19's expiry checks testable.
-- `users.auth_token_expires_at` is on the list and 19b deletes it. Migrate it anyway: it keeps
+  keeps [s-26220f]'s expiry checks testable.
+- `users.auth_token_expires_at` is on the list and [s-26220f-b] deletes it. Migrate it anyway: it keeps
   this a single mechanical pass, and skipping it makes the grep-clean done-when a special case.
 
-## 16b — deprecations and dead files (refactor) --- planned
+## leg b — deprecations and dead files (refactor) --- planned
 
 **Kind:** refactor — the suite is the invariant.
 
@@ -69,7 +69,7 @@ UTC, serialized without an offset, rendered as local. It closes here.
 - [ ] `HTTP_422_UNPROCESSABLE_ENTITY` deprecation — FastAPI renamed it to
       `HTTP_422_UNPROCESSABLE_CONTENT`. 11 occurrences: jds.py (2), resumes.py (4),
       sessions.py (5). Agents copy the patterns they find, so retire the deprecated name before
-      Sprint 19 writes new routes. Done when `grep -rn --include='*.py'
+      [s-26220f] writes new routes. Done when `grep -rn --include='*.py'
       HTTP_422_UNPROCESSABLE_ENTITY backend/app` returns nothing, the deprecation warning is
       gone from pytest output, and test counts are unchanged
 - [ ] Delete `assets/react.svg` and `public/vite.svg` — leftover Vite scaffolding, unreferenced
