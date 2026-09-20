@@ -1,28 +1,49 @@
 # ADR-021: How Sprints Are Planned, Tracked and Closed
 
-<!-- Title is a stub — change it and I'll rename the file and the index row to match. -->
-
 **Date**: 2026-09-19
-**Status**: Proposed
+**Status**: Proposed — Accepted when the migration at the bottom lands
 
-**Decision**: <!-- 2-3 sentences, no more. Sprints are files with hex IDs; order lives in plan.md;
-source carries cleanup markers and nothing else. -->
+**Decision**: A sprint is one file, identified by a hex ID that never changes. Order lives in exactly one place, `docs/sprints/plan.md`, and a sprint's status is the folder it sits in. Documents name a sprint or a leg by tag, source files carry cleanup markers and no other sprint reference, and a sprint closes by being moved with `git mv` rather than rewritten into a second document.
 
-**Why**: <!-- 3-4 bullets, one line each. Just enough that nobody re-opens it. -->
-- separate files facilitate precise reading list for execution, and tracked git mv for done archive
-- hex IDs allow easy reordering in plan.md *and* stable references in source and docs
-- sprint and leg sizing manages human and LLM attention during execution
-- sprint and leg compartmentalized scope manages human and LLM context during execution
-- phases manage product delivery expectations
+**Why**
+- Separate files give a precise reading list for execution, and a tracked `git mv` for the archive.
+- Hex IDs allow easy reordering in `plan.md` *and* stable references in source and docs.
+- Sprint and leg sizing manages human and LLM attention during execution.
+- Sprint and leg compartmentalized scope manages human and LLM context during execution.
+- Phases manage product delivery expectations.
+
+Anyone may do any step in this record, and everyone follows it whoever they are. Where a step is reserved, it says so.
 
 ## Vocabulary
 
-<!-- Moves here verbatim from remaining-sprints.md TERMINOLOGY — this is its permanent home:
-Phase, Sprint, Kind (with the kind -> ordering-heuristic table), Leg, Factor, Appetite, Watch,
-Status, Landed, Entry gate, Housekeeping, Tech debt. I'll carry it over; edit any definition you
-want to change while it moves. -->
+| Term | Means |
+|------|-------|
+| **Phase** | A delivery milestone. The phases themselves live in [implementation-plan.md](../implementation-plan.md). |
+| **Sprint** | One named change to the system, titled as the category of work. One file. |
+| **Leg** | A sequenced segment of one journey, with an appetite of one sitting. |
+| **Kind** | The commit-ordering heuristic for a leg. See the table below. |
+| **Factor** | The class of thing a red suite would blame. |
+| **Appetite** | One sitting per leg for a person, and a leg that fits the context of the model named in `plan.md`. |
+| **Watch** | A known trap, written where the work is. |
+| **Status** | planned → in progress → handed off → done YYYY-MM-DD, or dropped, with the reason. A sprint with no place in the order yet is parked. |
+| **Housekeeping** | Work with no home yet, which can join any sprint. |
+| **Tech debt** | Work deferred, probably for a while. |
 
-should this be a table instead of verbatim?
+| Kind | Ordering heuristic |
+|------|--------------------|
+| feature | import graph |
+| migration | consumer graph |
+| refactor | the suite is the invariant |
+| upgrade | no graph — lock first, let the breakage name the commits |
+| spike / investigation | planned as a sprint but quarantined in `test-vehicles/<spike-name>/` |
+| bugfix | reproduce → fix → confirm (regression test) |
+
+- Ask what orders the commits, not what the work is about. Deploy might be a migration, because dev → staging → prod is a consumer graph, or a feature, because the pipeline has to be built.
+- Not every topic is a Kind. If nothing fits, discuss it before inventing one.
+
+**Landed** — written when a leg or a sprint closes: what the plan said, what actually happened, and the lesson worth carrying. A leg's note sits under the leg. The sprint's note sits in the sprint file and travels with it. This is the note that makes the next plan better, which is the only reason planning gets less wrong over time.
+
+**Entry gate** — work in an *earlier* sprint that a later one leans on, named at the top of the sprint that needs it, as required or recommended. Never a second home: the gate line points at the leg that owns the work, and the spec stays there. A gate item with no owner is a missing sprint, not a checklist.
 
 ## Where things live
 
@@ -34,10 +55,13 @@ docs/sprints/
   completed/phase-0-sprints-001-012.md           the Phase 0 archive, never split
   housekeeping.md                                unassigned work that can join any sprint
   techdebt.md                                    deferred work, probably for a while
+docs/reading/reading-list-for-<id>-<leg>.txt     what one coding session was handed
 ```
 
-<!-- One line each on what a file owns and what it must not hold. The one I'd write: plan.md owns
-order and nothing owns status, because the folder is the status. -->
+- `plan.md` owns order, the dependency map, the completed log, and the model the appetite is sized against. It holds no sprint content.
+- A sprint file owns everything about that sprint: why now, Kind, legs, done-when lists, commit tables, Watches, entry gates, Out of Scope, and Landed notes.
+- Nothing owns status. The folder is the status: `remaining/` is not done, `completed/` is.
+- Nothing outside `plan.md` stores a path to a sprint file, so a sprint that moves costs one line.
 
 ## IDs and file names
 
@@ -45,122 +69,121 @@ order and nothing owns status, because the folder is the status. -->
 - Roll again if all six come out digits, so an ID never reads as a number.
 - Check it is unused with `git grep <id>` before writing it down.
 - Name a planned sprint `sprint-<id>-<short-name>.md` and put it in `remaining/`.
-- Name a finished sprint `sprint-<NNN>-<id>-<short-name>.md`, where `<NNN>` is the order it was
-  actually done in, and put it in `completed/`.
+- Name a finished sprint `sprint-<NNN>-<id>-<short-name>.md`, where `<NNN>` is the order it was actually done in, and put it in `completed/`.
+- Give a sprint its file as soon as it has a name. A stub with an ID and a title is a legitimate sprint file; nothing has to be planned out to exist.
 - Never renumber an ID, reuse one, or give a sprint a number that means its order.
 
 ## Referring to a sprint
 
 - Write `[s-<id>]` for a sprint and `[s-<id>-<leg>]` for a leg, in any document.
 - Write `leg c` inside that sprint's own file, where there is nothing to confuse it with.
-- Write `[SPRINT-<id>-CLEANUP]` or `[SPRINT-<id>-<leg>-CLEANUP]` in source, and name the sprint in
-  words in the comment beside it.
+- Write `[SPRINT-<id>-CLEANUP]` or `[SPRINT-<id>-<leg>-CLEANUP]` in source, and name the sprint in words in the comment beside it.
 - Cite an ADR, not a sprint, for why code is the way it is.
 - Yes: `[s-9cf8b9]`, `[s-9cf8b9-c]`, `[h-4b2e07]`, `[t-88a1f3]`, `[SPRINT-9cf8b9-c-CLEANUP]`
 - Never: `Sprint 19`, `19c`, a bare number, a sprint number in source outside a marker
+- Sprints 1 through 12 predate this record. They are numbered, they live in one archive file, and references to them by number stay as they are. Don't write new ones.
 
 ## Plan a sprint
 
-<!-- Steps to go from "this is work" to "this is a sprint file". Mine would start: generate an ID,
-copy the sprint template, write the why-now, pick the Kind, cut it into legs at factor boundaries,
-name the entry gates, add a row to plan.md. Yours is the one that matters — you plan them. -->
-- A sprint stub may be generated at any time and receive a hex number -- sprints do not
-  have to be planned out or filled out in full to have a file.
-- A sprint planning agent plans the next leg to be worked at close of previous leg -- this is
-  where all the rules must be enforced, because this is what the coding agent will receive.
-- Put the info from the old header about "Kind" and dependency planning here and tell sprint
-  writers and planning agent to use it.
-- Say that a planning session should be a separate human and LLM session than coding,
-  to manage attention and context
-- Sprint planning results in writes to sprint.txt in the house format in previous sprint(s)
-- Sprint planning should  does a scan of housekeeping.md to see if anything can be pulled in to the sprint
+- Plan in a session of its own, separate from coding. Planning and coding compete for the same attention and the same context.
+- Plan the next leg at the close of the one before it, so the plan meets the code as it actually landed rather than as it was imagined.
+- Pick the Kind first, then cut the legs at factor boundaries, so one red suite has one cause.
+- Size every leg to the Appetite. A leg that does not fit is two legs.
+- Name the entry gates, each pointing at the leg that owns the work.
+- Scan `housekeeping.md` for anything this sprint should absorb, and move it in.
+- Add or update the sprint's row in `plan.md`.
+- Generate the leg's reading list as the last step before its coding session.
+- Enforce every rule in this record while planning. Whatever the plan gets wrong, the coding session inherits.
+- Expect planning to be iterative: several sessions and tightenings, not one pass.
+- Stop planning a leg when its done-when list can be checked by someone who did not write it, its entry gates name their owners, and its reading list exists. Those three are the test, and they are the whole test.
+- Do not plan the decisions the code will make. Specify what constrains the work — interfaces, ordering, what must not move — and leave the rest to the keyboard. A sprint file nobody can hold in one head is over-specified, or it is two sprints.
 
-- The reading list for a sprint is generated by the planning agent as the last action prior
-  to handoff to the coding agent. The reading list is one of the guards that the coding 
-  LLM agent gets when it is time to write the sprint code.
-- Reference scripts/readinglist.sh as a helper (that likely needs small edits each time)
-- Actual reading list goes in `docs/reading/reading-list-for-<sprint-id>.txt`, with 
-  `docs/reading/reading-list-example.txt` there as an example. I'm not sure I love it, but
-  it's what I have right now.
+## Reading lists
 
+- Write one list per leg: `docs/reading/reading-list-for-<id>-<leg>.txt`.
+- Keep the `.txt` extension. Prompt material is `.txt` here, and sessions are told not to read `.txt` unless a list is handed to them deliberately. Markdown formatting inside the file is fine.
+- Generate it at the close of the preceding leg. A list written earlier describes a repo that no longer exists.
+- Document a list only for the sprint in progress and for sprints already finished. Draft as many as you like anywhere else; they do not enter `docs/` until they are about to be used.
+- Link it from `plan.md` with the date it was written. Where the row and the file disagree, the file wins.
 
 ## Run a sprint
 
-<!-- What happens while it is open: status changes, markers get placed as you code, Watches get
-added when you hit a trap, Landed notes get written per leg. -->
-- run one leg at a time -- legs are already sized for LLM_MODEL by the planner
-- go back to planning phase if the plan isn't right or doesn't fit
-- my prompts are my IP and are hidden in a private repo `<this-repo-name>-devlog` (say this so
-  it's clear)
-- the coding agent or human coder should update the sprint.md file with updated plans, items,
-  gates, closing tasks, etc, and use appropriate commits for tracking (not writing in the sprint
-  file about the previous plan and why it was changed).
+- Run one leg at a time. The leg is already sized for the model named in `plan.md`.
+- Go back to planning when the plan is wrong or does not fit. Re-planning is cheaper than a leg that lands wrong.
+- Update the sprint file as the work moves — plans, items, gates, closing tasks — and let the commits carry the history. Do not narrate a superseded plan inside the file; the diff already says what changed.
+- Place a cleanup marker the moment you leave something for later, naming the leg that will remove it.
+- Add a Watch when you hit a trap, where the work is.
 
-## Handoff a leg
+Two kinds of prompt get confused, so they are named here. **App prompts** ship in the backend and go to the Claude API while the application runs; they are in this repo, and getting them out of it is tracked in `techdebt.md`. **Dev prompts** are assembled by hand from private templates to build this application; they are IP, they live in the private `<this-repo-name>-devlog` repo, and nothing here reproduces them. The planning artifacts that *are* public are the sprint files, `plan.md`, and the reading lists.
 
-<!-- Done-when checked, Landed note written, no markers left for that leg. -->
-- update the "handoff" timestamp for the leg
-- write a landed line for the leg
-- write housekeeping items to housekeeping.md (use the script to generate hex id and check pure
-  numeric or duplicates)
-- write techdebt items to techdebt.md (use the script etc)
-- do *not* git mv the sprint file -- wait until the whole sprint is closed
-- cleanup includes updating docs and tags where appropriate
-- the human will review, close and tag themselves
+## Hand off a leg
 
-## Handoff a sprint
+- Check the leg's done-when list item by item, at the code rather than at the plan.
+- Write the leg's Landed line.
+- Record the leg's handoff date.
+- File what the leg shed: housekeeping items in `housekeeping.md`, tech debt in `techdebt.md`, each with a generated ID.
+- Confirm no cleanup marker naming this leg is left in the repo.
+- Update the docs the leg changed, tags and references included.
+- Leave the sprint file where it is. Nothing moves until the whole sprint closes.
 
-- Confirm every leg is closed and no `[SPRINT-<id>` marker for it is left in the repo.
-- Move the file with `git mv`, never a copy-paste, so the history and the Landed notes travel.
-- Add the `<NNN>` execution-order prefix as part of that move.
-- Add its row to the completed log in `plan.md`.
-- <!-- anything else you do at close: README updates, docs that named it, tag or release? -->
-- git mv the sprint file according to convention
-- report the housekeeping count -- a count over 50 means spend a planning session actually assiging
-  the items, moving them out of housekeeping.md into the sprint.txt docs instead, moving items
-  to deferred status in techdebt.md, or planning a cleanup sprint to keep the list manageable.
-- the human will review, close and tag themselves
+## Hand off a sprint
+
+- Confirm every leg is handed off, and that `git grep 'SPRINT-<id>'` returns nothing.
+- Record the sprint's handoff date.
+- Report the housekeeping count. Past ~50 unassigned items, stop and spend a planning session: assign them into sprints, defer them to `techdebt.md`, or plan a cleanup sprint. A list nobody can hold is a list nobody reads.
+
+## Close a sprint — reserved to the maintainer
+
+- Review the work, then close and tag it. A handoff is not a close.
+- Move the file with `git mv`, never a copy-paste, so its history and its Landed notes travel with it.
+- Add the `<NNN>` execution-order prefix in the same move: `remaining/sprint-<id>-<name>.md` becomes `completed/sprint-<NNN>-<id>-<name>.md`.
+- Add the sprint's row to the completed log in `plan.md`.
+- Tag it `sprint-<NNN>`, the same number the file just took.
+
+## Three clocks, on purpose
+
+- **handoff** — the work came back. Recorded on the leg and on the sprint, in the sprint file.
+- **commit** — git author dates. When the code was reviewed and blessed, atomically.
+- **tag** — `sprint-<NNN>`. The sprint closed: code blessed, docs passed, next sprint planned.
+
+Do not reconcile these against each other or against `git log`. They measure different events, and a sprint handed off one week and closed the next is a fact worth keeping, not a discrepancy to fix.
 
 ## Order and re-order
 
-<!-- plan.md owns the order and the dependency map. What the map records (must-precede vs free to
-move vs parallel), and what it takes to change the order: edit one file, touch no sprint. -->
-- Explain that plan.md should contain a table like
-
-NNN | id | name | status | read list that the sprint planner generated (I know its a duplicate but... I think it's good for humans to see? maybe put a short date when the list was written? maybe just list it but also just link to the read file that has more details anyway and say that, if the list here deviates from the file, the files win (that this list is for human convenience to read easily))
-
-- There is a plan tightening session enforced at every leg close, and this is where and when
-  the reading list is generated (at close of preceding leg), so only completed and the in-progress
-  sprint should have a reading list documented (agents and humans may generate one as scratch, but
-  it is not documented in the docs until it is going to be used).
-
-- The prompts are private IP in separate devlog repo
-
+- `plan.md` holds one table: `NNN | id | name | status | depends on | reading list`.
+- Leave `NNN` blank until the sprint closes. It records the order things were actually done in, not the order they were planned in.
+- Put `[s-<id>]` tags in **depends on**. Anything not named there may be reordered freely, which is the reason to write the column at all.
+- Treat **status** as a convenience copy for reading the table at a glance. The folder is the truth, and a linter can check the two agree.
+- Link the leg's reading list with the date it was written. The file wins where they disagree.
+- Re-order by editing this table. No sprint file changes when the order changes, which is the whole reason the ID is not the order.
+- Tighten the plan at every leg close: the order, the gates, and the next leg's reading list.
 
 ## Housekeeping and tech debt
 
-<!-- How an item is filed (`[h-<id>]`, `[t-<id>]`), what distinguishes the two lists, how an item
-gets adopted into a sprint and what it leaves behind (the dated provenance line), and that nothing
-renumbers them any more — the count is reported, not maintained. -->
-- I think I've already written this -- do you need me to define this? let me know if it's not clear
-  from existing docs, I have a clear definition.
-- Okay I'll give some more deatils. h-id and t-id come from what coding agents return after a sprint.
-  I can have them dump that into housekeeping.md, and they don't have to spend context and attention
-  assigning it to future sprints (that's the planning agent's job). But, if they know that it does
-  definitely go in a future sprint, they should probably just add it there and not bother with a
-  housekeeping id, right?
+- Record an item with a generated ID in `housekeeping.md` as `[h-<id>]`, or in `techdebt.md` as `[t-<id>]` when it is deferred rather than merely unassigned.
+- Assigning an item to a sprint is optional. If you assign it, write it into that sprint's file as an ordinary item and give it no tracker ID — the sprint is its home. If you do not, it gets the hex ID and waits.
+- Never guess a destination. An item filed into the wrong sprint is worse than an item sitting in housekeeping, because the wrong sprint inherits it silently.
+- Keep the dated provenance line when an item moves, the way "(Pulled from Housekeeping, 2026-09-17)" reads today.
+- Nothing renumbers these lists. The count is reported, not maintained.
+- Source never cites an `[h-` or `[t-` item. Anything source points at is planned work and carries a cleanup marker instead.
 
-## Consequences
+**Consequences**
+- `plan.md` becomes the single point of failure. If it drifts, nothing resolves.
+- Overhead managing the extra files.
+- Linting and script maintenance, now its own item in the developer tooling sprint.
+- A sprint file has to stand alone, because it is what gets handed to a coding session along with its reading list.
 
-<!-- 3 bullets, what it costs rather than what it fixes. Mine: plan.md is now the single point of
-failure; a sprint file must stand alone because it is what gets handed to an agent; tags read worse
-to a human than "Sprint 19" did. -->
-- I don't think tags read worse -- I think they read *better* bc it's clear its a tag, and it slows
-  down the human, which is good.
-- overhead managing the extra files
-- potential linting and script maintenance
+**Alternatives considered**
+- **Numbers that mean order.** What this replaces. Inserting one sprint cost 117 edits across four documents on 2026-09-19, and no regex can tell a bare sprint number from a test count.
+- **One long plan document.** Cheap to grep, but it hands a reader 1,180 lines to use 200 of them, and closing a sprint means copy-pasting it into a second long document.
+- **A file per leg.** Too fine. Legs are planned and read together, and the appetite rule already caps a leg at one sitting.
 
-## Alternatives considered
+## Migration
 
-<!-- One line each, three at most. Numbers as order; one long doc; a file per leg. -->
-- 
+1. Create `docs/sprints/` with `remaining/` and `completed/`.
+2. Generate an ID per sprint and split `remaining-sprints.md` into one file each, content verbatim, verified line for line.
+3. `git mv` `completed-sprints.md` to `completed/phase-0-sprints-001-012.md`. The execution-order counter continues at 013.
+4. Move Housekeeping and Tech Debt into `housekeeping.md` and `techdebt.md`, with IDs replacing `H-n` and `T-n`.
+5. Write `plan.md`: the table, the completed log, the model, and a link to this record.
+6. Convert prose references to tags, and the six source markers to IDs.
+7. Point `README.md` and the other docs at `docs/sprints/plan.md`.

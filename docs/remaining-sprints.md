@@ -558,6 +558,19 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       exit 0 clean / 1 findings / 2 couldn't check, one line in README → Checks.
       Watch: don't write it while the layout is still moving. A linter against a moving spec is
       wasted work, and ADR-021's migration is the thing that has to settle first
+- [ ] Port `scripts/readinglist.sh`, or replace it. It came from another project: it slices
+      `## Sprint 2C` out of a single plan document and reads `docs/DECISIONS.md` with `D-04a`
+      IDs, so it does not run here. After ADR-021's migration its main job is gone — a sprint
+      file is already the slice — and what remains is assembling a leg's list from the sprint's
+      gates, the ADRs it cites and the files it names. Keep the "WHAT THIS CANNOT SEE" block it
+      prints: that block is what makes a generated draft safe to hand to a coding session.
+      `docs/reading/reading-list-example.txt` is the shape to aim at
+- [ ] Consider a script that closes a sprint, given its ID: the checks and the moves in ADR-021's
+      "Close a sprint", printing what it did. `git mv` to `completed/` with the next `<NNN>`
+      prefix, the completed-log row in `plan.md`, the marker check, the housekeeping count, and
+      the `sprint-<NNN>` tag. It should flag anything it cannot find rather than guess — a file
+      whose format drifted is a thing to read, not to repair silently. Grep and sed are enough
+      if the formats hold, which is the other reason to keep them boring
 
 
 ## Sprint 18 — Custom domain --- planned
