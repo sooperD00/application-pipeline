@@ -1,0 +1,333 @@
+# ── READING LIST — SPRINT 8, THE PANELS — read exactly these, in this order ──
+
+This is the last app sprint and the last sprint before deploy. Sprint 6 built
+the computed half of the page. Sprint 7 was CUT on 2026-08-20 and you inherit
+the one piece of it nothing had built. Every engine sprint is closed, `cube.json`
+is written, validated and byte-pinned, and 281 tests are green.
+
+Sprint 6's seam was *the app computes one number and reads all the others*.
+Yours is narrower and you should hold it harder:
+
+    SPRINT 8 COMPUTES NOTHING.
+
+Every dot on the three panels is an index into `cube.json`. D-35's suppression
+is a read of two checkbox booleans. There is no `breakeven()` call in this
+sprint, no new `engine` call, and no arithmetic on a cell value beyond the
+formatting a caption needs. `x_and_y()` already exists and already does the only
+arithmetic the page performs over cube cells — if you find yourself writing a
+second one, stop.
+
+INHERITED FROM SPRINT 7'S CUT. D-35's verdict suppression lands here. The room
+is already reserved at `app.py:567` and the plan says build it first. It is the
+only item on your list that changes what the app is WILLING TO SAY, as against
+what it draws.
+
+GATE — Sprint 6 is closed. Confirm it at the code, not at the plan:
+
+    uv run pytest                      281 passed
+    uv run python spike_grid.py --check cube.json
+                                       re-derives the committed cube
+    grep -c "bootstrap\|numpy.random" app.py
+                                       0 — D-12, and it is a test as well as
+                                       a habit
+
+  If the cube does not re-derive, a model constant moved without a regenerated
+  artifact and EVERY DOT YOU ARE ABOUT TO DRAW IS STALE. STOP and tell me.
+
+  Sprint 7's cut must be RECORDED in `docs/remaining-sprints.md` as
+  `✂️ CUT 2026-08-20`, with D-35 appearing in Sprint 8's done-when list. If
+  Sprint 7 still reads as an open sprint, the docs pass did not land and this
+  list is ahead of the plan. STOP and tell me.
+
+Four notes on the list itself.
+
+  `engine.py` IS NOT ON THIS LIST AND THAT IS DELIBERATE. It is 86k characters
+  and you consume three names from it: `LADDER_STOPS`, `DEFAULT_STOPS`, and
+  `Profile.rung` via `rung_from_stops()`. All three are already imported and
+  already used in `app.py`'s rail block, which you are reading in full. Adding
+  the module would be a third of your budget for nothing. `readinglist.sh`
+  offers it under READ IN FULL; that block is hardcoded and its own note 6 says
+  to check it by hand. Checked, and dropped.
+
+  `tests/test_engine.py` IS NOT ON THIS LIST EITHER. This is the fourth sprint
+  in a row where the script's default hands you the largest file in the repo and
+  the sprint's seam forbids it. Its note 6 proposes inverting that default;
+  consider this list the fourth data point.
+
+  `docs/RESULTS.md` SECTION 8 IS THE MOST IMPORTANT THING HERE AND THE SCRIPT
+  PUT IT UNDER "DO NOT READ." Section 8 is the measured behaviour of the exact
+  48 cells you are about to plot. Two of its subsections contradict a done-when
+  and a decision row — see both TRAPs below. Nothing greps as a citation because
+  the plan cites `measure_4a.py` rather than the document that holds its output.
+
+  `docs/DESIGN.md` 3.4 IS THE ONLY PLACE THE PANELS EXIST VISUALLY, and the
+  script hid it for the same reason it hid it at Sprint 6: the reference is an
+  image link. Its own note 8 already logged this. Second occurrence.
+
+READ IN FULL
+
+  1. app.py                 1,131 lines. START HERE, before any document. You
+                            are editing this file and the seam lives inside it.
+                            Read `x_and_y()` (line 771) closely — it is the ONE
+                            worked example of reading cube cells in this repo,
+                            and your panels are the same operation at 48 cells
+                            instead of two. Read `_balance_panel()` (line 655)
+                            for how a PAIR of Altair panels sharing one scale is
+                            built here; three panels sharing one scale is that
+                            function with one more member. Read `verdict_block`
+                            and `verdict_detail` (481–570) before you touch
+                            D-35 — the slot you fill is the last line of the
+                            second one
+
+  2. tests/test_app.py      15 functions, 31 collected. THE FOUR AXIS TESTS ARE
+                            YOUR CONTRACT, not your style guide. Read
+                            `test_the_rate_axis_never_rescales` (293) and
+                            `test_both_balance_panels_are_pinned_and_share_a_ceiling`
+                            (317) with their docstrings. Both exist because a
+                            chart with every number correct drew a false
+                            picture, twice, and correctness testing could not
+                            see it. **Your panels are the third instance of that
+                            exact hazard** — see AXIS DOMAINS below
+
+  3. docs/DESIGN.md 3.4     Two pages. The mockup, the four Choice rows, and the
+                            "What moved" table. This is what the panels are FOR:
+                            *fragility matters more than this decision is a
+                            comparison of magnitudes, and you cannot see one
+                            magnitude beat another when only one of them is on
+                            the axis.* Also read 3.1's full-layout mockup for
+                            where the panels sit relative to the accordion
+
+READ THESE SECTIONS ONLY
+
+  4. docs/RESULTS.md
+       - "# 8 — Fragility against the account choice" IN FULL, 8.1 through 8.5.
+         Short, and it is your problem statement
+       - 8.1 is the collapse table your Low panel reproduces
+       - 8.2 is the objective spread and it CONTRADICTS D-34 — see TRAP 2
+       - **8.4 IN FULL, including the plateau walk.** Objective 5's offset is
+         the reason your Mid and High panels are not single points — see TRAP 1
+       - SKIP sections 1–7 and 9–11
+
+  5. docs/remaining-sprints.md
+       - everything above "## Sprint 1" — status, budget, cut ladder. **Cut 5
+         (early-career preset) is the only untaken cut that reaches your
+         session**, and it costs the L4 flip demo, so it is the last thing to
+         drop rather than the first
+       - "## Sprint 7" — the CUT section. Short, and D-35's provenance is in it
+       - "## Sprint 8" through the rule before "## Sprint 9"
+       - "## Sprint 9" — its DONE-WHENS ONLY. You are the last sprint before it
+         and its cold-load gate is a property of what you add
+       - "## Housekeeping" — the ENGINE.md test-count item is yours the moment
+         you add a test file's worth of functions
+       - SKIP "## Tech Debt" unless a decision below sends you there
+
+  6. docs/DECISIONS.md
+       - "## 0. Precedence"
+       - "## 2. Definition of done"
+       - "### D-16 — Resilience rungs" — the naming rule. **Named, never
+         numbered.** Low, Mid, High, and never "Rung 2"
+       - "### D-22" — the identity. THIS IS WHY MID AND HIGH COLLAPSE: only
+         Low's penalty is asymmetric, so 36 of 48 cells equal `t_now` exactly.
+         The caption must say derived, not observed
+       - "### Ladder and gates" — **D-32, D-33, D-35 and D-37, all four.**
+         D-33 tells you which stops are gates 1 and 2, which is what D-35 keys
+         off. Sprint 3B was told to read D-33 only and skip the rest; you are
+         the sprint that needs the rest
+       - "### Cube, sentence, encoding" — D-34 is your encoding spec and it is
+         WRONG IN ONE ROW. See TRAP 2. D-23 pins the $X/$Y sentence to
+         objective 4, which matters the moment an objective control exists
+       - "### Model" — **D-06 IN FULL.** Four objectives ship; objective 2 is
+         CUT. D-34 assumes five. D-12, the no-stochastic-code seam
+       - "### Architecture" — D-15's label (*modeled for the reference
+         profile*), D-38 (nothing is clamped), D-50 (the cube publishes ONE
+         ruin reading, per cell)
+       - "### The archetype and the numbers that come out of it" — D-42's row,
+         for the D2 accordion sentence
+       - "## 5. Contracts" — the `cube.json` block ONLY. The cell shape and the
+         thirteen header fields are your data dictionary
+       - "## 7. App layout" — **the departures table FIRST, then the spec.**
+         Five of the seven departures are already shipped; the accordion row
+         and the tooltip row are yours to close
+       - "## 9. Open risks" — R3 and R4 ONLY
+       - SKIP sections 1, 3's Conventions table, 4, 6, 8, and every D-
+         subsection not named above. **SKIP D-39's subsection** and **SKIP
+         D-26's** — both are engine arguments and both are long
+
+  7. docs/ENGINE.md
+       - "# Tests", the first four paragraphs ONLY. You add functions to
+         `tests/test_app.py`, and its counts are published by hand in this
+         file in two places. The self-count in `tests/test_engine.py` does not
+         cover your file and cannot be widened from here — the seam forbids
+         that edit, which is why the counts are yours to update by hand
+       - SKIP everything else. You touch no math
+
+DO NOT READ cube.json — RUN THIS INSTEAD
+
+  The file is 6,275 tokens and 48 cells of it are data you index rather than
+  read. The header is worth reading; the cells are worth PRINTING. Six lines:
+
+    import json
+    c = json.load(open("cube.json"))
+    cells = {(x["rung"], x["objective"], x["shocks"]): x for x in c["cells"]}
+    for rung in ("low", "mid", "high"):
+        for sh in range(4):
+            print(rung, sh, [round(cells[(rung,o,sh)]["breakeven"]*100, 4)
+                             for o in (1, 3, 4, 5)])
+
+  Read `c["header"]` in full — thirteen fields, and four `captions` carrying
+  sentences that must travel with the artifact. Two of those captions belong on
+  your panels.
+
+THE TRAP — "MID AND HIGH RENDER AS SINGLE, IDENTICAL POINTS" IS FALSE, AND THE
+CUBE SAYS SO
+
+  Sprint 8's first done-when as written says the two upper panels render as
+  single, identical points. Measured against the committed cube, they do not:
+
+      Mid panel     16 dots spanning 0.1757 points   (32.3243 → 32.5000)
+      High panel    16 dots spanning 0.0782 points   (32.4218 → 32.5000)
+      Low panel     16 dots spanning 8.1346 points   (24.3654 → 32.5000)
+
+  And Mid and High are not identical to each other. High's objective-5 column
+  is dead flat at −0.0782 on every row; Mid's wobbles — −0.0782, −0.1757,
+  −0.0537, −0.0799.
+
+  THE CAUSE IS RESULTS 8.4 AND IT IS THE SOLVER, NOT THE MODEL. Objective 5 is
+  `P(not running out)` over 2,000 paths, so it takes 2,001 values and its
+  difference is zero across an INTERVAL rather than at a point. The bisection
+  lands somewhere inside that plateau, about 0.08 points below `t_now`.
+  Objectives 1, 3 and 4 are exactly `t_now` at all 32 upper-panel cells.
+
+  WHY THIS IS A TRAP AND NOT A FOOTNOTE. If either upper panel auto-scales to
+  its own data, 0.08 points becomes the full panel width and Mid and High will
+  render with visible structure — four columns, one of them offset, looking
+  exactly like a finding. Every number on screen correct. This is the third
+  occurrence of the defect the two axis tests in `tests/test_app.py` were
+  written for, and the first one where it would fabricate a lesson rather than
+  delete one.
+
+  DO NOT round the dots to hide it and DO NOT drop objective 5. Pin all three
+  panels to one shared domain wide enough for Low, which makes the upper two
+  collapse to a visual point, which is the truth. Then say so in the caption.
+
+TRAP 2 — D-34'S COLOUR PREDICTION IS CONTRADICTED BY THE CUBE, AND THE
+DONE-WHEN REPEATS THE PREDICTION
+
+  D-34's reason column: *gray dots barely move down the rows because expected
+  value is blind to shocks, while orange dots fan out.* Sprint 8's third
+  done-when restates it. Measured at Low:
+
+      objective 1 (gray, expected value)   32.5000 → 25.8310    6.67 points
+      objective 4 (orange, tail)           32.5000 → 24.4070    8.09 points
+
+  Gray moves 82% as far as orange. It does not barely move. What actually fans
+  out is the SPREAD ACROSS objectives within a row — 0.0000, 0.3581, 0.7604,
+  1.4656 points at 0, 1, 2 and 3 shocks. That is a real divergence and it is
+  about a fifth of the panel's width, not a second axis of the picture.
+
+  RESULTS 8.2 already wrote the honest version: *the divergence is real and it
+  is not a property of the objective menu — it is 8.1 read down a column instead
+  of across a row.* The panel teaches one lesson loudly and a second one
+  quietly, which is the reverse of what D-34 promised.
+
+  D-34 IS ALSO STALE ON ITS OWN TERMS. It assigns colours to five objectives —
+  gray (1, 2), neutral (3), orange (4, 5). **Objective 2 is CUT (D-06) and four
+  ship.** So "gray dots" is one dot. The plural in both D-34 and the done-when
+  describes a panel that cannot be drawn.
+
+  This is D-05's shape exactly: a named design prediction that measurement did
+  not support, and the corpus rule is that the prediction gets rewritten rather
+  than the measurement tuned. Do not adjust the encoding until the prediction
+  agrees. Bring me the finding.
+
+STOP AND ASK — THREE DECISIONS, AND THEY GO IN DECISIONS.md BEFORE ANY CHART
+
+  Same rule 3A and 3B ran under. Bring all three in one message, before you
+  draw anything.
+
+  (a) THE OBJECTIVE CONTROL IS PRESUMED BY A DONE-WHEN AND CREATED BY NONE.
+      Sprint 8's second done-when says *the objective control does nothing
+      there*, D-06 says *swap the objective and watch it flip*, and RESULTS 8.2
+      says *the radio button stays; its caption changes*. No done-when builds
+      it, and `app.py` has `SENTENCE_OBJECTIVE = 4` as a CONSTANT with no
+      control attached. This is 4B's "THE README HAS NO TEST TABLE, and the
+      done-when below names one," one sprint later. Decide: does the radio ship,
+      and if it does, does it drive only the panels or also the $X/$Y sentence?
+      **D-23 pins that sentence to objective 4**, so a radio that moves it
+      contradicts a decision and a radio that does not moves half the page.
+      DO NOT PICK. Bring both readings.
+
+  (b) WHAT THE DOTS ENCODE ON THE X AXIS. DESIGN 3.4 says the objectives
+      *disagree across a wide span of tax points*, which reads as break-even
+      rate, and every number in TRAP 1 assumes it. Nothing states it outright.
+      Name it before you draw it — this is the same class as 2C's unstated
+      bisection bracket, and no grep returns the absence of a thing.
+
+  (c) WHERE OBJECTIVE 5'S OFFSET IS DISCLOSED. It is a known solver artifact
+      with a measurement behind it (RESULTS 8.4), it is on every panel, and a
+      panelist who sees one column consistently left of the others will ask.
+      Options: a panel caption, a tooltip, or dropping objective 5 from the
+      panels while keeping it in the cube. The third is a real option and it is
+      the one I most want stated rather than assumed away.
+
+BUILD D-35 FIRST, AND IT IS NOT THE OBVIOUS ORDER
+
+  The plan's own ordering rule is *do the expensive one first*. D-35 is the
+  cheapest item here and it still goes first, for a different reason: it is the
+  only one that changes what the app SAYS. The panels are a picture of a
+  finding; D-35 is the app declining to answer its own question. If the clock
+  runs, a page with suppression and no panels is a better artifact than a page
+  with panels and no suppression.
+
+  Its rule, from D-35 in full:
+
+      Unchecking gate 1 ($400) or gate 2 ($2,000) replaces the VERDICT LINE
+      ONLY. `t*`, both thresholds and the $X/$Y sentence all stay visible.
+      Copy names the binding gate. Stop 3 (high-interest debt) gets its own
+      copy: paying it off beats either account at any tax rate.
+
+  `$X` and `$Y` staying visible is load-bearing rather than tidy: **at Low, `$Y`
+  is large against a small `$X`, and that is L3's demonstration at the exact
+  rung that proves it.** Hiding it would gut the lesson where it is strongest.
+
+  The copy is an ANSWER, not a lockout — Sprint 6 set that precedent in
+  `blocked_notice()` and you should read those three branches as the house style
+  before you write yours.
+
+AXIS DOMAINS ARE NOT A STYLE CHOICE IN THIS FILE
+
+  Two tests in `tests/test_app.py` assert pinned domains, both written after a
+  defect that no correctness test could reach. TRAP 1 is the third instance and
+  the worst, because it would INVENT a finding rather than delete one.
+
+  Add the panel equivalent. One shared domain across all three, asserted, and
+  the assertion belongs in `tests/test_app.py` next to the other two — where the
+  docstrings already explain why this class of test exists.
+
+DO NOT READ
+
+  engine.py, tax.py, return_series.py, spike_grid.py, tests/test_engine.py,
+  tests/test_tax.py, tests/test_deploy_config.py, railway.toml,
+  docs/CONTEXT.md, docs/TRADEOFFS.md, docs/USER_LESSONS.md,
+  docs/review/GATE-1.md, docs/review/GATE-2.md, scripts/*.py,
+  docs/sprints/*.txt, DEVLOG.txt.
+
+  scripts/measure_4a.py in particular. It produced RESULTS section 8 and you
+  need the OUTPUT, not the run. Its §3 function was already ported into
+  `x_and_y()` at Sprint 6, so the one thing in it you would want is already in
+  the file you are reading first.
+
+  spike_grid.py is off the list even though it wrote your data. The cube's
+  contract is DECISIONS section 5 and the header block; how it was produced is
+  a closed sprint's question.
+
+  DEVLOG.txt and docs/sprints/*.txt are NOTES, not claims. Do not reason from
+  them. The one exception is the gate above: if Sprint 7's cut exists only
+  there, that is a finding to report, not a source to use.
+
+  If you believe you need one of these, ASK ME and say which claim you are
+  trying to resolve. Do not open it first and tell me after.
+
+# ── ~44k tokens: 23k of code, 21k of docs. Dropping engine.py    ──
+# ── and tests/test_engine.py is what keeps it under 50k, and     ──
+# ── printing the cube instead of reading it saves another 5k.    ──
