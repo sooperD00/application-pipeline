@@ -45,6 +45,11 @@ Frontend — extend existing:
   but not the polling state machine.
 
 **Also in scope**
+- [ ] Confirm the frontend suite is unchanged after [s-603d20]'s comment-only pass — 12 tests in
+      `TailoringPage.test.jsx` and the rest, same counts before and after. That sprint closed
+      without running it because `frontend/node_modules` is absent on this Mac, which belongs to
+      the machine migration rather than to a docs sprint. (Deferred from [s-603d20-c],
+      2026-09-20.)
 - [ ] Extract shared test factories and mocks — `__tests__/factories.js` and `__tests__/mocks.js`
       — but only if the same factory or mock has turned up in 3+ test files with an identical
       shape by the time you are in there. Data models have to stabilize first, and this sprint

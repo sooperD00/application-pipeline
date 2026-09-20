@@ -43,6 +43,8 @@ Anyone may do any step in this record, and everyone follows it whoever they are.
 
 **Landed** — written when a leg or a sprint closes: what the plan said, what actually happened, and the lesson worth carrying. A leg's note sits under the leg. The sprint's note sits in the sprint file and travels with it. This is the note that makes the next plan better, which is the only reason planning gets less wrong over time.
 
+**Checklist marks** — a box records what happened to an item, not only whether it is ticked. `[x]` done as written. `[ ]` open. `[-]` skipped in this sprint. `[~]` done anyway, against a call to skip or defer it. Neither `[-]` nor `[~]` ever stands alone: the prose beside it says *deferred to <place>* and why, or *not done because* and why. Deferring is a move rather than a note — the item reopens as `[ ]` in the place named, and takes an ID if that place is `housekeeping.md` or `techdebt.md`.
+
 **Entry gate** — work in an *earlier* sprint that a later one leans on, named at the top of the sprint that needs it, as required or recommended. Never a second home: the gate line points at the leg that owns the work, and the spec stays there. A gate item with no owner is a missing sprint, not a checklist.
 
 ## Where things live
