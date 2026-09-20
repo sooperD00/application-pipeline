@@ -1,7 +1,8 @@
 # Housekeeping
 
-Four items. [h-d4b631] is here because it may not survive Phase 1 in this shape; the other three
-are the shed from planning [s-26220f] and [s-2716d1] — real work, no sprint earned yet.
+Work with no sprint yet. [h-d4b631] is here because it may not survive Phase 1 in this shape;
+[h-2e55de], [h-7451ac] and [h-21a0f7] are the shed from planning [s-26220f] and [s-2716d1] —
+real work, no sprint earned yet.
 
 IDs are identity, not order: nothing here is renumbered, and the count is what matters. Past
 about fifty unassigned items, hold a planning session before adding features.
@@ -32,26 +33,8 @@ about fifty unassigned items, hold a planning session before adding features.
       them `failed` on startup is the cheap fix; the real fix is arq + Redis, already Phase 1+
       in architecture.md. Do the cheap one only once a redeploy actually strands a job someone
       is waiting on. (From [s-2716d1]'s Out of Scope, 2026-09-17.)
-- [ ] [h-0ada85] Bring the in-source TODOs under ADR-021. Seven comments predate it and none
-      carries a marker: `JDPasteForm.jsx:151` says "TODO (Sprint 10+)" and `:74` cites "Sprint
-      10's Claude extraction", both naming a finished sprint; `JDPasteForm.jsx:52` and `:71`,
-      `NotFoundPage.jsx:15` and `SessionsPage.jsx:12` are TODOs with no when at all;
-      `main.py:4` still says "Phase 0, Sprint 12. Deployed to Railway" as a status line, which
-      is the kind of claim that rots where it sits. The first four are work [s-77f2e3] already
-      lists, and `analysis.py:55` is already named by the prompt-extraction tech-debt item.
-      Decide first, because it is a vocabulary question and not a sed: may a TODO for *future
-      work* carry a `[SPRINT-<id>-CLEANUP]` marker? The convention reads "the leg that will
-      clean this up", and building the feature does delete the comment — but if the answer is
-      no, these need either a second marker word or no marker and a line in a sprint file.
-      The `(Sprint 6)`-style provenance notes in the routers and tests are not in scope: those
-      are finished sprints, they never move, and git blame says the same thing.
-      Read 2026-09-20, and they do not all land in the same place. Four are work [s-77f2e3]
-      already lists — the Enter-to-submit preference, the company/role auto-populate, the
-      pre-populated-fields note beside it, and the 404 copy that waits on ADR-016 — so those
-      are ordinary sprint markers. `analysis.py:55` belongs to the prompt-extraction tech-debt
-      item, and ADR-013 already records that it pulls the opposite way from extraction, which
-      is the thing to settle before either gets half-built. `SessionsPage.jsx:12` — stale
-      sessions, with auto-archive, a manual button and a TTL warning as options — is in no
-      list at all and needs one. `main.py:4` is not work: it is a status line that says
-      "Phase 0, Sprint 12", and [s-26220f-a] is already scheduled to correct the auth claim
-      three lines below it.
+- [ ] [h-0167ce] Decide what happens to sessions as their postings expire. `SessionsPage.jsx`
+      has carried the question since Phase 0 with three options and no decision: auto-archive
+      after N days, a manual archive or delete button, or a TTL that warns "this session is old,
+      postings may be gone". It is a product call before it is a feature, which is why it sat in
+      a comment for six months. (Filed from that comment by [s-603d20-c], 2026-09-20.)
