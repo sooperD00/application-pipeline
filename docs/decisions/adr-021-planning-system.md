@@ -1,7 +1,7 @@
 # ADR-021: How Sprints Are Planned, Tracked and Closed
 
 **Date**: 2026-09-19
-**Status**: Proposed — Accepted when the migration at the bottom lands
+**Status**: Accepted — the migration at the bottom landed 2026-09-20
 
 **Decision**: A sprint is one file, identified by a hex ID that never changes. Order lives in exactly one place, `docs/sprints/plan.md`, and a sprint's status is the folder it sits in. Documents name a sprint or a leg by tag, source files carry cleanup markers and no other sprint reference, and a sprint closes by being moved with `git mv` rather than rewritten into a second document.
 
@@ -178,7 +178,7 @@ Do not reconcile these against each other or against `git log`. They measure dif
 - **One long plan document.** Cheap to grep, but it hands a reader 1,180 lines to use 200 of them, and closing a sprint means copy-pasting it into a second long document.
 - **A file per leg.** Too fine. Legs are planned and read together, and the appetite rule already caps a leg at one sitting.
 
-## Migration
+## Migration — done 2026-09-20
 
 1. Create `docs/sprints/` with `remaining/` and `completed/`.
 2. Generate an ID per sprint and split `remaining-sprints.md` into one file each, content verbatim, verified line for line.
