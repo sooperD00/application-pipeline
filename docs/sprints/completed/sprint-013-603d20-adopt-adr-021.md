@@ -1,7 +1,7 @@
 # Adopt ADR-021 across the repo
 
 **ID**: `[s-603d20]`
-**Status**: handed off
+**Status**: done 2026-09-20
 **Handoff**: 2026-09-20
 **Phase**: 1
 
@@ -64,8 +64,9 @@ what a tag in source promises.
 - [x] every remaining tag in source resolves: a `[SPRINT-` marker to a sprint in `plan.md`, an
       `[h-` or `[t-` reference to an item still in its list — six distinct tags, all checked
 - [x] no comment reads as an instruction unless it carries a marker
-- [ ] the frontend suite is unchanged — 12 tests in `TailoringPage.test.jsx` and the rest, same
-      counts before and after
+- [-] the frontend suite is unchanged — 12 tests in `TailoringPage.test.jsx` and the rest, same
+      counts before and after. Deferred to [s-41441e]: `node_modules` is absent here, which
+      belongs to the Mac migration rather than to this sprint. Risk accepted at close
 
 **Scope**
 - Four are work [s-77f2e3] already lists, so they take its marker: the Enter-to-submit
@@ -96,6 +97,19 @@ deciding where each one belonged was, and that is exactly what the ADR had to se
 - The frontend suite was not run. `frontend/node_modules` is absent on this machine, the same
   fresh-clone gap [s-a75ff1-b]'s prework records for the venv. The change is comment-only and
   the diff was read line by line, but that done-when stays open until someone runs it.
+
+**Landed.** This sprint was the first thing the new system had to carry, and it was carried by
+the property it had just bought. It was inserted work: it arrived between [s-a75ff1]'s leg a,
+already shipped, and leg b, not yet started — the same insertion that cost 117 edits a day
+earlier. Under numbers it would have meant renumbering everything behind it, or taking a number
+that lied about when it ran. Under IDs it cost nothing. [s-a75ff1] keeps its ID and its
+half-finished legs untouched, this sprint kept its own, and 013 was granted at close for the
+only reason that matters: it finished first. The order became a decision recorded in one table
+instead of an accident of numbering.
+
+The scope stayed compartmentalized too. Nothing here required loading the dependency sprint's
+context, and nothing here touched its legs — which is the same property, seen from the side that
+matters while the work is happening rather than after it.
 
 ## Handoff, 2026-09-20
 

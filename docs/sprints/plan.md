@@ -12,7 +12,6 @@ done in. Re-order by moving a row: no sprint file changes when the order does.
 
 | NNN | id | name | status | depends on | reading list |
 |-----|----|------|--------|------------|--------------|
-| | `[s-603d20]` | [Adopt ADR-021 across the repo](remaining/sprint-603d20-adopt-adr-021.md) | handed off | — | — |
 | | `[s-a75ff1]` | [Backend dependencies](remaining/sprint-a75ff1-backend-dependencies.md) | in progress | — | — |
 | | `[s-41441e]` | [Tests](remaining/sprint-41441e-tests.md) | planned | — | — |
 | | `[s-07579b]` | [Consolidating Railway services into one project](remaining/sprint-07579b-railway-consolidation.md) | planned | — | — |
@@ -37,8 +36,9 @@ No reading lists yet: the first one belongs to the next leg that runs.
 | NNN | id | name | handoff |
 |-----|----|------|---------|
 | 001–012 | — | [Phase 0 — Sprints 1 to 12](completed/phase-0-sprints-001-012.md) | dates in the file |
+| 013 | `[s-603d20]` | [Adopt ADR-021 across the repo](completed/sprint-013-603d20-adopt-adr-021.md) | 2026-09-20 |
 
-The counter continues at 013.
+The counter continues at 014.
 
 ## Phase 1
 
