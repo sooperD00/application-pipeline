@@ -49,8 +49,8 @@ export default function JDPasteForm({ sessionId, onAdded }) {  // importable by 
        saves wrist strain on Ctrl/Cmd over repetitive workflows
      - Cmd+Enter-to-submit: safer for multi-line editing, prevents
        accidental submits
-     TODO: Make this a user-toggleable preference (small toggle in the
-     form footer). Both implementations below — swap active/commented. */
+     [SPRINT-77f2e3-CLEANUP] Frontend polish makes this a user-toggleable preference
+     (small toggle in the form footer). Both implementations below — swap active/commented. */
 
 /*   // Ctrl+Enter / Cmd+Enter to submit from the textarea
   function handleKeyDown(e) {
@@ -68,10 +68,11 @@ export default function JDPasteForm({ sessionId, onAdded }) {  // importable by 
     // Shift+Enter falls through to default behavior (newline)
   }
 
-  /* TODO: Auto-populate company/role from first lines of pasted text.
+  /* [SPRINT-77f2e3-CLEANUP] Frontend polish auto-populates company/role from the first
+   lines of pasted text.
    Job boards typically paste as some combination of: 
     [junk] \n Company \n Role \n [junk].
-   Quick win to paste the 1st to lines before Sprint 10's Claude extraction. 
+   Quick win while nothing extracts these fields on the Claude side. 
    Better win later to do some light logic processing of the first 5 lines,
    e.g. LinkedIn:
     Publisher Services, Inc logo
@@ -148,8 +149,9 @@ export default function JDPasteForm({ sessionId, onAdded }) {  // importable by 
           />
         </div>
       </div>
-      {/* TODO (Sprint 10+): Claude analysis will auto-extract company/role from raw_text.
-          These fields become pre-populated + editable, not manual entry. Consider visually de-emphasizing. */}
+      {/* [SPRINT-77f2e3-CLEANUP] Once Claude analysis extracts company/role from raw_text,
+          frontend polish makes these pre-populated and editable rather than manual entry, and
+          decides whether to de-emphasize them visually. */}
 
       {/* error */}
       {error && (

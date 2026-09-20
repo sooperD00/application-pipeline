@@ -1,7 +1,8 @@
 # Adopt ADR-021 across the repo
 
 **ID**: `[s-603d20]`
-**Status**: in progress
+**Status**: handed off
+**Handoff**: 2026-09-20
 **Phase**: 1
 
 Put the repo under the planning system [ADR-021](../../decisions/adr-021-planning-system.md)
@@ -49,7 +50,7 @@ became their own files, and `plan.md` took the order, the dependencies and the c
 - `git grep -E` on macOS does not support `\b`; `-P` does. Two searches came back empty and
   looked like good news.
 
-### leg c — source comes under the same rules (refactor) --- planned
+### leg c — source comes under the same rules (refactor) --- handed off 2026-09-20
 
 **Kind:** refactor — the suite is the invariant. Comments only; no behavior moves.
 
@@ -58,11 +59,11 @@ carries a tag. They do not land in one place, which is why the item waited for t
 what a tag in source promises.
 
 **Done when**
-- [ ] `git grep -nE 'TODO|FIXME|XXX|HACK'` over `backend/`, `frontend/` and `scripts/` returns
+- [x] `git grep -nE 'TODO|FIXME|XXX|HACK'` over `backend/`, `frontend/` and `scripts/` returns
       nothing
-- [ ] every remaining tag in source resolves: a `[SPRINT-` marker to a sprint in `plan.md`, an
-      `[h-` or `[t-` reference to an item still in its list
-- [ ] no comment reads as an instruction unless it carries a marker
+- [x] every remaining tag in source resolves: a `[SPRINT-` marker to a sprint in `plan.md`, an
+      `[h-` or `[t-` reference to an item still in its list — six distinct tags, all checked
+- [x] no comment reads as an instruction unless it carries a marker
 - [ ] the frontend suite is unchanged — 12 tests in `TailoringPage.test.jsx` and the rest, same
       counts before and after
 
@@ -80,3 +81,27 @@ what a tag in source promises.
 **Watch** `JDPasteForm.jsx` holds two implementations of submit-on-Enter, one live and one
 commented out. The comment above them is a decision record, not a TODO — keep the reasoning and
 retag the intent.
+
+**Landed.** The plan said seven comments with one path each. Six turned out to carry a banned
+word and the seventh was a status line, so the sed everyone pictures was never the work —
+deciding where each one belonged was, and that is exactly what the ADR had to settle first.
+
+- Two of them were carrying dead facts, not just missing tags. `JDPasteForm.jsx` called its own
+  workaround a "quick win to paste the 1st to lines before Sprint 10's Claude extraction", and
+  Sprint 10 shipped without ever adding that extraction. A stale TODO hides a stale claim, which
+  is the better argument for banning the word than tidiness.
+- `SessionsPage.jsx` was the only one in no list at all: three options, no decision, since Phase
+  0. It is `[h-0167ce]` now. Filing it is all the ADR asks of an unscheduled idea, and it took
+  one line.
+- The frontend suite was not run. `frontend/node_modules` is absent on this machine, the same
+  fresh-clone gap [s-a75ff1-b]'s prework records for the venv. The change is comment-only and
+  the diff was read line by line, but that done-when stays open until someone runs it.
+
+## Handoff, 2026-09-20
+
+- Every leg is handed off. `git grep 'SPRINT-603d20'` returns nothing — this sprint left no
+  markers behind.
+- Housekeeping stands at five items, well under the fifty that would force a planning session.
+- What is left is the reserved step: review, close, `git mv` to `completed/` as
+  `sprint-013-603d20-adopt-adr-021.md`, the row in `plan.md`'s completed log, and the
+  `sprint-013` tag.

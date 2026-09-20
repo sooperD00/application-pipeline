@@ -52,8 +52,10 @@ from .claude import ClaudeConversation
 #   - Cross-JD meta-analysis after every batch (the strategic advice layer)
 #   - exclude_company flag for crypto/recruiter/staffing firms
 #
-# TODO: move this to PromptTemplate table (phase = PromptPhase.analysis)
-#       so it's user-editable without a redeploy.
+# Moving this into the PromptTemplate table (phase = PromptPhase.analysis) would make it
+# user-editable without a redeploy. Deferred as [t-84a71a], and ADR-013 records why the two
+# futures pull against each other: extraction takes the prompt out of the repo, this takes it
+# into the database. Pick one before either gets half-built.
 
 ANALYSIS_SYSTEM_PROMPT = """\
 You are analyzing job descriptions for a senior data/software engineer candidate.

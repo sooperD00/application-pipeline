@@ -9,11 +9,10 @@
  * Inline "New Session" form at the top.
  */
 
-/* TODO: Sessions go stale as postings expire. Future options:
-   - auto-archive after N days
-   - manual archive/delete button
-   - TTL with a "this session is old, postings may be gone" warning 
-*/
+/* Sessions go stale as postings expire, and nothing here does anything about it. The
+   options are auto-archive after N days, a manual archive or delete button, or a TTL that
+   warns "this session is old, postings may be gone". Filed as [h-0167ce] -- a product call
+   before it is a feature. */
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'

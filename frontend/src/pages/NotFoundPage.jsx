@@ -12,9 +12,9 @@ export default function NotFoundPage() {
       <p className="text-pipeline-500 mb-6">
         This page doesn't exist — or hasn't been built yet.
       </p>
-      {/* TODO (post-Phase 0): When /tracking becomes the index route,
-          this link should navigate to "/" and let the router decide,
-          or use navigate(-1) to send users where they came from. */}
+      {/* [SPRINT-77f2e3-CLEANUP] When /tracking becomes the index route (ADR-016), this
+          link navigates to "/" and lets the router decide, or uses navigate(-1) to send users
+          back where they came from. Frontend polish owns the copy either way. */}
       <Link
         to="/sessions"
         className="px-4 py-2 rounded-lg bg-pipeline-700 text-white text-sm font-medium hover:bg-pipeline-600 transition-colors"
