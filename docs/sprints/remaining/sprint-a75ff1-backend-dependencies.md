@@ -193,7 +193,7 @@ lock, and that is why they wait until leg c has read its upgrade diff.
       UploadFile/Form/File usage anywhere in app/, confirmed in leg a
 - [ ] `sqlalchemy[asyncio]` is declared, so nothing relies on greenlet arriving transitively
 - [ ] `uv lock --check` clean, docker build + run smoke passes
-- [ ] no `[SPRINT-13-CLEANUP]` markers are left in the repo
+- [ ] no `[SPRINT-a75ff1` markers are left in the repo
 
 **Commits**
 | # | | |

@@ -1,8 +1,8 @@
 """Freeze-file utilities for the pip -> uv migration.
 
-[SPRINT-13-CLEANUP] Scaffolding for Sprint 13 only: it exists to prove the packaging move
-did not move versions. 13c is the last consumer (it re-runs `compare` after the constraints
-come out of pyproject.toml). Delete at 13c close -- see remaining-sprints.md, Sprint 13c.
+[SPRINT-a75ff1-c-CLEANUP] Scaffolding for the dependency sprint only: it exists to prove the
+packaging move did not move versions. The upgrade leg is the last consumer -- it re-runs
+`compare` once the constraints come out of pyproject.toml -- and deletes this at its close.
 
 Two jobs, both pure enough to unit-test:
 

@@ -1,6 +1,6 @@
-"""[SPRINT-13-CLEANUP] Tests for scripts/dep_freeze.py, which is Sprint 13 scaffolding.
+"""[SPRINT-a75ff1-c-CLEANUP] Tests for scripts/dep_freeze.py, the dependency sprint's scaffolding.
 
-Delete alongside the module at 13c close -- see remaining-sprints.md, Sprint 13c.
+Delete alongside the module at the upgrade leg's close.
 """
 
 import pytest
@@ -170,7 +170,7 @@ class TestDiffPins:
         assert diff_pins(baseline, candidate) == (["d"], ["c"], ["b"])
 
     def test_lxml_appearing_reads_as_added(self):
-        """The expected 13a diff: uv export declares what pip pulled in transitively."""
+        """The expected diff from the packaging move: uv export declares what pip pulled in."""
         baseline = parse_freeze("python-docx==1.2.0\n")
         candidate = parse_freeze("python-docx==1.2.0\nlxml==6.0.2\n")
         added, removed, changed = diff_pins(baseline, candidate)

@@ -1,8 +1,8 @@
 # Declares your dependencies, and configures other tools (ruff, mypy, coverage) in one file
 # instead of scattered config files.
 #
-# Package NAMES only, never versions. uv reads live registries and picks; during Sprint 13
-# the constraint block below holds those picks to the pre-migration freeze.
+# Package NAMES only, never versions. uv reads live registries and picks; while the dependency
+# sprint is in flight the constraint block below holds those picks to the pre-migration freeze.
 
 [project]
 name = "application-pipeline-backend"
@@ -19,13 +19,13 @@ dependencies = [
     "pydantic",
     "pydantic-settings",
     "python-docx",
-    # [SPRINT-13-CLEANUP] python-multipart has no UploadFile/Form/File usage anywhere in app/.
-    # Kept so 13a's freeze diff stays empty -- removing it moves a second factor. Removed in
-    # 13d, see remaining-sprints.md.
+    # [SPRINT-a75ff1-d-CLEANUP] python-multipart has no UploadFile/Form/File usage anywhere in
+    # app/. Kept so the migration's freeze diff stays empty -- removing it moves a second
+    # factor, so it comes out in the dependency sprint's hygiene leg.
     "python-multipart",
-    # [SPRINT-13-CLEANUP] greenlet arrives transitively rather than via a declared
+    # [SPRINT-a75ff1-d-CLEANUP] greenlet arrives transitively rather than via a declared
     # sqlalchemy[asyncio] extra, so nothing states that this app needs async SQLAlchemy.
-    # Adding the extra moves a second factor. Declared in 13d, see remaining-sprints.md.
+    # Adding the extra moves a second factor, so it waits for the hygiene leg too.
     "sqlalchemy",
     "sqlmodel",
     "uvicorn",
@@ -45,9 +45,9 @@ dev = [
 # pytest finds app/ through pythonpath below.
 package = false
 
-# [SPRINT-13-CLEANUP] These pins hold all packages at the pre-migration freeze so Sprint 13a
-# moves packaging (factor 1) without moving versions (factor 2). 13c deletes this whole block
-# and re-locks -- that diff IS the upgrade. See remaining-sprints.md, Sprint 13c commit 1.
+# [SPRINT-a75ff1-c-CLEANUP] These pins hold all packages at the pre-migration freeze so the
+# packaging move (factor 1) does not move versions (factor 2). The upgrade leg of the dependency
+# sprint deletes this whole block and re-locks -- that diff IS the upgrade.
 #
 # Generated, not hand-written. To fill or refresh it, from backend/ with the OLD venv active:
 #     python scripts/dep_freeze.py constraints ../docs/DEVLOG/sprints/sprint13/baseline-freeze.txt --write pyproject.toml
