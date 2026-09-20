@@ -1,17 +1,10 @@
-# Completed Sprints — Phase 1
+# Phase 0 — Sprints 1 to 12
 
 > Execution order: bottom-up (first sprint is at the bottom)
-> Don't forget the **Landed** line so you know how to get better at Sprint Planning
-> (defined in remaining-sprints.md, TERMINOLOGY)
-
-Nothing has landed in Phase 1 yet. Sprint 13 is in progress: its legs and their Landed lines
-sit in [remaining-sprints.md](remaining-sprints.md) until every leg is done, then the whole
-sprint moves here.
-
-
-# Completed Sprints — Phase 0
-
-> Execution order: bottom-up (first sprint is at the bottom)
+> These sprints predate [ADR-021](../../decisions/adr-021-planning-system.md). They keep their
+> numbers, they were never split into one file each, and references to them by number stay as
+> they are. Everything from 013 on lands as its own file beside this one, and the completed log
+> in [plan.md](../plan.md) is the index.
 
 ---
 
