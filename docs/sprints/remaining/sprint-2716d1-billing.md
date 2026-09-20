@@ -177,10 +177,10 @@ changed. Land it last so a red frontend suite means the client, not the ledger.
 ## Out of Scope
 - Subscription with a monthly cap, as a monthly grant row on the same ledger → public release
 - Stripe's LLM token billing (private preview), which automates cost × markup → revisit if the pricing rule becomes pure pass-through
-- Automated refunds via `charge.refunded`: refund in the Stripe dashboard, then add a negative row with `grant_credits.py` → T-14
+- Automated refunds via `charge.refunded`: refund in the Stripe dashboard, then add a negative row with `grant_credits.py` → [t-8be739]
 - Sales tax and merchant of record (Stripe Managed Payments) → public release decision
-- Prompt caching to cut the analysis conversation's growing input cost → T-15
+- Prompt caching to cut the analysis conversation's growing input cost → [t-ec7c6c]
 - Free credits for anonymous visitors (the implementation plan's Free Trial Flow) → business rule, public release
-- A sweeper that marks stale `processing` tailoring jobs `failed` after a redeploy strands them; the real fix, arq + Redis, is already Phase 1+ in `architecture.md` → H-4
-- A Postgres service container in CI, so tests can see Postgres-only failures → T-16
+- A sweeper that marks stale `processing` tailoring jobs `failed` after a redeploy strands them; the real fix, arq + Redis, is already Phase 1+ in `architecture.md` → [h-21a0f7]
+- A Postgres service container in CI, so tests can see Postgres-only failures → [t-7d6ef0]
 - The rest of [s-41441e] (`test_jds.py` downloads and CRUD, the `TailoringPage` polling test) stays there. Its ownership/auth-guard item moved to [s-26220f-d], and its analysis and failure-path items moved to leg a

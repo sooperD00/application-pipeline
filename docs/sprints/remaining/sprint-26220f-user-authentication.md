@@ -209,10 +209,10 @@ then enforce.
 
 ## Out of Scope
 - Magic links for people who won't use Google, as a second way in to the same `users` table → public release
-- Returning to the originating page after sign-in needs an allowlisted `next` parameter (open-redirect risk) → H-2
-- Rescuing testers' orphaned data from before [s-26220f]: re-parent manually after they sign in; their resume text identifies them → H-3
+- Returning to the originating page after sign-in needs an allowlisted `next` parameter (open-redirect risk) → [h-2e55de]
+- Rescuing testers' orphaned data from before [s-26220f]: re-parent manually after they sign in; their resume text identifies them → [h-7451ac]
 - Deleting an account and its data → public release
-- Rate limiting the auth routes: Google absorbs credential attacks, and logout and `/me` are cheap → T-13
+- Rate limiting the auth routes: Google absorbs credential attacks, and logout and `/me` are cheap → [t-0c5fc3]
 - [s-3f291c]'s Makefile and ignore-overlap check are good for this sprint but don't block it → they stay in [s-3f291c]
 - **Decide at leg e close:** whether the "`api/client.js` has no retry logic and no token refresh"
   line is now closed. leg e adds the one retry that matters (the CSRF 403 replay), and opaque
