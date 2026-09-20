@@ -72,7 +72,16 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       Shape it like `check_docker_context.py`: stdlib-only in `scripts/`, runs from anywhere,
       exit 0 clean / 1 findings / 2 couldn't check, one line in README → Checks.
       Watch: don't write it while the layout is still moving. A linter against a moving spec is
-      wasted work, and ADR-021's migration is the thing that has to settle first
+      wasted work, and ADR-021's migration is the thing that has to settle first.
+      Watch: the spec files are data, not subjects. The converter used in the migration rewrote
+      ADR-021's own counter-examples, turning "Never: `Sprint 19`" into "Never: `[s-26220f]`" and
+      inverting the rule it was quoting. Excluding whole files is the wrong fix — an exclusion
+      that outlives its reason silently exempts everything added later. Make the tool blind to
+      inline code spans and fenced blocks instead, which is where a counter-example or an
+      example tag already lives, and keep a line-level escape hatch, `<!-- no-lint -->` in
+      Markdown and `# no-lint` in source, for the case where prose has to carry a bad form.
+      ADR-021's illustrative `[s-9cf8b9]` would otherwise fail a "every tag resolves" check for
+      the same reason
 - [ ] Port `scripts/readinglist.sh`, or replace it. It came from another project: it slices
       `## Sprint 2C` out of a single plan document and reads `docs/DECISIONS.md` with `D-04a`
       IDs, so it does not run here. After ADR-021's migration its main job is gone — a sprint

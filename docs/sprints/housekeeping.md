@@ -32,3 +32,16 @@ about fifty unassigned items, hold a planning session before adding features.
       them `failed` on startup is the cheap fix; the real fix is arq + Redis, already Phase 1+
       in architecture.md. Do the cheap one only once a redeploy actually strands a job someone
       is waiting on. (From [s-2716d1]'s Out of Scope, 2026-09-17.)
+- [ ] [h-0ada85] Bring the in-source TODOs under ADR-021. Seven comments predate it and none
+      carries a marker: `JDPasteForm.jsx:151` says "TODO (Sprint 10+)" and `:74` cites "Sprint
+      10's Claude extraction", both naming a finished sprint; `JDPasteForm.jsx:52` and `:71`,
+      `NotFoundPage.jsx:15` and `SessionsPage.jsx:12` are TODOs with no when at all;
+      `main.py:4` still says "Phase 0, Sprint 12. Deployed to Railway" as a status line, which
+      is the kind of claim that rots where it sits. The first four are work [s-77f2e3] already
+      lists, and `analysis.py:55` is already named by the prompt-extraction tech-debt item.
+      Decide first, because it is a vocabulary question and not a sed: may a TODO for *future
+      work* carry a `[SPRINT-<id>-CLEANUP]` marker? The convention reads "the leg that will
+      clean this up", and building the feature does delete the comment — but if the answer is
+      no, these need either a second marker word or no marker and a line in a sprint file.
+      The `(Sprint 6)`-style provenance notes in the routers and tests are not in scope: those
+      are finished sprints, they never move, and git blame says the same thing.

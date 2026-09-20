@@ -41,7 +41,7 @@ every push. Reverted in fe8794e (deploy green again). Then:
 
 | commit | |
 |---|---|
-| 0a8cbde | doc conflicts fixed (prompts location, H-4 under the numbering of the day, spike location, README) |
+| 0a8cbde | doc conflicts fixed (prompts location, spike location, README) |
 | 0a57dc5 | `check_docker_context.py`: lists files git ignores that Docker would still get |
 | ea7213e | `.dockerignore` covers every rule git ignores (probe: 398 leaks → 0; tracked build context unchanged) |
 | df7ad46 | the check also sees files inside ignored nested git repos |

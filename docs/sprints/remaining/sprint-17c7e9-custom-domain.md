@@ -7,7 +7,12 @@
 
 Move the app to a real hostname before anything external starts pointing at it.
 **Kind:** migration — consumer graph: DNS, then the app, then the docs.
-**Entry gate:** none. The only sprint in Phase 1 that depends on nothing.
+**Entry gate:** [s-07579b] recommended. A custom domain attaches to one Railway service, and the
+consolidation recreates services in the home project and moves the `up.railway.app` name between
+them — so a domain added first has to be re-attached, its DNS re-pointed, and the 301 this sprint
+adds re-aimed at whichever host survives. Check at planning time: which project and service serve
+production today, and whether the `up.railway.app` host commit 1 redirects from is the one
+[s-07579b]'s step 3 moves. If the consolidation has already run, this sprint has no gate.
 
 **Why now** Google's OAuth redirect URIs, Stripe's webhook endpoint and the website URL on the
 Stripe account are all registered against a host, in three different consoles. Registering them

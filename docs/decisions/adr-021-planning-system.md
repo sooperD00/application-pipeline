@@ -72,6 +72,7 @@ docs/reading/reading-list-for-<id>-<leg>.txt     what one coding session was han
 - Name a finished sprint `sprint-<NNN>-<id>-<short-name>.md`, where `<NNN>` is the order it was actually done in, and put it in `completed/`.
 - Give a sprint its file as soon as it has a name. A stub with an ID and a title is a legitimate sprint file; nothing has to be planned out to exist.
 - Never renumber an ID, reuse one, or give a sprint a number that means its order.
+- `9cf8b9` is the example ID used in documentation, here and anywhere else. Never assign it, so a grep for a real ID never lands in a worked example.
 
 ## Referring to a sprint
 
