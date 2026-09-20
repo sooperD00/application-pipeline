@@ -97,6 +97,6 @@ costs, makes the context check something that actually runs, and gives `uv lock 
 - [ ] Consider a script that closes a sprint, given its ID: the checks and the moves in ADR-021's
       "Close a sprint", printing what it did. `git mv` to `completed/` with the next `<NNN>`
       prefix, the completed-log row in `plan.md`, the marker check, the housekeeping count, and
-      the `sprint-<NNN>` tag. It should flag anything it cannot find rather than guess — a file
+      the `sprint-<NNN>-<id>` tag, pushed after the branch. It should flag anything it cannot find rather than guess — a file
       whose format drifted is a thing to read, not to repair silently. Grep and sed are enough
       if the formats hold, which is the other reason to keep them boring

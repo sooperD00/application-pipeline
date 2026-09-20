@@ -116,6 +116,7 @@ matters while the work is happening rather than after it.
 - Every leg is handed off. `git grep 'SPRINT-603d20'` returns nothing — this sprint left no
   markers behind.
 - Housekeeping stands at five items, well under the fifty that would force a planning session.
-- What is left is the reserved step: review, close, `git mv` to `completed/` as
-  `sprint-013-603d20-adopt-adr-021.md`, the row in `plan.md`'s completed log, and the
-  `sprint-013` tag.
+- Closed 2026-09-20: `git mv` to `completed/sprint-013-603d20-adopt-adr-021.md`, the row in
+  `plan.md`'s completed log, and the tag `sprint-013-603d20`. The tag name is this sprint's
+  own amendment to ADR-021 — `sprint-<NNN>` alone would have landed next to `sprint-13a`,
+  which belongs to a different sprint entirely.

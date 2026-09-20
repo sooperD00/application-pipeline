@@ -148,13 +148,14 @@ Two kinds of prompt get confused, so they are named here. **App prompts** ship i
 - Move the file with `git mv`, never a copy-paste, so its history and its Landed notes travel with it.
 - Add the `<NNN>` execution-order prefix in the same move: `remaining/sprint-<id>-<name>.md` becomes `completed/sprint-<NNN>-<id>-<name>.md`.
 - Add the sprint's row to the completed log in `plan.md`.
-- Tag it `sprint-<NNN>`, the same number the file just took.
+- Push the branch before the tag. A tag pointing at a commit nobody has is a tag nobody can check out.
+- Tag it `sprint-<NNN>-<id>`, which is the file name without its short name — so one grep finds the file, its row in the completed log, and the tag.
 
 ## Three clocks, on purpose
 
 - **handoff** — the work came back. Recorded on the leg and on the sprint, in the sprint file.
 - **commit** — git author dates. When the code was reviewed and blessed, atomically.
-- **tag** — `sprint-<NNN>`. The sprint closed: code blessed, docs passed, next sprint planned.
+- **tag** — `sprint-<NNN>-<id>`. The sprint closed: code blessed, docs passed, next sprint planned.
 
 Do not reconcile these against each other or against `git log`. They measure different events, and a sprint handed off one week and closed the next is a fact worth keeping, not a discrepancy to fix.
 
