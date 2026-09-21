@@ -9,11 +9,11 @@ about fifty unassigned items, hold a planning session before adding features.
 
 - [ ] [h-d4b631] Build the Activities layer — `routers/activities.py`, `services/activities.py`, and
       the frontend that makes them visible. The data model is already there: Activity table,
-      ActivityType enum, and the cascade templates designed in service-layer-notes.md, with
-      nothing reading or writing any of it. The core flow (paste → analyze → tailor → download)
-      doesn't need it, so it waits for the Full Tracker in the Phase 1 tracking work, which is
-      what makes it visible and useful. The README tree and architecture.md already list the
-      endpoints as `[ ]` planned
+      ActivityType enum, and the cascade templates designed in architecture.md's Activity
+      section, with nothing reading or writing any of it. The core flow (paste → analyze →
+      tailor → download) doesn't need it, so it waits for the Full Tracker in the Phase 1
+      tracking work, which is what makes it visible and useful. architecture.md already lists
+      the endpoints as `[ ]` planned
       Design risk: this is the version designed in Phase 0, and the tracker's shape is still
       open. It could be dropped for a different design rather than built as specified, which is
       why it sits here instead of inside a sprint
@@ -38,3 +38,15 @@ about fifty unassigned items, hold a planning session before adding features.
       after N days, a manual archive or delete button, or a TTL that warns "this session is old,
       postings may be gone". It is a product call before it is a feature, which is why it sat in
       a comment for six months. (Filed from that comment by [s-603d20-c], 2026-09-20.)
+- [ ] [h-6e0b18] Put one limit on concurrent Claude calls across all users. Each batch-tailor
+      request makes its own `asyncio.Semaphore(tailoring_parallelism)`, so the cap is per request
+      rather than per API key: two people tailoring at once run eight calls, and nothing keeps
+      the total inside Anthropic's rate limits. It stops being hypothetical the first time two
+      people use the app at once. (Filed from service-layer-notes.md when it retired,
+      2026-09-21.)
+- [ ] [h-a0f0ee] Surface the tailoring strategy. The tailoring prompt asks Claude for `analysis`
+      and `strategy` fields, and `run_tailoring_job` keeps them only inside `chat_context`, the
+      stored conversation, so nothing shows a user why their resume was tailored the way it was.
+      Parse them into columns, or onto the JD's `analysis_text`, when the frontend wants a "why
+      these choices" view per job. (Filed from service-layer-notes.md when it retired,
+      2026-09-21.)

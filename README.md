@@ -155,7 +155,6 @@ tailoring is one per Apply JD. [ADR-003](docs/decisions/adr-003-claude-opus-defa
 - [Architecture](docs/architecture.md) — data model, API contracts, integration patterns
 - [Workflow](docs/workflow.md) — the human method this automates
 - [Decisions](docs/decisions/) — architecture decision records, one file each
-- [Service Layer Notes](docs/service-layer-notes.md) — implementation TODOs and design notes
 - [Sprint Plan](docs/sprints/plan.md) — the order, what is left, and what shipped when
 - [Original Prompts](docs/original-prompts.md) — the manual Claude prompts this automates
 
@@ -265,7 +264,6 @@ ApplicationPipeline/
 │   ├── implementation-plan.md
 │   ├── original-prompts.md
 │   ├── reading/                     # - [x] reading lists, one per sprint leg
-│   ├── service-layer-notes.md
 │   ├── sprints/                     # - [x] plan.md, one file per sprint, housekeeping, tech debt
 │   ├── workflow.md
 │   ├── design/                      # - [x] design sessions, one file per person per session

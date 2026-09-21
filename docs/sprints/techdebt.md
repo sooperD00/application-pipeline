@@ -95,3 +95,16 @@ not here.
       see Postgres-only failures — the [s-26be17-a] timestamptz class of bug is invisible to a green CI
       run. Worth it once a Postgres-only failure has actually reached prod twice. (From Sprint
       [s-2716d1]'s Out of Scope, 2026-09-17.)
+- [ ] [t-f8129c] Phase 2+: cap PromptTemplate versions per user, phase and name once the prompt
+      editor ships, with the same count-check-before-insert as the resume and JD caps
+      (architecture.md → Limits). Pick N from real usage; 10 was the placeholder. (Filed from
+      service-layer-notes.md when it retired, 2026-09-21.)
+- [ ] [t-a28cbe] Phase 2+: move the tailoring routes out of `routers/jds.py` into a router of
+      their own if jds.py keeps growing, or if tailoring grows concepts that aren't JD
+      operations — re-tailor, compare, prompt preview. Today they live in the routers that own
+      their URL prefixes, and `services/tailoring.py` stays put either way. (Filed from
+      service-layer-notes.md when it retired, 2026-09-21.)
+- [ ] [t-4194e9] Phase 2+: if an endpoint ever lists tailoring jobs across JDs — all of a user's
+      jobs — denormalize `user_id` onto TailoringJob or add a composite index. Ownership is
+      TailoringJob → JD → Session → User, three joins, which is fine only while every query
+      enters through one JD. (Filed from service-layer-notes.md when it retired, 2026-09-21.)

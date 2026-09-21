@@ -11,7 +11,7 @@ Endpoints:
     DELETE /api/resumes/{id}  → delete
 
 Constraint: max 3 resumes per user, enforced at API layer (not DB).
-See service-layer-notes.md for the count-check-before-insert pattern.
+See docs/architecture.md (Limits) for the count-check-before-insert pattern.
 """
 
 from datetime import datetime
