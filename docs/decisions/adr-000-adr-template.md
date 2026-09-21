@@ -18,7 +18,7 @@ saying: 2026-08-30 (recorded 2026-09-17, after the first leg landed). -->
 
 **Status**: Proposed | Accepted | Superseded by ADR-NNN
 <!-- Add whatever qualifier makes it useful at a glance:
-"Accepted — 13a shipped 2026-09-16; 13b, 13c and 13d planned". -->
+"Accepted — [s-9cf8b9-a] shipped 2026-09-16; [s-9cf8b9-b] and [s-9cf8b9-c] planned". -->
 
 **Decision**: <!-- Two or three sentences, present tense, specific enough to act on. A reader who
 stops here should still do the right thing. -->
@@ -58,4 +58,6 @@ option nobody can reconstruct comes back every six months and gets argued again.
 
 <!-- **Update YYYY-MM-DD** — append one of these when the decision changes, gets qualified, or
 gets overtaken. Never rewrite what the record said before; the point is that it can be read in
-the order it was learned. -->
+the order it was learned.
+The exception is a record that works as a process handbook, like ADR-021: sessions follow it as
+instructions, so it is edited in place to say the current rule, and git carries its history. -->
