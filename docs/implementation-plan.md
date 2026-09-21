@@ -100,7 +100,8 @@ Left side — compact table:
 **Tab 4: Tailoring**
 
 - "Apply All" button — uses JD + every resume the user has, no extras, kicks off up to 4 in parallel
-- Individual: click a JD → popup modal to add app questions and additional JD text → "Go". Narrowing the resume set is a Phase 1+ override; by default all of them go in (see sprints/techdebt.md)
+- Individual: click a JD → popup modal to add app questions and additional JD text → "Go".
+- Resumes are uploaded as text, and all uploads are concatenated and sent as input to both the Analyze and the Tailoring passes
 - Status boxes per JD: queued → processing → ready for review
 - Click "ready" → output view: tailored resume, cover letter, app question answers
 - Editable before export/download as docx
@@ -178,7 +179,7 @@ sketch rather than the build order.
 
 - Funnel analytics dashboard (session → apply → submitted → phone screen → interview → offer, broken down by metadata)
 - Time-series: applications per week vs. target, hit rate by search term and resume version
-- Free tier: 1 session (25 JDs), 4 parallel tailoring jobs, 1 interview prep, no account required, 7-day persistence
+- Free tier: 1 session (25 JDs), 4 parallel tailoring jobs, 1 interview prep, no account required, 30-day persistence
 - Paid tiers:
   - 10 sessions pack
   - 50 sessions pack (discounted)
@@ -231,13 +232,13 @@ Calibrate (1 conversation per flagged JD or meta-summary):
 2. User pastes resume, creates session, pastes JDs — stored server-side.
 3. Full session runs: analysis, review, tailoring (up to 4 parallel), 1 interview prep.
 4. "Save your results and start a new session — just enter your email."
-5. Data persists 7 days without account, permanently with account.
+5. Data persists 30 days without an account, permanently with one.
 6. Second session attempt without account → conversion point.
 
 ## Cost
 
 - Model: Opus 4.6 (highest quality, higher cost — acceptable if margins work)
-- Estimated per session (25 JDs analyzed, 6 tailored): TBD after real testing
+- Estimated per session (25 JDs analyzed, 6 tailored): early measurements are in [cost-tracking/](cost-tracking/). The research isn't final
 - Railway (Postgres + app): ~$5-10/month at low scale
 - Track actual API costs from day one with observability logging
 - Price sessions to maintain margin after real cost data is in
