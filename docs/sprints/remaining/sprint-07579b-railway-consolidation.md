@@ -18,8 +18,18 @@ Constraints
    - For each project and environment: `railway link`, then `railway config pull --json > ~/railway-audit/<project>-<env>.json`.
    - Record per service: repo, root dir, Dockerfile, branch, auto-deploy, up.railway.app URL, database or volume, last deploy, usage cost.
    - Find out why the backend reads DATABASE_PUBLIC_URL.
+   - There are two Postgres databases. To find which one DATABASE_PUBLIC_URL points at, match
+     the host and port in its value against each database's TCP proxy. Step 1 cannot pick a home
+     project until this is answered.
    Gate: every service has a keep, move, or delete call.
 1. Pick the home project: the one holding the production database.
+   - [ ] Decide the region while you are choosing it, not after. Everything runs in
+     asia-southeast1 (Singapore) today, which may be the account's default rather than anyone's
+     decision — check whether the plan tier offers a choice at all. A recreated service picks
+     its region at creation, so step 2 is the cheap moment to change it, and the database is the
+     expensive part: moving it is a dump, a restore and a cutover rather than a setting. If the
+     answer is "move", that is its own migration with its own sprint, not a bullet inside this
+     one.
 2. Recreate each moving service in the home project, next to the old one.
    - Copy its variables. Set the healthcheck path to /health.
    Gate: /health returns 200 and the app works end to end on the new service.

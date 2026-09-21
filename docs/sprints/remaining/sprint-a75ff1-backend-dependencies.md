@@ -91,6 +91,22 @@ The first attempt is parked in `test-vehicles/dockerignore-check/`. It sat on br
 
 ## leg b — flip the consumers, delete requirements.txt (consumer flip) --- planned
 
+**Prework (in the Railway dashboard, before this leg's first push)**
+
+This leg changes how the image is built, so its deploy is the one that wants the service
+configured honestly. Both settings are one visit.
+
+- [ ] Set the healthcheck path to `/health` on application-pipeline. Without one, Railway does
+      not wait for the app to answer before sending traffic to a new deploy, and a build that
+      succeeds while the app cannot start looks identical from outside.
+- [ ] Set the builder to Dockerfile, so the setting says what actually runs. Railway detected
+      the Dockerfile on its own when this was first deployed, and an inferred setting is one it
+      is free to infer differently later.
+
+[s-07579b] sets both again on every service it recreates, in its step 2. That is not duplicated
+work: these are the settings on the service running today, and that service is what gets
+replaced there.
+
 **Prework (before the first `uv sync` on a machine)**
 
 uv picks its environment from the directory you run it in and never says which one it picked.
