@@ -72,7 +72,8 @@ UTC, serialized without an offset, rendered as local. It closes here.
       [s-26220f] writes new routes. Done when `grep -rn --include='*.py'
       HTTP_422_UNPROCESSABLE_ENTITY backend/app` returns nothing, the deprecation warning is
       gone from pytest output, and test counts are unchanged
-- [ ] Delete `assets/react.svg` and `public/vite.svg` — leftover Vite scaffolding, unreferenced
+- [ ] Delete `assets/react.svg` — leftover Vite scaffolding, unreferenced. `public/vite.svg`
+      stays: `index.html` links it as the favicon until [s-77f2e3] replaces it
 - [ ] Press Enter to submit the create-session form on SessionsPage.jsx — a simple wrap
 - [ ] Clear the tailoring jobs stuck at `queued` from before the `failed` status existed. The
       Sprint 11 migration (`6bc0f4c28a4a`) added `failed` to the TailoringStatus enum but does

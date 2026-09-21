@@ -7,9 +7,6 @@
 **Kind:** decide when it gets planned. A grab-bag has no single ordering heuristic, and choosing
 one now would be pretending.
 
-No number until it is scheduled. A number is a promise of order and this one is deliberately
-last; it takes the next free number the day something in source needs to point at it.
-
 Quarantined UI and product judgment: ideas I am not ready to finalize, kept here so they are not
 lost and do not leak into sprints that have real functionality and quality work to do. Nothing
 in this list blocks anything.
@@ -45,16 +42,25 @@ in this list blocks anything.
 - [ ] Render MetaAnalysis as markdown. It is whitespace-pre-wrap plain text today, so bold and
       lists would not render — fine while the analysis prompt doesn't ask for markdown, and a
       lightweight renderer is the fix when it does
-- [ ] JDPasteForm: auto-populate company and role from the first lines of pasted text (in-code
-      TODO), and make that extraction a user-toggleable preference (second in-code TODO)
+- [ ] JDPasteForm: auto-populate company and role from the first lines of the pasted text, while
+      nothing on the Claude side extracts them (marked in source)
+- [ ] JDPasteForm: make the submit shortcut a user preference — Enter today, Cmd/Ctrl+Enter the
+      alternative. Both implementations are in the file, one commented out, with the case for
+      each (marked in source)
+- [ ] JDPasteForm: once Claude analysis extracts company and role from `raw_text`, show them
+      pre-populated and editable rather than as manual entry, and decide whether to
+      de-emphasize the fields (marked in source)
 - [ ] NotFoundPage: update the 404 copy once `/tracking` becomes the index route (ADR-016
-      scope). In-code TODO
+      scope) (marked in source)
 - [ ] Replace the browser-native `title` tooltip on locked tabs — "Select or create a session to
       unlock this step" — with a custom component. The 1s delay is hardcoded in the browser, not
       in the app, so a component is the only way to make it feel instant
 - [ ] Load Inter and JetBrains Mono, or stop naming them. Tailwind's `@theme` references both
       and nothing fetches them, so the app renders in system fonts. Add a `<link>` to index.html
       when typography starts to matter — or never, if system fonts are fine
+- [ ] Give the app its own favicon. `index.html` still links Vite's logo (`public/vite.svg`), and
+      a tab kept open through a whole session should be findable at a glance. Replace the file
+      and the link together
 - [ ] Retry UX on the SessionLayout fetch. A transient error currently means navigating away and
       back; a retry button is the whole fix
 - [ ] Loading skeleton or optimistic insert on addJD. The card grid waits for `refreshSession()`
