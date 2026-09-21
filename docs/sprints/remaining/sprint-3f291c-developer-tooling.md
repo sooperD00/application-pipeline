@@ -40,8 +40,9 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       trigger Railway offers Wait for CI for. Backend `uv lock --check`, `uv sync --locked`,
       `uv run pytest`; frontend `npm ci`, `npm test`. Use `astral-sh/setup-uv`, set
       `working-directory: backend` on every uv step, pin Python to whatever [s-a75ff1-c] decided and
-      Node to 20. Put `python3 scripts/check_docker_context.py --probe` in the same job, since
-      `--probe` needs no real ignored files and so works in a fresh clone.
+      Node to whatever [h-2f37b7] settles on (20, in the Dockerfile today, is past end-of-life).
+      Put `python3 scripts/check_docker_context.py --probe` in the same job, since `--probe`
+      needs no real ignored files and so works in a fresh clone.
       Prove the gate rather than assuming it: push a deliberately red commit to `main`, confirm
       the Railway deploy shows SKIPPED, then revert and confirm the revert deploys.
       Try the workflow on a branch first — 673f7a0's workflow failed on every push to main.

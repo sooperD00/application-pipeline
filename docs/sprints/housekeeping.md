@@ -50,3 +50,10 @@ about fifty unassigned items, hold a planning session before adding features.
       Parse them into columns, or onto the JD's `analysis_text`, when the frontend wants a "why
       these choices" view per job. (Filed from service-layer-notes.md when it retired,
       2026-09-21.)
+- [ ] [h-2f37b7] Move the frontend build off Node 20. The Dockerfile's build stage is
+      `node:20-slim`, and Node 20 reached end-of-life on 2026-04-30; this Mac runs Node 26, so
+      local builds and the image already disagree. Pick the current LTS line (24 today) and move
+      the Dockerfile, [s-3f291c]'s CI pin and a declared version (`engines` in package.json, or
+      `.nvmrc`) in one commit, then confirm `npm ci`, the build and the suite. Only the build
+      stage runs Node — the image that ships is Python — so this is upkeep, not an exposed
+      runtime. (Found in the docs review, 2026-09-21.)
