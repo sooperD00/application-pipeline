@@ -74,9 +74,10 @@ not here.
       Both are already in the public history, so extracting them hides future edits, not these
       versions. Public by design and staying that way: `docs/original-prompts.md` and the seeded
       PromptTemplate defaults in `seed.py`.
-      Watch: the in-code TODO in `analysis.py` pulls the opposite direction — it would move the
-      analysis prompt into the user-editable PromptTemplate table rather than into a file. Those
-      are two different futures; pick one before either gets half-built
+      Watch: the in-code comment referencing this item in `analysis.py` pulls the opposite
+      direction — it would move the analysis prompt into the user-editable PromptTemplate table
+      rather than into a file. Those are two different futures; pick one before either gets
+      half-built
 - [ ] [t-0c5fc3] Phase 2+: rate limit the auth routes. Google absorbs credential attacks — there is no
       password to spray — and `/api/auth/logout` and `/api/auth/me` are cheap. Worth doing when
       there is enough traffic for abuse to cost something. (From [s-26220f]'s Out of Scope,
