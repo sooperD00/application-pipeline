@@ -50,7 +50,7 @@ package = false
 # sprint deletes this whole block and re-locks -- that diff IS the upgrade.
 #
 # Generated, not hand-written. To fill or refresh it, from backend/ with the OLD venv active:
-#     python scripts/dep_freeze.py constraints ../docs/DEVLOG/sprints/sprint13/baseline-freeze.txt --write pyproject.toml
+#     python scripts/dep_freeze.py constraints ../test-vehicles/freezes/a75ff1-pip-to-uv/baseline-freeze.txt --write pyproject.toml
 # Do not run `uv lock` while this block is empty -- an empty constraint list constrains
 # nothing, and uv will happily resolve every package to latest.
 # >>> BEGIN GENERATED CONSTRAINTS >>>

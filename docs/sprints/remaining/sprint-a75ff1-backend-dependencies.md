@@ -178,20 +178,22 @@ packages should resolve against one interpreter.
 - [ ] dev and the Docker image run the same Python minor version — the decision above, taken
 - [ ] constraint-dependencies is gone from pyproject and `uv lock --check` is clean
 - [ ] the uv.lock diff has been read, not skimmed — that diff IS the upgrade
-- [ ] `dep_freeze.py compare` re-run against the same baseline and its output read. It is
-      expected to differ now; that difference is the upgrade stated in package terms
+- [ ] `dep_freeze.py compare` re-run against the same baseline, in
+      `test-vehicles/freezes/a75ff1-pip-to-uv/`, and its output read. It is expected to differ
+      now; that difference is the upgrade stated in package terms
 - [ ] test counts: 106 collected − 29 from `test_dep_freeze.py` = 77 collected, with the same
       18 failures in test_tailoring.py (leg a baseline: 106 collected, 88 passed, 18 failed)
 - [ ] docker build + run smoke passes
-- [ ] `docs/DEVLOG/sprints/sprint13/` deleted — after `compare`, the freeze artifacts have no
-      consumer left (pulled from Housekeeping, 2026-09-17)
+- [ ] `test-vehicles/freezes/a75ff1-pip-to-uv/` deleted — after `compare`, the freeze artifacts
+      have no consumer left. The `freezes/` README stays for the next migration (pulled from
+      Housekeeping, 2026-09-17)
 
 **Commits**
 | # | | |
 |---|---|---|
 | 1 | remove scaffolding | delete constraint-dependencies, re-lock with upgrades allowed |
 | 2 | absorb breakage | whatever the bumps broke — may be zero commits, may be several |
-| 3 | delete the scaffolding | `backend/scripts/dep_freeze.py` and `backend/tests/test_dep_freeze.py`, once the compare above has been read. Both docstrings already say they die here. |
+| 3 | delete the scaffolding | `backend/scripts/dep_freeze.py`, `backend/tests/test_dep_freeze.py` and `test-vehicles/freezes/a75ff1-pip-to-uv/`, once the compare above has been read. Both docstrings already say they die here. |
 
 **Watch** sqlmodel is pre-1.0, so any bump is potentially breaking; pydantic, SQLAlchemy and
 the anthropic SDK all move fast. If this blows the appetite, cut scope not time: upgrade a

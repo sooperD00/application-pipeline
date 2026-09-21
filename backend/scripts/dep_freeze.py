@@ -15,11 +15,11 @@ This never contacts a registry and never chooses a version. Every number it emit
 of a freeze file you generated on your own machine.
 
 Usage (from backend/, old venv active for the baseline). The freeze files live in
-docs/DEVLOG/sprints/sprint13/ (they were in ~/sprint13/ before the Mac move):
+test-vehicles/freezes/a75ff1-pip-to-uv/:
 
-    S13=../docs/DEVLOG/sprints/sprint13
-    python scripts/dep_freeze.py constraints $S13/baseline-freeze.txt --write pyproject.toml
-    python scripts/dep_freeze.py compare $S13/baseline-freeze.txt $S13/uv-freeze.txt
+    F=../test-vehicles/freezes/a75ff1-pip-to-uv
+    python scripts/dep_freeze.py constraints $F/baseline-freeze.txt --write pyproject.toml
+    python scripts/dep_freeze.py compare $F/baseline-freeze.txt $F/uv-freeze.txt
 """
 
 from __future__ import annotations
