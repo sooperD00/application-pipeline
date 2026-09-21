@@ -135,8 +135,9 @@ That cost an hour in leg a, when a stale root `.venv` answered instead of `backe
       grep`, which reads tracked files only: a plain `grep -rn .` also reads `.git/`, where
       leg b's own delete-commit message will match, plus `backend/.venv` and
       `frontend/node_modules` once those exist. Tracked references to clear: `Dockerfile`
-      (COPY and pip install), `.dockerignore` (the venv comment), and `README.md` (Quick Start
-      and the repo tree).
+      (COPY and pip install), `README.md` (Quick Start), and the example in `.gitattributes`'s
+      opening comment. `.dockerignore`'s venv note no longer names the file, but it carries
+      this leg's cleanup marker.
 
 **Commits**
 | # | | |
