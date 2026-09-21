@@ -38,12 +38,13 @@ for a world where anonymous data expired *because* there was nothing to convert 
 expiry on a browser that can adopt into an account is the better answer. `architecture.md`'s
 User table is the doc that changes, at leg b.
 
-**Reference** Two FMH files are checked in beside the sprint notes:
-`docs/DEVLOG/sprints/sprint17-18/auth-FMH-not-this-project.py` and
-`auth_service-FMH-not-this-project.py`. Read them for the *cookie helper* —
-`_set_session_cookies` sets the HTTP-only credential and the JS-readable `csrf_token` together,
-which is the pattern leg e ports — and skip the rest: `auth_service.py` is the password design
-that lost, and the register/login route shapes don't apply. Also from FMH, not in this repo:
+**Reference** FMH (Find My Hygienist) is an earlier project of mine with a similar stack and
+auth. Two of its files are quarantined in [test-vehicles/FMH/](../../../test-vehicles/FMH/):
+`auth-FMH-not-this-project.py` and `auth_service-FMH-not-this-project.py`. Read them for the
+*cookie helper* — `_set_session_cookies` sets the HTTP-only credential and the JS-readable
+`csrf_token` together, which is the pattern leg e ports — and skip the rest: `auth_service.py` is
+the password design that lost, and the register/login route shapes don't apply. Also from FMH,
+not in this repo:
 `app/dependencies.py` (`get_current_user`, `csrf_protect`), `app/services/session_service.py`,
 the session model, the frontend that reads `csrf_token` and sends `X-CSRF-Token`, and FMH's
 ADR-006. Port the session row as source of truth and the synchronizer token; don't copy FMH's
