@@ -224,7 +224,7 @@ lock, and that is why they wait until leg c has read its upgrade diff.
 Two items that have nothing to do with dependencies but need a when, parked here so they land
 as soon as the sprint is off the critical path.
 
-- [ ] Redact the recipient block in `docs/feedback/asks/2026-03-15-beta-invite.md` — seven
+- [ ] Redact the recipient block in `test-vehicles/feedback/asks/2026-03-15-beta-invite.md` — seven
       names and email addresses, one of them a work address, public since `936ed83`. The front
       matter already records "7", so the file loses nothing. Redacting the file does not remove
       it from the public log, so decide separately whether that history gets rewritten.

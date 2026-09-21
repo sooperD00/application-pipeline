@@ -53,29 +53,29 @@ Nicole
 
 
 1. Add Resume(s)
-![Upload up to 3 Resumes - paste the text from you docs or from LinkedIn and give it a label](../../img/add-up-to-3-resumes-2-of-3.PNG)
+![Upload up to 3 Resumes - paste the text from you docs or from LinkedIn and give it a label](../../../docs/img/add-up-to-3-resumes-2-of-3.PNG)
 
 2. Click **ApplicationPipeline** and add a new session
 - tag it with the filters and search terms you used for analytics later
 - pro tip: use [LinkedIn regular search (not AI)](https://www.linkedin.com/search/results/all/) with minimal filters
 - any job board or tag text is fine - you're scraping, not me
-![Tag session with search terms you used in your job board](../../img/tag-session-with-search-terms.PNG)
+![Tag session with search terms you used in your job board](../../../docs/img/tag-session-with-search-terms.PNG)
 
 3. Paste JDs
 - pro tip: if you click above the company icon in the LinkedIn right-hand window and then scroll down and shift-click at the bottom of the JD text, it will highlight that whole field *and it will remain highlighted as you click on different jobs in the left panel!!!* You can just alt+tab, click the next one down the line, and ctrl+c again
-![Scrape & Analyze tab with LinkedIn side-by-side — paste JDs straight from search results](../../img/scrape-and-analyze.PNG)
+![Scrape & Analyze tab with LinkedIn side-by-side — paste JDs straight from search results](../../../docs/img/scrape-and-analyze.PNG)
 
 4. Click **Analyze** and receive
 - an Apply/Maybe/No decision in 1 to 2 minutes per batch of 5 JDs
 - a meta analysis for any through-line insights over the whole set
-![Apply/Maybe/No decisions and Meta Analysis](../../img/_200-dollar-meta-analysis.PNG)
+![Apply/Maybe/No decisions and Meta Analysis](../../../docs/img/_200-dollar-meta-analysis.PNG)
 
 
 5. Navigate to Tailoring and hit Batch Tailor All
 - or select just one or more at a time
-![Batch Tailor all or Select Individual from your Apply Recommendations](../../img/batch-tailor-one.PNG)
+![Batch Tailor all or Select Individual from your Apply Recommendations](../../../docs/img/batch-tailor-one.PNG)
 
 6. Download your docx, or a zip of several files:
-![Download .zip](../../img/batch-tailor-all-post.PNG)
-![Extract .zip](../../img/zip_files.PNG)
-![Contains jd.txt, analysis.txt, notes.txt,and resume.docx](../../img/zip_package_jd_analysis_tailoredresume.PNG)
+![Download .zip](../../../docs/img/batch-tailor-all-post.PNG)
+![Extract .zip](../../../docs/img/zip_files.PNG)
+![Contains jd.txt, analysis.txt, notes.txt,and resume.docx](../../../docs/img/zip_package_jd_analysis_tailoredresume.PNG)

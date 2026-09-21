@@ -11,7 +11,7 @@ To run a pass: hand `PROMPT.md` and the unprocessed notes to Claude.
 
 # Folder Structure
 
-docs/feedback/
+test-vehicles/feedback/
 ├── README.md
 ├── PROMPT.md
 ├── asks/        # what I sent, and to whom
