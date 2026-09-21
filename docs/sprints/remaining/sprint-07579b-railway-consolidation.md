@@ -31,7 +31,7 @@ Constraints
      answer is "move", that is its own migration with its own sprint, not a bullet inside this
      one.
 2. Recreate each moving service in the home project, next to the old one.
-   - Copy its variables. Set the healthcheck path to /health.
+   - Copy its variables. Set the healthcheck path to /health and the builder to Dockerfile.
    Gate: /health returns 200 and the app works end to end on the new service.
 3. Flip consumers, one per step.
    - URL (moving services only): remove the up.railway.app name from the old service, then claim it on the new one. Callers and CORS stay unchanged. Expect a short gap between the two.

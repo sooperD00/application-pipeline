@@ -7,7 +7,7 @@
 
 Migrate backend dependency management from pip to uv.
 **Kind:** migration
-**Legs:** migration, consumer flip, version upgrade — the first two move packaging (factor 1) with versions pinned; the third moves versions (factor 2) with packaging fixed. Merging the last two means a red suite can't say which.
+**Legs:** migration, consumer flip, version upgrade, dependency hygiene — the first two move packaging (factor 1) with versions pinned; the third moves versions (factor 2) with packaging fixed; the fourth changes declarations only, once the third's upgrade diff has been read. Merging leg b and leg c means a red suite can't say which.
 
 **Why now** CE! (Copy Exactly!, the Intel sense — match the current SWE standard rather than
 invent a local one). Also: requirements.txt is a pip freeze —
@@ -142,7 +142,7 @@ That cost an hour in leg a, when a stale root `.venv` answered instead of `backe
 | # | | |
 |---|---|---|
 | 1 | flip consumer | Dockerfile installs from the lock, dev group excluded |
-| 2 | flip consumer | README local-setup section |
+| 2 | flip consumer | README local-setup section. Carry the prework's lasting rules into it — run uv from `backend/`, one `.venv`, check `sys.prefix` — because this file is archived when the sprint closes and the README is where the next person looks |
 | 3 | delete the old | `git rm backend/requirements.txt` |
 
 **Watch** start.sh calls bare `alembic` and `uvicorn` off PATH. It consumes *where packages
