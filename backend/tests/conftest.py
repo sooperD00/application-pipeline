@@ -55,8 +55,10 @@ async def seeded_user(db_session):
 
 @pytest.fixture
 async def client(db_session, seeded_user):
-    # seeded_user must be created before the client starts making requests,
-    # so get_current_user (which grabs first User row) finds it.
+    # [SPRINT-41441e-a-CLEANUP] get_current_user finds users by their auth_token cookie, and
+    # this client never sends seeded_user's, so no request runs as seeded_user -- the one
+    # cause of the 18 failures in test_tailoring.py. The Tests sprint overrides
+    # get_current_user here to return seeded_user.
     async def override_get_session():
         yield db_session
 

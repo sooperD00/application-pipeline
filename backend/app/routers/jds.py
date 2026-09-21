@@ -39,7 +39,7 @@ from ..models import (
     User,
 )
 from ..services.tailoring import MAX_RESUMES, run_tailoring_job
-from .sessions import get_current_user  # shared auth stub
+from .sessions import get_current_user  # shared cookie auth
 
 router = APIRouter(prefix="/api/jds", tags=["jds"])
 

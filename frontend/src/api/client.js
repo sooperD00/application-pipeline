@@ -7,7 +7,7 @@
  * Convention:
  *   - All functions return parsed JSON (or a Response for SSE streams).
  *   - Errors throw with the status code and detail from FastAPI's error body.
- *   - No auth headers yet — the backend stub grabs the first User row.
+ *   - No auth headers: the backend knows each browser by its auth_token cookie.
  */
 
 const BASE = ''  // empty = same origin, proxy handles it in dev

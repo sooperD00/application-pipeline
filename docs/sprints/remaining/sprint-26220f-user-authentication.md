@@ -67,7 +67,7 @@ routes.
 | 0 | decide in writing | Write ADR-019 as `docs/decisions/adr-019-google-sign-in.md`: Google sign-in, per-browser hashed tokens, synchronizer CSRF, anonymous-first kept, and passwords and magic links as the runners-up with the reasons |
 | 1 | new beside old | Create `app/auth.py` with `get_current_user`; have `sessions.py` re-export it |
 | 2 | flip consumers | Point `jds.py`, `resumes.py`, `sessions.py`, and `conftest.py` at `app.auth` |
-| 3 | delete the old | Remove the re-export, the "shared auth stub" comments in `jds.py:42` and `resumes.py:27`, and the `main.py:7` docstring line that places auth in `sessions.py` |
+| 3 | delete the old | Remove the re-export, the "shared cookie auth" comments in `jds.py:42` and `resumes.py:27`, and the `main.py:7` docstring line that places auth in `sessions.py` |
 
 **Watch** `app/auth.py` imports only `config`, `database`, and `models`, never a router.
 `jds.py` already dodges a circular import with a function-level `settings` import; don't create
@@ -170,7 +170,7 @@ a second one.
 **Commits**
 | # | | |
 |---|---|---|
-| 1 | read identity | Add `getMe()` to `client.js` and a hook that loads it once for the nav. Fix the stale "backend stub grabs the first User row" header comment at `client.js:10` |
+| 1 | read identity | Add `getMe()` to `client.js` and a hook that loads it once for the nav |
 | 2 | sign in | Make the nav button a full-page navigation to `/api/auth/google/login` |
 | 3 | sign out | Make the nav button POST `/api/auth/logout`, then reload `/sessions` |
 | 4 | prove it | Cover both nav states in `App.test.jsx` and another user's session URL in `SessionDetailPage.test.jsx` |

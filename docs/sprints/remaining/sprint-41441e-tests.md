@@ -23,13 +23,14 @@ is measuring a suite that is already red. (Pulled out of Housekeeping, where it 
 
 **Done when**
 - [ ] the 18 failures pass, and nothing else changes: 0 failed, same collected count
-- [ ] `conftest.py:59` no longer claims `get_current_user` grabs the first User row
+- [ ] the `client` fixture's comment says what the override does, and its
+      `[SPRINT-41441e-a-CLEANUP]` marker is gone
 
 **Commits**
 | # | | |
 |---|---|---|
 | 0 | reproduce | Run pytest. `test_list_sessions: assert 0 == 2` is the tell: every request runs as a fresh anonymous user instead of `seeded_user` (artifact, not a commit) |
-| 1 | fix | In the `client` fixture, add `app.dependency_overrides[get_current_user] = lambda: seeded_user` beside the `get_session` override. Fix the stale comment |
+| 1 | fix | In the `client` fixture, add `app.dependency_overrides[get_current_user] = lambda: seeded_user` beside the `get_session` override, and rewrite the marked comment above it |
 
 ## leg b — fill the gaps (feature) --- planned
 

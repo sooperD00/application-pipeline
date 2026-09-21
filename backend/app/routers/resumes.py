@@ -24,7 +24,7 @@ from sqlmodel import select
 
 from ..database import get_session
 from ..models import Resume, User
-from .sessions import get_current_user  # shared auth stub
+from .sessions import get_current_user  # shared cookie auth
 
 MAX_RESUMES_PER_USER = 3
 
