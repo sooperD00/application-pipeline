@@ -142,16 +142,18 @@ Phase 1 ends isn't decided yet; the sprint order that gets there lives in
 [sprints/plan.md](sprints/plan.md).
 
 - Google sign-in — builds on Phase 0's cookie auth. Per-browser login tokens first, then OAuth; signing in adopts the anonymous User row into a permanent account and the data carries over. Chosen over magic links and passwords because both need email infrastructure this project doesn't have, and because there's no password database to defend once paid credits sit behind the login. Magic links stay on the table as a second way in, deferred to public release. ADR-019 (written in [s-26220f-a]) carries the reasoning; sprint order in [sprints/plan.md](sprints/plan.md).
-- Billing, moved up from Phase 3. Whoever pays needs metering and per-user cost caps first — today one API key pays for every session run by anyone.
+- Billing, moved up from Phase 3, with per-user cost caps and rate limiting. Whoever pays needs metering first, and today one API key pays for every session run by anyone.
 - Onboarding flow for first-time users
 - Tab 3: Review & Enrich table with all sections
-- Full Tracker on main nav with stage tracking and week groupings
+- Full Tracker on main nav with stage tracking and week groupings, and the metrics that show a user their own funnel
 - Company matching across sessions
 - Prompt templates visible (read-only) per phase
 - Metrics for the operator, not just the user: cost per session and per user, funnel data, error visibility
-- Data lifecycle: anonymous retention, anonymous → account conversion, and a delete-my-data path, with the terms and privacy policy that belong beside it
-- Job durability — BackgroundTasks die with the request (see [architecture.md](architecture.md))
-- Whatever tooling this phase warrants for quality and maintainability
+- Data lifecycle: anonymous retention and anonymous → account conversion land in [s-26220f]. A delete-my-data path is deferred to public release ([s-26220f]'s Out of Scope), which is the honest place for it: it is a promise to keep, not a feature to ship early and half-wire
+- Terms of service and a privacy policy — due with [s-2716d1-d]'s go-live commit, which publishes the public page Stripe's activation review reads
+- Railway database backups — [s-2716d1]'s entry gate, since the credit ledger holds paid balances
+- Job durability — BackgroundTasks die with the request; [architecture.md](architecture.md) routes this to arq/Redis once users are concurrent
+- Suite health, and whatever tooling this phase warrants for quality and maintainability
 
 ---
 

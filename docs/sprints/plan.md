@@ -2,8 +2,21 @@
 
 How all of this works — the vocabulary, the rules, and what to do at each step — is
 [ADR-021](../decisions/adr-021-planning-system.md). Read that once; this file is the live state.
+Work with no sprint yet waits in [housekeeping.md](housekeeping.md), and deferred work in
+[techdebt.md](techdebt.md).
 
 LLM MODEL = Claude Opus 5 Max Thinking
+
+## Phases
+
+Delivery milestones, each designed in [implementation-plan.md](../implementation-plan.md).
+Phase 0 is deployed; Phase 1 is in progress.
+
+- [Phase 0 — "Replace My Excel Workflow"](../implementation-plan.md#phase-0--replace-my-excel-workflow)
+- [Phase 1 — "My Brother Can Use It Too"](../implementation-plan.md#phase-1--my-brother-can-use-it-too)
+- [Phase 2 — "It's a Product"](../implementation-plan.md#phase-2--its-a-product)
+- [Phase 3 — "People Pay For This"](../implementation-plan.md#phase-3--people-pay-for-this)
+- [Phase 4 — "Polish and Grow"](../implementation-plan.md#phase-4--polish-and-grow)
 
 ## Order
 
@@ -39,28 +52,3 @@ No reading lists yet: the first one belongs to the next leg that runs.
 | 013 | `[s-603d20]` | [Adopt ADR-021 across the repo](completed/sprint-013-603d20-adopt-adr-021.md) | 2026-09-20 |
 
 The counter continues at 014.
-
-## Phase 1
-
-Phase 0 is deployed. Phase 1 delivers auth, billing and onboarding, plus the tracking and
-metrics that make the funnel visible to the user and to me. The deliverables are designed in
-[implementation-plan.md, Phase 1](../implementation-plan.md#phase-1--my-brother-can-use-it-too);
-the sprint order that gets there lives here. Where Phase 1 ends is not decided yet.
-
-**Delivering in Phase 1**
-
-- Auth, billing, user onboarding
-- Tracking table and metrics for the user
-- Tracking and metrics for the app and the dev — cost per session and per user, funnel data,
-  error visibility
-- Per-user cost caps and rate limiting — my API key pays for every beta session today, and
-  billing needs metering anyway
-- Data lifecycle — anonymous retention and anonymous → account conversion land in [s-26220f]. A
-  delete-my-data path is deferred to public release ([s-26220f]'s Out of Scope), which is the honest
-  place for it: it is a promise to keep, not a feature to ship early and half-wire
-- Terms of service and a privacy policy — due with [s-2716d1-d]'s go-live commit, which publishes the
-  public page Stripe's activation review reads
-- Job durability — BackgroundTasks die with the request; architecture.md routes this to
-  arq/Redis once users are concurrent
-- Railway database backups — [s-2716d1]'s entry gate, since the credit ledger holds paid balances
-- Suite health, and whatever tooling this phase warrants for quality and maintainability
