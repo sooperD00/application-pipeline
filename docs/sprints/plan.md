@@ -26,7 +26,7 @@ done in. Re-order by moving a row: no sprint file changes when the order does.
 | NNN | id | name | status | depends on | reading list |
 |-----|----|------|--------|------------|--------------|
 | | `[s-a75ff1]` | [Backend dependencies](remaining/sprint-a75ff1-backend-dependencies.md) | in progress | — | — |
-| | `[s-41441e]` | [Tests](remaining/sprint-41441e-tests.md) | planned | — | — |
+| | `[s-41441e]` | [Tests](remaining/sprint-41441e-tests.md) | planned | `[s-a75ff1]` | — |
 | | `[s-07579b]` | [Consolidating Railway services into one project](remaining/sprint-07579b-railway-consolidation.md) | planned | — | — |
 | | `[s-26be17]` | [Code hygiene](remaining/sprint-26be17-code-hygiene.md) | planned | — | — |
 | | `[s-3f291c]` | [Developer tooling](remaining/sprint-3f291c-developer-tooling.md) | planned | `[s-a75ff1]`, `[s-41441e]` | — |

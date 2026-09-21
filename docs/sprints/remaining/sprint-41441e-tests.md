@@ -6,6 +6,9 @@
 <!-- was Sprint 14 before ADR-021 -->
 
 **Legs:** fix the red suite (bugfix), then fill the gaps (feature).
+**Entry gate:** [s-a75ff1-c] required before leg a. Its done-when compares test counts against
+the [s-a75ff1-a] baseline, 18 failures included, and leg a here changes them (verified in a
+scratch copy: 88 passed → 106 passed).
 
 Fill concrete gaps. The goal is confidence before auth ([s-26220f]), and before CI, which can't
 live on a red suite.
@@ -27,9 +30,6 @@ is measuring a suite that is already red. (Pulled out of Housekeeping, where it 
 |---|---|---|
 | 0 | reproduce | Run pytest. `test_list_sessions: assert 0 == 2` is the tell: every request runs as a fresh anonymous user instead of `seeded_user` (artifact, not a commit) |
 | 1 | fix | In the `client` fixture, add `app.dependency_overrides[get_current_user] = lambda: seeded_user` beside the `get_session` override. Fix the stale comment |
-
-**Watch** Land after [s-a75ff1-c] closes. [s-a75ff1-c]'s done-when compares test counts against the [s-a75ff1-a] baseline,
-and this changes them (verified in a scratch copy: 88 passed → 106 passed).
 
 ## leg b — fill the gaps (feature) --- planned
 
