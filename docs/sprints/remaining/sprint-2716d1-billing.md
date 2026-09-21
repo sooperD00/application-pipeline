@@ -19,10 +19,11 @@ will hold paid balances.
 
 **Why now** Users should pay for their own Claude usage, plus a margin. Today every analysis run
 (about $1 of Opus, per the July cost screenshot in `docs/cost-tracking/`) and every tailoring job
-lands on one API key with no per-user record. `send()` sums input and output tokens, both callers
-discard the result (`_tokens` at `analysis.py:252` and `tailoring.py:318`), and `api_cost_cents`
-is declared at `models.py:262` and never written. Credit packs amortize Stripe's 30¢ fixed fee
-(`cost-notes.txt`) and skip subscription lifecycle states until public release.
+lands on one API key with no per-user record. `ClaudeConversation.send()` sums input and output
+tokens, both callers discard the result (`_tokens` in `stream_analysis` and in
+`run_tailoring_job`), and `TailoringJob.api_cost_cents` is declared and never written. Credit
+packs amortize Stripe's 30¢ fixed fee (`cost-notes.txt`) and skip subscription lifecycle states
+until public release.
 
 ## leg a — put the spend paths under test, fix the stuck analysis (bugfix) --- planned
 
@@ -63,7 +64,7 @@ is declared at `models.py:262` and never written. Credit packs amortize Stripe's
 **Commits**
 | # | | |
 |---|---|---|
-| 1 | carry usage | Make `send()` return the SDK's usage object instead of a summed int (`claude.py:62`); update both callers with behavior unchanged |
+| 1 | carry usage | Make `ClaudeConversation.send()` return the SDK's usage object instead of a summed int; update both callers with behavior unchanged |
 | 2 | price it | Add `app/pricing.py`: per-MTok input, output, cache-write, and cache-read prices per model, copied from Anthropic's pricing page with the date. An unknown model raises |
 | 3 | record it | Add the `ApiUsage` model and migration. Write rows from `stream_analysis` (per batch, in the batch's commit) and `run_tailoring_job` (per attempt) |
 | 4 | prove equivalence | Run one dev session on a dedicated key; compare the summed `cost_micros` with the Console |
