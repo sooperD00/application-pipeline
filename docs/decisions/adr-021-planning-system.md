@@ -119,6 +119,8 @@ docs/reading/reading-list-for-<id>-<leg>.txt     what one coding session was han
 - Document a list only for the sprint in progress and for sprints already finished. Draft as many as you like anywhere else; they do not enter `docs/` until they are about to be used.
 - Link it from `plan.md` with the date it was written. Where the row and the file disagree, the file wins.
 
+**Session guards.** What a session may read, what it must not, and who it is arrive with the prompt it is handed, not from this repo. They are kept where they can be read in one pass before that prompt is sent, and a copy here would be a second one to maintain. If you are working here without them, ask for them before you start.
+
 ## Run a sprint
 
 - Run one leg at a time. The leg is already sized for the model named in `plan.md`.
