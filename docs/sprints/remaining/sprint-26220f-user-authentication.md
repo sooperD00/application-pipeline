@@ -14,8 +14,8 @@ out CSRF (factor 2: request integrity). Merging leg c and leg e means a red suit
 sign-in or CSRF broke it.
 **Entry gate:** [s-41441e-a] (green suite) required before leg a — this sprint rewrites the dependency
 every route uses, and a red baseline can't tell you what you broke. [s-17c7e9] (custom domain)
-required before leg c. [s-a75ff1-c] (one Python), [s-26be17] (timestamps and the 422 rename) and [s-3f291c] (CI behind
-Railway's Wait for CI) recommended before leg a.
+required before leg c. [s-a75ff1-b] (one Python), [s-26be17] (timestamps and the 422 rename)
+and [s-3f291c] (CI behind Railway's Wait for CI) recommended before leg a.
 
 **Why now** Every browser is its own user, and nothing lets a person reach their data from a
 second browser. The cookie is set once, when the user row is created, with a 30-day lifetime

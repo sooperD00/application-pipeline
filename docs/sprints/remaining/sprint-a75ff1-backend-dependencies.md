@@ -121,8 +121,15 @@ That cost an hour in leg a, when a stale root `.venv` answered instead of `backe
   context check has to run exactly when the environment is in doubt.
 - This Mac has neither venv yet, being a fresh clone. [s-3f291c]'s Makefile is the planned
   guard (a preflight target that fails unless `sys.prefix` ends in `backend/.venv`).
+- Pin the interpreter before this Mac's first `uv sync`; that is commit 1. The Mac's default
+  Python is Homebrew 3.14.3, two minor versions ahead of the image, and uv builds the venv on
+  whatever it finds unless `backend/.python-version` says otherwise.
 
 **Done when**
+- [ ] `backend/.python-version` pins 3.12, and `uv run python --version` from `backend/` reports
+      3.12 — dev runs the interpreter the image runs. (Moved here from leg c on 2026-09-21, so
+      this Mac's first venv is right from the start; leg c pulled it from Housekeeping on
+      2026-09-17.)
 - [ ] `docker build` succeeds installing from pyproject + uv.lock, with no requirements.txt in the repo
 - [ ] the built image runs migrations and starts uvicorn
 - [ ] image size is same or smaller — compare against a build from `da59650` or later, never
@@ -142,9 +149,10 @@ That cost an hour in leg a, when a stale root `.venv` answered instead of `backe
 **Commits**
 | # | | |
 |---|---|---|
-| 1 | flip consumer | Dockerfile installs from the lock, dev group excluded |
-| 2 | flip consumer | README local-setup section. Carry the prework's lasting rules into it — run uv from `backend/`, one `.venv`, check `sys.prefix` — because this file is archived when the sprint closes and the README is where the next person looks |
-| 3 | delete the old | `git rm backend/requirements.txt` |
+| 1 | pin the interpreter | `uv python pin 3.12` from `backend/` writes `backend/.python-version`, and uv fetches 3.12 on the next sync if it isn't installed. The image already runs 3.12, so nothing in prod moves |
+| 2 | flip consumer | Dockerfile installs from the lock, dev group excluded |
+| 3 | flip consumer | README local-setup section. Carry the prework's lasting rules into it — run uv from `backend/`, one `.venv`, check `sys.prefix`, and `.python-version` sets the interpreter — because this file is archived when the sprint closes and the README is where the next person looks |
+| 4 | delete the old | `git rm backend/requirements.txt` |
 
 **Watch** start.sh calls bare `alembic` and `uvicorn` off PATH. It consumes *where packages
 land*, not requirements.txt, so leg a's inventory missed it. Satisfy it by putting the venv's
@@ -160,23 +168,11 @@ The `--probe` done-when above is the net that catches it.
 
 **Kind:** upgrade
 
-**Decide before commit 1: which Python.** You develop on 3.13.7 and ship on 3.12 (`Dockerfile`,
-`requires-python = ">=3.12"`). Re-locking on an interpreter prod does not run means reading the
-upgrade diff in an environment nobody deploys. Two ways out, and this leg needs one of them:
-- pin dev down to 3.12 (`uv python pin`, which writes `backend/.python-version`). No Dockerfile
-  change, this leg stays single-factor, and it is the cheaper default.
-- or bump the image to 3.13. That is a real upgrade of its own and a second factor inside a leg
-  that already moves every version — if you want it, it is its own leg, not a line here.
-The older note to re-lock with `--python 3.13.7` only holds if the image moves too. (Pulled
-from Housekeeping, 2026-09-17, where the skew and the note sat as two separate items.)
-
-Whichever wins, move every consumer in one commit: the Dockerfile base image,
-`backend/.python-version`, and [s-3f291c]'s CI pin once that job exists. This is [s-26220f]'s
-entry gate as well as leg c's decision — [s-26220f] adds `authlib`, `itsdangerous` and `httpx2`, and new
-packages should resolve against one interpreter.
+**Python is settled:** 3.12, pinned in leg b's commit 1, so the upgrade is installed and tested
+on the interpreter prod runs. A newer Python is its own leg or sprint, never a line here: the
+Dockerfile base image, `backend/.python-version` and [s-3f291c]'s CI pin move in one commit.
 
 **Done when**
-- [ ] dev and the Docker image run the same Python minor version — the decision above, taken
 - [ ] constraint-dependencies is gone from pyproject and `uv lock --check` is clean
 - [ ] the uv.lock diff has been read, not skimmed — that diff IS the upgrade
 - [ ] `dep_freeze.py compare` re-run against the same baseline, in
