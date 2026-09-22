@@ -45,7 +45,7 @@ Anyone may do any step in this record, and everyone follows it whoever they are.
 
 **Checklist marks** — a box records what happened to an item, not only whether it is ticked. `[x]` done as written. `[ ]` open. `[-]` skipped here and deferred: it reopens as `[ ]` in the place named, and takes an ID if that place is `housekeeping.md` or `techdebt.md`, because deferring is a move rather than a note. `[~]` rejected: not done, and not going anywhere. Neither mark ever stands alone — beside `[-]` the prose says *deferred to <place>* and why, beside `[~]` it says *not done because* and why. A mark without its sentence is a decision nobody can audit.
 
-**Entry gate** — work in an *earlier* sprint that a later one leans on, named at the top of the sprint that needs it, as required or recommended. Never a second home: the gate line points at the leg that owns the work, and the spec stays there. A gate item with no owner is a missing sprint, not a checklist.
+**Entry gate** — work in an *earlier* sprint that a later one leans on, named at the top of the sprint that needs it, as required or recommended. Never a second home: the gate line points at the leg that owns the work, and the spec stays there. A gate item that no sprint or leg contains is a missing sprint, not a checklist.
 
 ## Where things live
 

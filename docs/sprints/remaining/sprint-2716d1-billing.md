@@ -13,9 +13,8 @@ before money touches them. leg b records cost and charges nothing. leg c charges
 with no Stripe. leg d connects real payments. leg e is the client-side spend hygiene that has been
 waiting for a reason. Each leg can go red for one reason: spend-path behavior, metering, ledger
 math, Stripe, or the client.
-**Entry gate:** [s-26220f] done; a Stripe account in test mode with its keys in the dev `.env`;
-the Stripe CLI installed and logged in; Railway Postgres backups confirmed, since the ledger
-will hold paid balances.
+**Entry gate:** [s-26220f] required. [s-07579b]'s step 1 required: it turns on Railway Postgres
+backups and proves a restore, and the ledger will hold paid balances.
 
 **Why now** Users should pay for their own Claude usage, plus a margin. Today every analysis run
 (about $1 of Opus, per the July cost screenshot in `docs/cost-tracking/`) and every tailoring job
@@ -112,6 +111,10 @@ until public release.
 - leg a's shielded cleanup never debits. Debits belong to completed work only.
 
 ## leg d — sell credit packs through Stripe Checkout (feature) --- planned
+
+**Prework** — the first leg that touches Stripe:
+- [ ] a Stripe account in test mode, with its keys in the dev `.env`
+- [ ] the Stripe CLI installed and logged in
 
 **Done when**
 - [ ] a signed-in user buys a pack in test mode and the balance rises exactly once, including when Stripe resends the event

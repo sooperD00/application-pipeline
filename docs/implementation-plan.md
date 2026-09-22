@@ -152,7 +152,7 @@ Phase 1 ends isn't decided yet; the sprint order that gets there lives in
 - Metrics for the operator, not just the user: cost per session and per user, funnel data, error visibility
 - Data lifecycle: anonymous retention and anonymous → account conversion land in [s-26220f]. A delete-my-data path is deferred to public release ([s-26220f]'s Out of Scope), which is the honest place for it: it is a promise to keep, not a feature to ship early and half-wire
 - Terms of service and a privacy policy — due with [s-2716d1-d]'s go-live commit, which publishes the public page Stripe's activation review reads
-- Railway database backups — [s-2716d1]'s entry gate, since the credit ledger holds paid balances
+- Railway database backups — turned on in [s-07579b] and required by [s-2716d1]'s entry gate, since the credit ledger holds paid balances
 - Job durability — BackgroundTasks die with the request; [architecture.md](architecture.md) routes this to arq/Redis once users are concurrent
 - Suite health, and whatever tooling this phase warrants for quality and maintainability
 

@@ -30,6 +30,9 @@ Constraints
      expensive part: moving it is a dump, a restore and a cutover rather than a setting. If the
      answer is "move", that is its own migration with its own sprint, not a bullet inside this
      one.
+   - [ ] Turn on scheduled backups for the production database, and prove one restores into a
+     scratch database. [s-2716d1]'s credit ledger will hold paid balances, and its entry gate
+     points here.
 2. Recreate each moving service in the home project, next to the old one.
    - Copy its variables. Set the healthcheck path to /health and the builder to Dockerfile.
    Gate: /health returns 200 and the app works end to end on the new service.

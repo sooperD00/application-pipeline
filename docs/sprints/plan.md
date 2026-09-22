@@ -32,7 +32,7 @@ done in. Re-order by moving a row: no sprint file changes when the order does.
 | | `[s-3f291c]` | [Developer tooling](remaining/sprint-3f291c-developer-tooling.md) | planned | `[s-a75ff1]`, `[s-41441e]` | — |
 | | `[s-17c7e9]` | [Custom domain](remaining/sprint-17c7e9-custom-domain.md) | planned | — | — |
 | | `[s-26220f]` | [User authentication](remaining/sprint-26220f-user-authentication.md) | planned | `[s-41441e]`, `[s-17c7e9]` | — |
-| | `[s-2716d1]` | [Billing](remaining/sprint-2716d1-billing.md) | planned | `[s-26220f]` | — |
+| | `[s-2716d1]` | [Billing](remaining/sprint-2716d1-billing.md) | planned | `[s-26220f]`, `[s-07579b]` | — |
 | | `[s-77f2e3]` | [Frontend polish](remaining/sprint-77f2e3-frontend-polish.md) | parked | — | — |
 
 **depends on** names required entry gates only. Each sprint file carries the full gate line,
