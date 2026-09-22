@@ -136,9 +136,10 @@ That cost an hour in leg a, when a stale root `.venv` answered instead of `backe
 - [ ] `docker build` succeeds installing from pyproject + uv.lock, with no requirements.txt in the repo
 - [ ] the build installs with `uv sync --locked`, so a lock that has drifted from pyproject stops
       it. Until [s-3f291c]'s CI exists, this build is the only place `uv lock --check` has to run
-- [ ] the built image runs migrations and starts uvicorn — run it with `--env-file backend/.env`,
-      which points at the dev database. Never prod's: the image carries no `.env`, so whatever
-      you hand it is what `alembic upgrade head` runs against
+- [ ] the built image runs migrations and answers `GET /health` with 200 — the same check
+      Railway runs against a new deploy, and one someone else can repeat. Run it with
+      `--env-file backend/.env`, which points at the dev database. Never prod's: the image
+      carries no `.env`, so whatever you hand it is what `alembic upgrade head` runs against
 - [ ] image size is same or smaller — compare against a build from `da59650` or later, never
       anything earlier. Until that commit `.dockerignore` excluded neither `**/venv` nor
       `**/.venv`, so `COPY backend/ .` copied a local backend/venv into local builds and
@@ -160,6 +161,14 @@ That cost an hour in leg a, when a stale root `.venv` answered instead of `backe
 | 2 | flip consumer | Dockerfile installs from the lock with `uv sync --locked --no-dev`: dev group excluded, and a lock that disagrees with pyproject fails the build rather than resolving around it |
 | 3 | flip consumer | README local-setup section. Carry the prework's lasting rules into it — run uv from `backend/`, one `.venv`, check `sys.prefix`, and `.python-version` sets the interpreter — because this file is archived when the sprint closes and the README is where the next person looks |
 | 4 | delete the old | `git rm backend/requirements.txt` |
+
+**Watch** Commit 2 is the deploy: every push to main builds and ships. Run the build, the
+container and `/health` locally first, and take the leg through a short-lived branch so the
+merge is the single deploy — the shape leg a's close-out already prescribes for root configs. If
+it lands badly, revert the merge and let the next push rebuild what worked, or redeploy the
+previous deployment from the dashboard. A build that fails leaves the current deployment
+serving; a build that succeeds into an app that cannot start is what the healthcheck prework
+covers.
 
 **Watch** start.sh calls bare `alembic` and `uvicorn` off PATH. It consumes *where packages
 land*, not requirements.txt, so leg a's inventory missed it. Satisfy it by putting the venv's
