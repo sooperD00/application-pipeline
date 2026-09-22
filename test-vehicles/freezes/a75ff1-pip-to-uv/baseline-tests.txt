@@ -1,0 +1,779 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.7, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\Barac0da\source\repos\application-pipeline\backend\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Barac0da\source\repos\application-pipeline\backend
+configfile: pyproject.toml
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 106 items
+
+tests/test_dep_freeze.py::TestNormalizeName::test_pep503[Jinja2-jinja2] PASSED [  0%]
+tests/test_dep_freeze.py::TestNormalizeName::test_pep503[SQLAlchemy-sqlalchemy] PASSED [  1%]
+tests/test_dep_freeze.py::TestNormalizeName::test_pep503[typing_extensions-typing-extensions] PASSED [  2%]
+tests/test_dep_freeze.py::TestNormalizeName::test_pep503[docstring_parser-docstring-parser] PASSED [  3%]
+tests/test_dep_freeze.py::TestNormalizeName::test_pep503[pydantic_core-pydantic-core] PASSED [  4%]
+tests/test_dep_freeze.py::TestNormalizeName::test_pep503[zope.interface-zope-interface] PASSED [  5%]
+tests/test_dep_freeze.py::TestNormalizeName::test_pep503[ruamel.yaml.clib-ruamel-yaml-clib] PASSED [  6%]
+tests/test_dep_freeze.py::TestNormalizeName::test_pep503[  spaced  -spaced] PASSED [  7%]
+tests/test_dep_freeze.py::TestNormalizeName::test_separator_runs_collapse PASSED [  8%]
+tests/test_dep_freeze.py::TestParseFreeze::test_crlf_and_mixed_case PASSED [  9%]
+tests/test_dep_freeze.py::TestParseFreeze::test_skips_comments_blanks_and_flags PASSED [ 10%]
+tests/test_dep_freeze.py::TestParseFreeze::test_skips_direct_reference PASSED [ 11%]
+tests/test_dep_freeze.py::TestParseFreeze::test_strips_environment_marker PASSED [ 12%]
+tests/test_dep_freeze.py::TestParseFreeze::test_trailing_line_without_newline PASSED [ 13%]
+tests/test_dep_freeze.py::TestParseFreeze::test_last_wins_on_duplicate PASSED [ 14%]
+tests/test_dep_freeze.py::TestUnparsedLines::test_surfaces_only_the_silently_dropped PASSED [ 15%]
+tests/test_dep_freeze.py::TestUnparsedLines::test_clean_freeze_has_none PASSED [ 16%]
+tests/test_dep_freeze.py::TestRenderConstraints::test_sorted_and_quoted PASSED [ 16%]
+tests/test_dep_freeze.py::TestRenderConstraints::test_empty_pins_still_valid_toml_shape PASSED [ 17%]
+tests/test_dep_freeze.py::TestReplaceBlock::test_inserts_between_sentinels PASSED [ 18%]
+tests/test_dep_freeze.py::TestReplaceBlock::test_is_idempotent PASSED    [ 19%]
+tests/test_dep_freeze.py::TestReplaceBlock::test_leaves_surrounding_content_alone PASSED [ 20%]
+tests/test_dep_freeze.py::TestReplaceBlock::test_missing_sentinels_raises PASSED [ 21%]
+tests/test_dep_freeze.py::TestReplaceBlock::test_reversed_sentinels_raises PASSED [ 22%]
+tests/test_dep_freeze.py::TestDiffPins::test_identical_is_empty PASSED   [ 23%]
+tests/test_dep_freeze.py::TestDiffPins::test_case_difference_is_not_a_change PASSED [ 24%]
+tests/test_dep_freeze.py::TestDiffPins::test_underscore_difference_is_not_a_change PASSED [ 25%]
+tests/test_dep_freeze.py::TestDiffPins::test_added_removed_changed PASSED [ 26%]
+tests/test_dep_freeze.py::TestDiffPins::test_lxml_appearing_reads_as_added PASSED [ 27%]
+tests/test_resumes.py::test_create_resume_returns_201 PASSED             [ 28%]
+tests/test_resumes.py::test_create_resume_strips_whitespace_on_label PASSED [ 29%]
+tests/test_resumes.py::test_create_resume_empty_label_returns_422 PASSED [ 30%]
+tests/test_resumes.py::test_create_resume_empty_content_returns_422 PASSED [ 31%]
+tests/test_resumes.py::test_create_resume_enforces_3_cap PASSED          [ 32%]
+tests/test_resumes.py::test_list_resumes_empty PASSED                    [ 33%]
+tests/test_resumes.py::test_list_resumes_returns_all_in_order PASSED     [ 33%]
+tests/test_resumes.py::test_patch_label PASSED                           [ 34%]
+tests/test_resumes.py::test_patch_content PASSED                         [ 35%]
+tests/test_resumes.py::test_patch_wrong_id_returns_404 PASSED            [ 36%]
+tests/test_resumes.py::test_patch_empty_label_returns_422 PASSED         [ 37%]
+tests/test_resumes.py::test_delete_resume_returns_204 PASSED             [ 38%]
+tests/test_resumes.py::test_delete_frees_cap_slot PASSED                 [ 39%]
+tests/test_resumes.py::test_delete_wrong_id_returns_404 PASSED           [ 40%]
+tests/test_resumes.py::test_delete_removes_from_list PASSED              [ 41%]
+tests/test_sessions.py::test_create_session_returns_201 PASSED           [ 42%]
+tests/test_sessions.py::test_create_session_strips_whitespace PASSED     [ 43%]
+tests/test_sessions.py::test_add_jd_returns_201_with_cleaned_text PASSED [ 44%]
+tests/test_sessions.py::test_add_jd_numbers_sequentially PASSED          [ 45%]
+tests/test_sessions.py::test_add_jd_empty_after_cleaning_returns_422 PASSED [ 46%]
+tests/test_sessions.py::test_25_jd_cap_returns_409 PASSED                [ 47%]
+tests/test_sessions.py::test_get_session_wrong_id_returns_404 PASSED     [ 48%]
+tests/test_sessions.py::test_add_jd_to_wrong_session_returns_404 PASSED  [ 49%]
+tests/test_sessions.py::test_get_session_returns_jds_in_order PASSED     [ 50%]
+tests/test_tailoring.py::test_create_tailoring_job_returns_202 FAILED    [ 50%]
+tests/test_tailoring.py::test_create_tailoring_job_no_resumes_returns_422 FAILED [ 51%]
+tests/test_tailoring.py::test_create_tailoring_job_wrong_jd_returns_404 PASSED [ 52%]
+tests/test_tailoring.py::test_get_tailoring_job_queued FAILED            [ 53%]
+tests/test_tailoring.py::test_get_tailoring_job_ready_with_outputs FAILED [ 54%]
+tests/test_tailoring.py::test_get_tailoring_job_wrong_job_id_returns_404 PASSED [ 55%]
+tests/test_tailoring.py::test_download_docx_returns_bytes FAILED         [ 56%]
+tests/test_tailoring.py::test_download_docx_not_ready_returns_404 PASSED [ 57%]
+tests/test_tailoring.py::test_batch_tailor_creates_jobs_for_apply_jds FAILED [ 58%]
+tests/test_tailoring.py::test_batch_tailor_no_resumes_returns_422 FAILED [ 59%]
+tests/test_tailoring.py::test_batch_tailor_no_apply_jds_returns_422 FAILED [ 60%]
+tests/test_tailoring.py::test_prompt_assembly_includes_analysis_and_resume_generation PASSED [ 61%]
+tests/test_tailoring.py::test_prompt_assembly_conditional_cover_letter PASSED [ 62%]
+tests/test_tailoring.py::test_prompt_assembly_conditional_app_answers PASSED [ 63%]
+tests/test_tailoring.py::test_list_sessions FAILED                       [ 64%]
+tests/test_tailoring.py::test_list_tailoring_jobs_for_jd FAILED          [ 65%]
+tests/test_tailoring.py::test_list_session_tailoring_jobs_dashboard FAILED [ 66%]
+tests/test_tailoring.py::test_batch_tailor_skips_completed_jd FAILED     [ 66%]
+tests/test_tailoring.py::test_batch_tailor_force_retailors_completed_jd FAILED [ 67%]
+tests/test_tailoring.py::test_tailoring_pipeline_prompt_to_docx PASSED   [ 68%]
+tests/test_tailoring.py::test_download_package_returns_valid_zip FAILED  [ 69%]
+tests/test_tailoring.py::test_download_package_not_ready_returns_404 PASSED [ 70%]
+tests/test_tailoring.py::test_download_package_omits_optional_files FAILED [ 71%]
+tests/test_tailoring.py::test_get_tailoring_job_failed_status FAILED     [ 72%]
+tests/test_tailoring.py::test_batch_tailor_skips_queued_and_processing_jobs FAILED [ 73%]
+tests/test_tailoring.py::test_batch_tailor_does_not_skip_failed_jobs FAILED [ 74%]
+tests/test_text_cleaning.py::test_strips_leading_and_trailing_whitespace PASSED [ 75%]
+tests/test_text_cleaning.py::test_strips_leading_newlines PASSED         [ 76%]
+tests/test_text_cleaning.py::test_crlf_becomes_lf PASSED                 [ 77%]
+tests/test_text_cleaning.py::test_bare_cr_becomes_lf PASSED              [ 78%]
+tests/test_text_cleaning.py::test_mixed_line_endings_normalized PASSED   [ 79%]
+tests/test_text_cleaning.py::test_three_newlines_collapse_to_two PASSED  [ 80%]
+tests/test_text_cleaning.py::test_ten_newlines_collapse_to_two PASSED    [ 81%]
+tests/test_text_cleaning.py::test_two_newlines_preserved PASSED          [ 82%]
+tests/test_text_cleaning.py::test_single_newline_preserved PASSED        [ 83%]
+tests/test_text_cleaning.py::test_null_byte_removed PASSED               [ 83%]
+tests/test_text_cleaning.py::test_bell_character_removed PASSED          [ 84%]
+tests/test_text_cleaning.py::test_tab_preserved PASSED                   [ 85%]
+tests/test_text_cleaning.py::test_newline_preserved_through_step_4 PASSED [ 86%]
+tests/test_text_cleaning.py::test_non_breaking_space_becomes_regular_space PASSED [ 87%]
+tests/test_text_cleaning.py::test_em_space_becomes_regular_space PASSED  [ 88%]
+tests/test_text_cleaning.py::test_en_space_becomes_regular_space PASSED  [ 89%]
+tests/test_text_cleaning.py::test_em_dash_preserved PASSED               [ 90%]
+tests/test_text_cleaning.py::test_zero_width_space_removed PASSED        [ 91%]
+tests/test_text_cleaning.py::test_bom_removed PASSED                     [ 92%]
+tests/test_text_cleaning.py::test_zero_width_joiner_removed PASSED       [ 93%]
+tests/test_text_cleaning.py::test_soft_hyphen_removed PASSED             [ 94%]
+tests/test_text_cleaning.py::test_idempotent_on_clean_text PASSED        [ 95%]
+tests/test_text_cleaning.py::test_idempotent_on_messy_text PASSED        [ 96%]
+tests/test_text_cleaning.py::test_empty_string_returns_empty PASSED      [ 97%]
+tests/test_text_cleaning.py::test_whitespace_only_returns_empty PASSED   [ 98%]
+tests/test_text_cleaning.py::test_only_zero_width_chars_returns_empty PASSED [ 99%]
+tests/test_text_cleaning.py::test_realistic_linkedin_paste PASSED        [100%]
+
+================================== FAILURES ===================================
+____________________ test_create_tailoring_job_returns_202 ____________________
+
+client = <httpx.AsyncClient object at 0x0000029AB656AB10>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 20, 460505), auth_token='test-token', id=UUID('e569a7db-5590-44f5-9297-6a4ef76dcf87'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('e569a7db-5590-44f5-9297-6a4ef76dcf87'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('88e56f9c-9149-48ed-a89b-a751ad61097e'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('37118d59-7c60-48d8-8e88-ef8f363e5808'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 20, 474143)))
+seeded_templates = [PromptTemplate(user_id=None, id=UUID('1807339e-0a26-404d-b051-d110c50836db'), phase=<PromptPhase.analysis: 'analysis'...nswers', is_active=True, name='App Answers', version=1, created_at=datetime.datetime(2026, 9, 16, 18, 12, 20, 483466))]
+
+    @pytest.mark.asyncio
+    async def test_create_tailoring_job_returns_202(
+        client, seeded_user, seeded_resume, seeded_session_with_jds, seeded_templates,
+    ):
+        _, jd_apply, _ = seeded_session_with_jds
+    
+        # Mock the background task — it creates its own DB session (AsyncSessionLocal)
+        # which doesn't share the test's in-memory SQLite. We test the endpoint
+        # response and job creation, not the background execution.
+        with patch("app.routers.jds.run_tailoring_job", new_callable=AsyncMock):
+            response = await client.post(f"/api/jds/{jd_apply.id}/tailoring")
+    
+>       assert response.status_code == 202
+E       assert 404 == 202
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:139: AssertionError
+______________ test_create_tailoring_job_no_resumes_returns_422 _______________
+
+client = <httpx.AsyncClient object at 0x0000029AB679F950>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 20, 933631), auth_token='test-token', id=UUID('195d5575-25c3-460b-9908-99cd57df209e'), auth_token_expires_at=None)
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('45664991-6e67-4fe8-b97a-1c747b266a82'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 20, 942868)))
+
+    @pytest.mark.asyncio
+    async def test_create_tailoring_job_no_resumes_returns_422(
+        client, seeded_user, seeded_session_with_jds,
+    ):
+        """Without any resumes, tailoring should fail with 422."""
+        _, jd_apply, _ = seeded_session_with_jds
+    
+        response = await client.post(f"/api/jds/{jd_apply.id}/tailoring")
+>       assert response.status_code == 422
+E       assert 404 == 422
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:155: AssertionError
+________________________ test_get_tailoring_job_queued ________________________
+
+client = <httpx.AsyncClient object at 0x0000029AB7A2C1D0>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB65DF620>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 82383), auth_token='test-token', id=UUID('b18c4276-6b74-46d5-9c5e-038ac75a6eb2'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('b18c4276-6b74-46d5-9c5e-038ac75a6eb2'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('76a39860-ff26-43c2-a076-7814bd22cda5'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('ab74d4cb-2e43-4ed7-9f0e-6c8a9623737b'), status=<Sessi...w=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 98329)))
+
+    @pytest.mark.asyncio
+    async def test_get_tailoring_job_queued(
+        client, db_session, seeded_user, seeded_resume, seeded_session_with_jds,
+    ):
+        """A freshly created job should poll as queued."""
+        _, jd_apply, _ = seeded_session_with_jds
+    
+        job = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="test prompt",
+            status=TailoringStatus.queued,
+            model_used="claude-opus-4-6",
+        )
+        db_session.add(job)
+        await db_session.commit()
+        await db_session.refresh(job)
+    
+        response = await client.get(f"/api/jds/{jd_apply.id}/tailoring/{job.id}")
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:189: AssertionError
+__________________ test_get_tailoring_job_ready_with_outputs __________________
+
+client = <httpx.AsyncClient object at 0x0000029AB7AA5C10>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB65DFB60>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 177164), auth_token='test-token', id=UUID('468a914d-a534-4f55-aac9-db2cf9024e4b'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('468a914d-a534-4f55-aac9-db2cf9024e4b'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('7cadad7d-c9a0-404e-9764-a2d0aa11ee92'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('e19848af-7a1f-4c4d-a9da-33c12e036c6c'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 190782)))
+
+    @pytest.mark.asyncio
+    async def test_get_tailoring_job_ready_with_outputs(
+        client, db_session, seeded_user, seeded_resume, seeded_session_with_jds,
+    ):
+        """A completed job should return all outputs and has_docx=True."""
+        _, jd_apply, _ = seeded_session_with_jds
+    
+        job = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="test prompt",
+            status=TailoringStatus.ready,
+            model_used="claude-opus-4-6",
+            output_resume="NICOLE L. ROWSEY\nStaff-level engineer...",
+            output_cover_letter="Dear Hiring Manager...",
+            output_app_answers=[{"question": "Why us?", "answer": "Mission alignment."}],
+            output_resume_docx=b"fake-docx-bytes",
+            completed_at=datetime.utcnow(),
+        )
+        db_session.add(job)
+        await db_session.commit()
+        await db_session.refresh(job)
+    
+        response = await client.get(f"/api/jds/{jd_apply.id}/tailoring/{job.id}")
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:221: AssertionError
+______________________ test_download_docx_returns_bytes _______________________
+
+client = <httpx.AsyncClient object at 0x0000029AB7A2C590>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB65DF620>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 384385), auth_token='test-token', id=UUID('5daaab6c-a606-4abe-ba73-b122f0ed0121'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('5daaab6c-a606-4abe-ba73-b122f0ed0121'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('aa2d841e-027e-4c6e-9669-1bdd7c09e4d6'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('6da216d9-18c9-43a6-89f5-72eb5a9ecf91'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 405478)))
+
+    @pytest.mark.asyncio
+    async def test_download_docx_returns_bytes(
+        client, db_session, seeded_user, seeded_resume, seeded_session_with_jds,
+    ):
+        _, jd_apply, _ = seeded_session_with_jds
+    
+        job = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="test",
+            status=TailoringStatus.ready,
+            model_used="claude-opus-4-6",
+            output_resume_docx=b"PK\x03\x04fake-docx-content",
+            completed_at=datetime.utcnow(),
+        )
+        db_session.add(job)
+        await db_session.commit()
+        await db_session.refresh(job)
+    
+        response = await client.get(f"/api/jds/{jd_apply.id}/tailoring/{job.id}/docx")
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:264: AssertionError
+________________ test_batch_tailor_creates_jobs_for_apply_jds _________________
+
+client = <httpx.AsyncClient object at 0x0000029AB79C4290>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 610826), auth_token='test-token', id=UUID('eba36000-057a-4e49-8d15-5fade8f3341a'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('eba36000-057a-4e49-8d15-5fade8f3341a'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('9256598a-c08f-4662-be6b-1264f633d11b'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('b412c7a6-fa3d-43fe-a6cf-9c63bcf8200f'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 625024)))
+seeded_templates = [PromptTemplate(user_id=None, id=UUID('7ad27534-8b7e-48df-a5d6-248968af1b33'), phase=<PromptPhase.analysis: 'analysis'...nswers', is_active=True, name='App Answers', version=1, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 632653))]
+
+    @pytest.mark.asyncio
+    async def test_batch_tailor_creates_jobs_for_apply_jds(
+        client, seeded_user, seeded_resume, seeded_session_with_jds, seeded_templates,
+    ):
+        """Batch tailor should create jobs only for apply-status JDs."""
+        session, jd_apply, jd_pending = seeded_session_with_jds
+    
+        # Mock the background task — same reason as single tailoring test
+        with patch("app.routers.sessions.run_batch_tailor", new_callable=AsyncMock):
+            response = await client.post(f"/api/sessions/{session.id}/batch-tailor")
+    
+>       assert response.status_code == 202
+E       assert 404 == 202
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:304: AssertionError
+__________________ test_batch_tailor_no_resumes_returns_422 ___________________
+
+client = <httpx.AsyncClient object at 0x0000029AB7A2C1D0>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 713921), auth_token='test-token', id=UUID('79fd27ab-04a4-47d1-9e10-6b2979957d91'), auth_token_expires_at=None)
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('b84f8460-26bf-4bb4-b98c-ba507cc46669'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 729771)))
+
+    @pytest.mark.asyncio
+    async def test_batch_tailor_no_resumes_returns_422(
+        client, seeded_user, seeded_session_with_jds,
+    ):
+        session, _, _ = seeded_session_with_jds
+    
+        response = await client.post(f"/api/sessions/{session.id}/batch-tailor")
+>       assert response.status_code == 422
+E       assert 404 == 422
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:320: AssertionError
+_________________ test_batch_tailor_no_apply_jds_returns_422 __________________
+
+client = <httpx.AsyncClient object at 0x0000029AB679D3D0>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB65DFCB0>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 834671), auth_token='test-token', id=UUID('f970f23f-2d7f-48a3-b882-218f9df2a737'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('f970f23f-2d7f-48a3-b882-218f9df2a737'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('fcb0d66e-4f77-43af-a9c9-387fb09bbefa'), content='Staff engineer with 13+ years building distributed systems.')
+
+    @pytest.mark.asyncio
+    async def test_batch_tailor_no_apply_jds_returns_422(
+        client, db_session, seeded_user, seeded_resume,
+    ):
+        """Session with only pending JDs should fail."""
+        session = SessionModel(
+            user_id=seeded_user.id,
+            board="LinkedIn",
+            filters="remote",
+            search_term="test",
+            status=SessionStatus.complete,
+        )
+        db_session.add(session)
+        await db_session.commit()
+        await db_session.refresh(session)
+    
+        jd = JD(
+            session_id=session.id,
+            number=1,
+            raw_text="Some JD text here.",
+            cleaned_text="Some JD text here.",
+            company="Test Co",
+            role="Test Role",
+            status=JDStatus.pending,
+            status_source=JDStatusSource.ai,
+        )
+        db_session.add(jd)
+        await db_session.commit()
+    
+        response = await client.post(f"/api/sessions/{session.id}/batch-tailor")
+>       assert response.status_code == 422
+E       assert 404 == 422
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:354: AssertionError
+_____________________________ test_list_sessions ______________________________
+
+client = <httpx.AsyncClient object at 0x0000029AB7AA41D0>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB65DFE00>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 21, 958451), auth_token='test-token', id=UUID('d10bfcab-eb52-4b75-8ddc-f49447e1cb5a'), auth_token_expires_at=None)
+
+    @pytest.mark.asyncio
+    async def test_list_sessions(client, db_session, seeded_user):
+        """List endpoint returns all sessions for the user, newest first, with jd_count."""
+        from app.models import Session as SessionModel, SessionStatus
+    
+        s1 = SessionModel(
+            user_id=seeded_user.id,
+            board="LinkedIn",
+            filters="remote",
+            search_term="created first",
+            status=SessionStatus.active,
+        )
+        s2 = SessionModel(
+            user_id=seeded_user.id,
+            board="Indeed",
+            filters="hybrid",
+            search_term="created second",
+            status=SessionStatus.complete,
+        )
+        db_session.add(s1)
+        db_session.add(s2)
+        await db_session.commit()
+        await db_session.refresh(s1)
+        await db_session.refresh(s2)
+    
+        # Add 2 JDs to s1, 0 to s2
+        for i in range(2):
+            jd = JD(
+                session_id=s1.id,
+                number=i + 1,
+                raw_text=f"JD {i}",
+                cleaned_text=f"JD {i}",
+                company=f"Co {i}",
+                role="Eng",
+                status=JDStatus.pending,
+                status_source=JDStatusSource.ai,
+            )
+            db_session.add(jd)
+        await db_session.commit()
+    
+        response = await client.get("/api/sessions")
+        assert response.status_code == 200
+    
+        data = response.json()
+>       assert len(data) == 2
+E       assert 0 == 2
+E        +  where 0 = len([])
+
+tests\test_tailoring.py:527: AssertionError
+_______________________ test_list_tailoring_jobs_for_jd _______________________
+
+client = <httpx.AsyncClient object at 0x0000029AB7AA4710>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB65DFA10>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 64367), auth_token='test-token', id=UUID('b2e66a17-6e63-43a0-9d24-07ebcbb9157d'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('b2e66a17-6e63-43a0-9d24-07ebcbb9157d'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('65b4318c-b2ed-4d8f-979b-eb0d28bfafff'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('60b75087-1b52-4fa6-a891-496282b63e5d'), status=<Sessi...w=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 80507)))
+
+    @pytest.mark.asyncio
+    async def test_list_tailoring_jobs_for_jd(
+        client, db_session, seeded_user, seeded_resume, seeded_session_with_jds,
+    ):
+        """Per-JD tailoring history returns all jobs, newest first."""
+        _, jd_apply, _ = seeded_session_with_jds
+    
+        job1 = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="attempt 1",
+            status=TailoringStatus.ready,
+            model_used="claude-opus-4-6",
+        )
+        job2 = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="attempt 2",
+            status=TailoringStatus.queued,
+            model_used="claude-opus-4-6",
+        )
+        db_session.add(job1)
+        db_session.add(job2)
+        await db_session.commit()
+    
+        response = await client.get(f"/api/jds/{jd_apply.id}/tailoring")
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:566: AssertionError
+_________________ test_list_session_tailoring_jobs_dashboard __________________
+
+client = <httpx.AsyncClient object at 0x0000029AB7AA7290>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB66B8C20>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 178743), auth_token='test-token', id=UUID('a6fa98ec-e6e2-491c-9bff-5701997a7a8f'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('a6fa98ec-e6e2-491c-9bff-5701997a7a8f'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('10b5a572-615f-4140-ba3f-bfdaae95a161'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('5382b9cc-57cf-40c1-ac79-fc79105a978d'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 199476)))
+
+    @pytest.mark.asyncio
+    async def test_list_session_tailoring_jobs_dashboard(
+        client, db_session, seeded_user, seeded_resume, seeded_session_with_jds,
+    ):
+        """Dashboard endpoint returns jobs with JD company/role context."""
+        session, jd_apply, _ = seeded_session_with_jds
+    
+        job = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="dashboard test",
+            status=TailoringStatus.processing,
+            model_used="claude-opus-4-6",
+        )
+        db_session.add(job)
+        await db_session.commit()
+        await db_session.refresh(job)
+    
+        # Did the JOIN work?
+        response = await client.get(f"/api/sessions/{session.id}/tailoring-jobs")
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:597: AssertionError
+____________________ test_batch_tailor_skips_completed_jd _____________________
+
+client = <httpx.AsyncClient object at 0x0000029AB7AA6450>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB65DFE00>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 296353), auth_token='test-token', id=UUID('19fce825-239c-4d7d-963c-d2b298ee4c76'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('19fce825-239c-4d7d-963c-d2b298ee4c76'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('6c390e36-45d6-4dcc-9b2f-f4d02ea04c2d'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('f155439c-81e3-4a54-9856-7debec6ffe04'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 309251)))
+seeded_templates = [PromptTemplate(user_id=None, id=UUID('5d481d24-39bc-4508-a73b-abd0d85f06f6'), phase=<PromptPhase.analysis: 'analysis'...nswers', is_active=True, name='App Answers', version=1, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 316720))]
+
+    @pytest.mark.asyncio
+    async def test_batch_tailor_skips_completed_jd(
+        client, db_session, seeded_user, seeded_resume, seeded_session_with_jds, seeded_templates,
+    ):
+        """JDs with a ready tailoring job are skipped by default."""
+        session, jd_apply, _ = seeded_session_with_jds
+    
+        # Seed a completed job for jd_apply
+        done_job = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="already done",
+            status=TailoringStatus.ready,
+            model_used="claude-opus-4-6",
+        )
+        db_session.add(done_job)
+        await db_session.commit()
+    
+        with patch("app.routers.sessions.run_batch_tailor", new_callable=AsyncMock):
+            response = await client.post(f"/api/sessions/{session.id}/batch-tailor")
+    
+>       assert response.status_code == 202
+E       assert 404 == 202
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:631: AssertionError
+_______________ test_batch_tailor_force_retailors_completed_jd ________________
+
+client = <httpx.AsyncClient object at 0x0000029AB7AA41D0>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB65DF8C0>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 393412), auth_token='test-token', id=UUID('94d8babb-a1e1-441f-a427-10e59e2ef9a3'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('94d8babb-a1e1-441f-a427-10e59e2ef9a3'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('94f2bf9b-0e8a-4586-82a6-a01b5433b597'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('1b03636b-96db-40d4-85f9-c08cb20c9cd6'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 406675)))
+seeded_templates = [PromptTemplate(user_id=None, id=UUID('39db01b0-ea79-48fe-8770-3910a8b6f448'), phase=<PromptPhase.analysis: 'analysis'...nswers', is_active=True, name='App Answers', version=1, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 414479))]
+
+    @pytest.mark.asyncio
+    async def test_batch_tailor_force_retailors_completed_jd(
+        client, db_session, seeded_user, seeded_resume, seeded_session_with_jds, seeded_templates,
+    ):
+        """force=true creates a new job even when a ready job exists."""
+        session, jd_apply, _ = seeded_session_with_jds
+    
+        done_job = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="already done",
+            status=TailoringStatus.ready,
+            model_used="claude-opus-4-6",
+        )
+        db_session.add(done_job)
+        await db_session.commit()
+    
+        with patch("app.routers.sessions.run_batch_tailor", new_callable=AsyncMock):
+            response = await client.post(
+                f"/api/sessions/{session.id}/batch-tailor?force=true"
+            )
+    
+>       assert response.status_code == 202
+E       assert 404 == 202
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:661: AssertionError
+___________________ test_download_package_returns_valid_zip ___________________
+
+client = <httpx.AsyncClient object at 0x0000029AB679CC50>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB65DDD30>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 641979), auth_token='test-token', id=UUID('7818eaad-15cd-48b4-8901-9bb6e225f05f'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('7818eaad-15cd-48b4-8901-9bb6e225f05f'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('838e82d8-e71c-438a-977f-66a261a84d6a'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('38e7e6cb-88c2-4557-a8d3-4a939b9789a1'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 654680)))
+
+    @pytest.mark.asyncio
+    async def test_download_package_returns_valid_zip(
+        client, db_session, seeded_user, seeded_resume, seeded_session_with_jds,
+    ):
+        """A ready job should return a zip bundle per ADR-014."""
+        _, jd_apply, _ = seeded_session_with_jds
+    
+        # Give the JD analysis text so analysis.txt isn't just the placeholder
+        jd_apply.analysis_text = "Strong fit — Kafka experience."
+        db_session.add(jd_apply)
+        await db_session.commit()
+    
+        job = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="test prompt",
+            status=TailoringStatus.ready,
+            model_used="claude-opus-4-6",
+            output_resume="Nicole L. Rowsey\nStaff engineer...",
+            output_resume_docx=b"PK\x03\x04fake-docx-content",
+            output_cover_letter="Dear Hiring Manager...",
+            output_app_answers=[{"question": "Why us?", "answer": "Mission alignment."}],
+            completed_at=datetime.utcnow(),
+        )
+        db_session.add(job)
+        await db_session.commit()
+        await db_session.refresh(job)
+    
+        response = await client.get(f"/api/jds/{jd_apply.id}/tailoring/{job.id}/package")
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:894: AssertionError
+_________________ test_download_package_omits_optional_files __________________
+
+client = <httpx.AsyncClient object at 0x0000029AB7C65F10>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB66B9160>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 809567), auth_token='test-token', id=UUID('43055482-6094-4a9c-98d4-47c83229076b'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('43055482-6094-4a9c-98d4-47c83229076b'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('7a6a4f4d-0a25-437c-b39c-ab8208f8cc14'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('6281fa9f-0f7d-4212-a3b9-ccd094ab05b3'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 823064)))
+
+    @pytest.mark.asyncio
+    async def test_download_package_omits_optional_files(
+        client, db_session, seeded_user, seeded_resume, seeded_session_with_jds,
+    ):
+        """No cover letter or app answers \u2192 those files are omitted from the zip."""
+        _, jd_apply, _ = seeded_session_with_jds
+    
+        job = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="test",
+            status=TailoringStatus.ready,
+            model_used="claude-opus-4-6",
+            output_resume="Nicole L. Rowsey",
+            output_resume_docx=b"PK\x03\x04fake",
+            # no cover letter, no app answers
+            completed_at=datetime.utcnow(),
+        )
+        db_session.add(job)
+        await db_session.commit()
+        await db_session.refresh(job)
+    
+        response = await client.get(f"/api/jds/{jd_apply.id}/tailoring/{job.id}/package")
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:976: AssertionError
+____________________ test_get_tailoring_job_failed_status _____________________
+
+client = <httpx.AsyncClient object at 0x0000029AB656BD10>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB65DDD30>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 913504), auth_token='test-token', id=UUID('b148181c-ddce-47e3-977c-64f996f5286a'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('b148181c-ddce-47e3-977c-64f996f5286a'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('40a6f185-9ae6-4cf4-8e70-1cd8ed0ccd17'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('001f8c83-7133-4707-8d25-9d2eeceb8471'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 22, 928608)))
+
+    @pytest.mark.asyncio
+    async def test_get_tailoring_job_failed_status(
+        client, db_session, seeded_user, seeded_resume, seeded_session_with_jds,
+    ):
+        """A failed job should poll as 'failed'."""
+        _, jd_apply, _ = seeded_session_with_jds
+    
+        job = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="test prompt",
+            status=TailoringStatus.failed,
+            model_used="claude-opus-4-6",
+        )
+        db_session.add(job)
+        await db_session.commit()
+        await db_session.refresh(job)
+    
+        response = await client.get(f"/api/jds/{jd_apply.id}/tailoring/{job.id}")
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:1016: AssertionError
+_____________ test_batch_tailor_skips_queued_and_processing_jobs ______________
+
+client = <httpx.AsyncClient object at 0x0000029AB656AB10>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB65DE510>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 23, 6357), auth_token='test-token', id=UUID('4232d812-421f-4593-a3db-b1ea19d7b455'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('4232d812-421f-4593-a3db-b1ea19d7b455'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('87978439-331a-48ed-b0d2-66342a78a579'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('dfcf4bbf-349f-4873-b582-d8166a494eb6'), status=<Sessi...w=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 23, 20387)))
+seeded_templates = [PromptTemplate(user_id=None, id=UUID('72532e3a-af1e-499d-b1ac-3ac2139ec002'), phase=<PromptPhase.analysis: 'analysis'...answers', is_active=True, name='App Answers', version=1, created_at=datetime.datetime(2026, 9, 16, 18, 12, 23, 29161))]
+
+    @pytest.mark.asyncio
+    async def test_batch_tailor_skips_queued_and_processing_jobs(
+        client, db_session, seeded_user, seeded_resume, seeded_session_with_jds, seeded_templates,
+    ):
+        """Sprint 11: skip logic should also skip queued/processing (not just ready)."""
+        session, jd_apply, _ = seeded_session_with_jds
+    
+        # Create a queued job — batch-tailor should skip this JD
+        queued_job = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="in progress",
+            status=TailoringStatus.queued,
+            model_used="claude-opus-4-6",
+        )
+        db_session.add(queued_job)
+        await db_session.commit()
+    
+        with patch("app.routers.sessions.run_batch_tailor", new_callable=AsyncMock):
+            response = await client.post(f"/api/sessions/{session.id}/batch-tailor")
+    
+>       assert response.status_code == 202
+E       assert 404 == 202
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:1045: AssertionError
+_________________ test_batch_tailor_does_not_skip_failed_jobs _________________
+
+client = <httpx.AsyncClient object at 0x0000029AB679DB50>
+db_session = <sqlalchemy.orm.session.AsyncSession object at 0x0000029AB65DDBE0>
+seeded_user = User(email=None, created_at=datetime.datetime(2026, 9, 16, 18, 12, 23, 107484), auth_token='test-token', id=UUID('3fec2361-1fb7-4260-80e7-4fa4f7f5bd6c'), auth_token_expires_at=None)
+seeded_resume = Resume(user_id=UUID('3fec2361-1fb7-4260-80e7-4fa4f7f5bd6c'), label='Technical', created_at=datetime.datetime(2026, 9, ...id=UUID('d0083717-33b4-4fc8-8e78-19c5d264d29c'), content='Staff engineer with 13+ years building distributed systems.')
+seeded_session_with_jds = (Session(board='LinkedIn', search_term='data engineer', id=UUID('673f056d-84ba-4d00-a7c1-c8b48b3279be'), status=<Sessi...=False, number=2, status=<JDStatus.pending: 'pending'>, created_at=datetime.datetime(2026, 9, 16, 18, 12, 23, 120664)))
+seeded_templates = [PromptTemplate(user_id=None, id=UUID('dbbeb795-7a80-4629-949a-48e06ff8f1be'), phase=<PromptPhase.analysis: 'analysis'...nswers', is_active=True, name='App Answers', version=1, created_at=datetime.datetime(2026, 9, 16, 18, 12, 23, 128344))]
+
+    @pytest.mark.asyncio
+    async def test_batch_tailor_does_not_skip_failed_jobs(
+        client, db_session, seeded_user, seeded_resume, seeded_session_with_jds, seeded_templates,
+    ):
+        """Sprint 11: failed jobs should NOT be skipped — user wants a retry."""
+        session, jd_apply, _ = seeded_session_with_jds
+    
+        failed_job = TailoringJob(
+            jd_id=jd_apply.id,
+            resume_id=seeded_resume.id,
+            prompt_snapshot="broke",
+            status=TailoringStatus.failed,
+            model_used="claude-opus-4-6",
+        )
+        db_session.add(failed_job)
+        await db_session.commit()
+    
+        with patch("app.routers.sessions.run_batch_tailor", new_callable=AsyncMock):
+            response = await client.post(f"/api/sessions/{session.id}/batch-tailor")
+    
+>       assert response.status_code == 202
+E       assert 404 == 202
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tailoring.py:1073: AssertionError
+============================== warnings summary ===============================
+tests/test_resumes.py: 47 warnings
+tests/test_sessions.py: 57 warnings
+tests/test_tailoring.py: 188 warnings
+  C:\Users\Barac0da\source\repos\application-pipeline\backend\venv\Lib\site-packages\pydantic\fields.py:747: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return fac()
+
+tests/test_resumes.py::test_create_resume_empty_label_returns_422
+tests/test_resumes.py::test_create_resume_empty_content_returns_422
+tests/test_resumes.py::test_patch_empty_label_returns_422
+tests/test_sessions.py::test_add_jd_empty_after_cleaning_returns_422
+  C:\Users\Barac0da\source\repos\application-pipeline\backend\venv\Lib\site-packages\fastapi\routing.py:316: DeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    return await dependant.call(**values)
+
+tests/test_tailoring.py::test_get_tailoring_job_ready_with_outputs
+  C:\Users\Barac0da\source\repos\application-pipeline\backend\tests\test_tailoring.py:214: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    completed_at=datetime.utcnow(),
+
+tests/test_tailoring.py::test_download_docx_returns_bytes
+  C:\Users\Barac0da\source\repos\application-pipeline\backend\tests\test_tailoring.py:257: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    completed_at=datetime.utcnow(),
+
+tests/test_tailoring.py::test_tailoring_pipeline_prompt_to_docx
+  C:\Users\Barac0da\source\repos\application-pipeline\backend\app\services\tailoring.py:356: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    job.completed_at = datetime.utcnow()
+
+tests/test_tailoring.py::test_download_package_returns_valid_zip
+  C:\Users\Barac0da\source\repos\application-pipeline\backend\tests\test_tailoring.py:887: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    completed_at=datetime.utcnow(),
+
+tests/test_tailoring.py::test_download_package_omits_optional_files
+  C:\Users\Barac0da\source\repos\application-pipeline\backend\tests\test_tailoring.py:969: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    completed_at=datetime.utcnow(),
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_tailoring.py::test_create_tailoring_job_returns_202 - asser...
+FAILED tests/test_tailoring.py::test_create_tailoring_job_no_resumes_returns_422
+FAILED tests/test_tailoring.py::test_get_tailoring_job_queued - assert 404 ==...
+FAILED tests/test_tailoring.py::test_get_tailoring_job_ready_with_outputs - a...
+FAILED tests/test_tailoring.py::test_download_docx_returns_bytes - assert 404...
+FAILED tests/test_tailoring.py::test_batch_tailor_creates_jobs_for_apply_jds
+FAILED tests/test_tailoring.py::test_batch_tailor_no_resumes_returns_422 - as...
+FAILED tests/test_tailoring.py::test_batch_tailor_no_apply_jds_returns_422 - ...
+FAILED tests/test_tailoring.py::test_list_sessions - assert 0 == 2
+FAILED tests/test_tailoring.py::test_list_tailoring_jobs_for_jd - assert 404 ...
+FAILED tests/test_tailoring.py::test_list_session_tailoring_jobs_dashboard - ...
+FAILED tests/test_tailoring.py::test_batch_tailor_skips_completed_jd - assert...
+FAILED tests/test_tailoring.py::test_batch_tailor_force_retailors_completed_jd
+FAILED tests/test_tailoring.py::test_download_package_returns_valid_zip - ass...
+FAILED tests/test_tailoring.py::test_download_package_omits_optional_files - ...
+FAILED tests/test_tailoring.py::test_get_tailoring_job_failed_status - assert...
+FAILED tests/test_tailoring.py::test_batch_tailor_skips_queued_and_processing_jobs
+FAILED tests/test_tailoring.py::test_batch_tailor_does_not_skip_failed_jobs
+================= 18 failed, 88 passed, 301 warnings in 4.97s =================
