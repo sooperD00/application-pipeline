@@ -75,6 +75,11 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       resolves to a file; the planned order is a topological sort of the stated dependencies;
       and the counts get reported — housekeeping, tech debt, and how many source references
       point at unscheduled work, which is the same crowding signal from the code's side.
+      ASAP brings its own: at most one `**ASAP**` row, nothing above it but rows in progress, no
+      row in the completed log still carrying the marker, and a **Why now** in the file it
+      marks. Which clock is running is prose, so print that line rather than judge it — and a
+      marker that outlives its clock is the failure mode, since an urgency nobody can retire
+      turns into decoration that the next one has to compete with.
       Suspect lines get printed, not judged — no regex can tell a sprint reference from a test
       count, which is what the tag scheme exists to fix.
       Shape it like `check_docker_context.py`: stdlib-only in `scripts/`, runs from anywhere,
