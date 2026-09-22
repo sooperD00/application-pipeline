@@ -26,7 +26,7 @@ Anyone may do any step in this record, and everyone follows it whoever they are.
 | **Appetite** | One sitting per leg for a person, and a leg that fits the context of the model named in `plan.md`. |
 | **Watch** | A known trap, written where the work is. |
 | **Status** | planned → in progress → handed off → done YYYY-MM-DD, or dropped, with the reason. A sprint with no place in the order yet is parked. Legs move through the same states, recorded on their headings. |
-| **ASAP** | A sprint with a clock outside the repo: exposure, an expiry, a date somebody else set. It runs next, behind only what is already in flight, and keeps its marker in `plan.md` until it closes. Two at once means one of them is not. |
+| **ASAP** | A sprint with a clock outside the repo: exposure, an expiry, a date somebody else set. It runs next, behind only the sprint in flight, and keeps its marker in `plan.md` until it closes. Insert it between that sprint's legs when the clock is short enough to be worth the context switch. Two at once means one of them is not. |
 | **Housekeeping** | Work with no home yet, which can join any sprint. |
 | **Tech debt** | Work deferred, probably for a while. |
 
