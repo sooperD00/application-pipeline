@@ -99,6 +99,7 @@ docs/reading/reading-list-for-<id>-<leg>.txt     what one coding session was han
 
 - Plan in a session of its own, separate from coding. Planning and coding compete for the same attention and the same context.
 - Plan the next leg at the close of the one before it, so the plan meets the code as it actually landed rather than as it was imagined.
+- Cite code by function, class or fixture, not by line number, in any sprint that is not next. Lines move under a sprint while it waits, and the leg about to run is the only one positioned to check them.
 - Pick the Kind first, then cut the legs at factor boundaries, so one red suite has one cause.
 - Size every leg to the Appetite. A leg that does not fit is two legs.
 - Name the entry gates, each pointing at the leg that owns the work.
