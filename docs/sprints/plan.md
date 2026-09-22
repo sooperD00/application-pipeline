@@ -34,6 +34,7 @@ done in. Re-order by moving a row: no sprint file changes when the order does.
 | | `[s-26220f]` | [User authentication](remaining/sprint-26220f-user-authentication.md) | planned | `[s-41441e]`, `[s-17c7e9]` | — |
 | | `[s-2716d1]` | [Billing](remaining/sprint-2716d1-billing.md) | planned | `[s-26220f]`, `[s-07579b]` | — |
 | | `[s-77f2e3]` | [Frontend polish](remaining/sprint-77f2e3-frontend-polish.md) | parked | — | — |
+| | `[s-16c15d]` | [Entity lifecycle and routes](remaining/sprint-16c15d-entity-lifecycle-routes.md) | parked | — | — |
 
 **depends on** names required entry gates only. Each sprint file carries the full gate line,
 recommended gates included, pointing at the leg that owns the work. Anything not named here may

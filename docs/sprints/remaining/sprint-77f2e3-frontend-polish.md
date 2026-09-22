@@ -50,8 +50,8 @@ in this list blocks anything.
 - [ ] JDPasteForm: once Claude analysis extracts company and role from `raw_text`, show them
       pre-populated and editable rather than as manual entry, and decide whether to
       de-emphasize the fields (marked in source)
-- [ ] NotFoundPage: update the 404 copy once `/tracking` becomes the index route (ADR-016
-      scope) (marked in source)
+- [ ] NotFoundPage: update the 404 copy once `/tracking` becomes the index route ([s-16c15d],
+      ADR-016) (marked in source)
 - [ ] Replace the browser-native `title` tooltip on locked tabs — "Select or create a session to
       unlock this step" — with a custom component. The 1s delay is hardcoded in the browser, not
       in the app, so a component is the only way to make it feel instant
