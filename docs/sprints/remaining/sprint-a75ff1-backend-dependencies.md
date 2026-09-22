@@ -134,6 +134,8 @@ That cost an hour in leg a, when a stale root `.venv` answered instead of `backe
       this Mac's first venv is right from the start; leg c pulled it from Housekeeping on
       2026-09-17.)
 - [ ] `docker build` succeeds installing from pyproject + uv.lock, with no requirements.txt in the repo
+- [ ] the build installs with `uv sync --locked`, so a lock that has drifted from pyproject stops
+      it. Until [s-3f291c]'s CI exists, this build is the only place `uv lock --check` has to run
 - [ ] the built image runs migrations and starts uvicorn — run it with `--env-file backend/.env`,
       which points at the dev database. Never prod's: the image carries no `.env`, so whatever
       you hand it is what `alembic upgrade head` runs against
@@ -155,7 +157,7 @@ That cost an hour in leg a, when a stale root `.venv` answered instead of `backe
 | # | | |
 |---|---|---|
 | 1 | pin the interpreter | `uv python pin 3.12` from `backend/` writes `backend/.python-version`, and uv fetches 3.12 on the next sync if it isn't installed. The image already runs 3.12, so nothing in prod moves |
-| 2 | flip consumer | Dockerfile installs from the lock, dev group excluded |
+| 2 | flip consumer | Dockerfile installs from the lock with `uv sync --locked --no-dev`: dev group excluded, and a lock that disagrees with pyproject fails the build rather than resolving around it |
 | 3 | flip consumer | README local-setup section. Carry the prework's lasting rules into it — run uv from `backend/`, one `.venv`, check `sys.prefix`, and `.python-version` sets the interpreter — because this file is archived when the sprint closes and the README is where the next person looks |
 | 4 | delete the old | `git rm backend/requirements.txt` |
 
@@ -163,6 +165,19 @@ That cost an hour in leg a, when a stale root `.venv` answered instead of `backe
 land*, not requirements.txt, so leg a's inventory missed it. Satisfy it by putting the venv's
 bin on PATH in the image rather than rewriting start.sh — fewer files move, and start.sh
 stays runnable outside Docker.
+
+**Watch** uv prefers its own managed interpreters, so a plain `uv sync` in the image can fetch a
+second CPython rather than use the base image's 3.12. Hold it to the image's own with
+`--no-managed-python` and `--no-python-downloads`, their `UV_NO_MANAGED_PYTHON` and
+`UV_PYTHON_DOWNLOADS=never` env forms, or an explicit `--python`. Copy `.python-version` in the
+same early layer as `pyproject.toml` and `uv.lock`, or the pin is not in effect when the sync
+runs. A download line in the build log is the tell.
+
+**Watch** "Same or smaller" only happens on purpose. The uv binary is about 45 MB and a `COPY`
+layer is not reclaimed by a later `rm`; `uv sync` leaves a wheel cache in the image unless it is
+disabled or cleaned in the same layer; and a cache mount wants `UV_LINK_MODE=copy` to avoid the
+hardlink fallback. A deps stage that the final image copies only `.venv` out of settles all
+three. Decide it before measuring rather than after.
 
 **Watch** `.dockerignore`'s `**/.venv` and `**/venv` rules stay after this leg. What leg b
 clears is the comment above them, not the rules: `COPY backend/ .` would otherwise copy a host
