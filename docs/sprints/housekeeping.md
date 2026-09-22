@@ -57,3 +57,15 @@ about fifty unassigned items, hold a planning session before adding features.
       `.nvmrc`) in one commit, then confirm `npm ci`, the build and the suite. Only the build
       stage runs Node — the image that ships is Python — so this is upkeep, not an exposed
       runtime. (Found in the docs review, 2026-09-21.)
+- [ ] [h-b37b36] Redact the recipient block in
+      `test-vehicles/feedback/asks/2026-03-15-beta-invite.md` — seven names and email addresses,
+      one of them a work address, public since `936ed83`. The front matter already records "7",
+      so the file loses nothing. Redacting the file does not remove it from the public log, so
+      decide separately whether that history gets rewritten. (Moved out of [s-a75ff1], which
+      had nothing to do with it, 2026-09-22.)
+- [ ] [h-9bbbc0] Recover `test-vehicles/schema-extraction/ledger.py` and narrow the rule that
+      swallowed it. That lab's `.gitignore` has `ledger*.*`, which matches the module as well as
+      its data files, so the module was never committed and is not in this clone. `lab.py`
+      imports it at module level, so the lab cannot start — `--dry-run` included. It should
+      still exist on the Windows machine. (Moved out of [s-a75ff1], which had nothing to do with
+      it, 2026-09-22.)

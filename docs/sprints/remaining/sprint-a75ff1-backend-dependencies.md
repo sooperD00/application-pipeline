@@ -218,21 +218,6 @@ lock, and that is why they wait until leg c has read its upgrade diff.
 
 (Pulled from Housekeeping, 2026-09-17, where both sat with no real when.)
 
-## After this sprint closes
-
-Two items that have nothing to do with dependencies but need a when, parked here so they land
-as soon as the sprint is off the critical path.
-
-- [ ] Redact the recipient block in `test-vehicles/feedback/asks/2026-03-15-beta-invite.md` — seven
-      names and email addresses, one of them a work address, public since `936ed83`. The front
-      matter already records "7", so the file loses nothing. Redacting the file does not remove
-      it from the public log, so decide separately whether that history gets rewritten.
-- [ ] Recover `test-vehicles/schema-extraction/ledger.py` and narrow the rule that swallowed
-      it. That lab's `.gitignore` has `ledger*.*`, which matches the module as well as its data
-      files, so the module was never committed and is not in this clone. `lab.py` imports it at
-      module level, so the lab cannot start — `--dry-run` included. It should still exist on
-      the Windows machine.
-
 ## Out of Scope
 - No CI exists. `uv lock --check` is a one-line pre-deploy gate once there's somewhere to run
   it → [s-3f291c] (Developer tooling), which owns the first CI job
