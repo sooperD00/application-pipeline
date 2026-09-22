@@ -102,11 +102,33 @@ costs, makes the context check something that actually runs, and gives `uv lock 
       Anything phrased as *the old N* or *calls this N* is a quotation, and quotations are data
 - [ ] Port `scripts/readinglist.sh`, or replace it. It came from another project: it slices
       `## Sprint 2C` out of a single plan document and reads `docs/DECISIONS.md` with `D-04a`
-      IDs, so it does not run here. After ADR-021's migration its main job is gone — a sprint
-      file is already the slice — and what remains is assembling a leg's list from the sprint's
-      gates, the ADRs it cites and the files it names. Keep the "WHAT THIS CANNOT SEE" block it
-      prints: that block is what makes a generated draft safe to hand to a coding session.
-      `docs/reading/reading-list-example.txt` is the shape to aim at
+      IDs, so it does not run here. Read line by line against this repo on 2026-09-22, which
+      settles most of what a port would be:
+      Dead, and ADR-021 is what killed it. The slicing, because a sprint file is already the
+      slice. The anchor table that maps an ID to the heading containing it, because one file per
+      ADR is already the anchor — only ADR-021 is long enough to need section-level pointers,
+      and those are written by hand. The DO-NOT-READ complement that lists every file not on the
+      list, because the quarantine convention already makes "not listed" the default and an
+      enumerated complement goes stale on the next file added. And the hardcoded READ IN FULL
+      block, which the script's own note 6 calls the only block asserted flat rather than
+      labelled a draft — do not reproduce it.
+      Worth keeping, and it is about twenty lines rather than a hundred and sixty. The reverse
+      edge, whose comment is the best idea in the file: *some things are invisible going forward
+      and obvious going backwards*. Here that is two greps — `git grep '\[s-<id>'` for the docs
+      that point into the leg, and `git grep 'SPRINT-<id>'` for the source markers it has to
+      clear. Both earned their place in [s-a75ff1-b]'s list. The "WHAT THIS CANNOT SEE" block,
+      as a template: items 1, 2, 3, 5 and 7 port directly, and 7 in particular — *if a sprint
+      deletes a file, read that file* — is why that list argues its one exception instead of
+      staying silent. And the discipline of printing a draft that counts its own misses: 9 of 11
+      found, 2 missed, 2 volunteered wrongly, on a real sprint.
+      When: not yet. Write two or three lists by hand first. The script's note 6 fired four
+      times before it worked out that its own default was inverted, and a generator built after
+      one list encodes the shape of one list.
+      Shape when it is built: given a leg tag, print the leg's section bounds in the sprint
+      file, every path the leg names, the two reverse-edge greps and the cannot-see template.
+      Suspects printed, never judged, like `check_docker_context.py`.
+      `docs/reading/reading-list-example.txt` is the shape to aim at — a copy of
+      [s-a75ff1-b]'s list, which is the first one written under these rules
 - [ ] Consider a script that closes a sprint, given its ID: the checks and the moves in ADR-021's
       "Close a sprint", printing what it did. `git mv` to `completed/` with the next `<NNN>`
       prefix, the completed-log row in `plan.md`, the marker check, the housekeeping count, and
