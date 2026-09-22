@@ -25,7 +25,7 @@ Anyone may do any step in this record, and everyone follows it whoever they are.
 | **Factor** | The class of thing a red suite would blame. |
 | **Appetite** | One sitting per leg for a person, and a leg that fits the context of the model named in `plan.md`. |
 | **Watch** | A known trap, written where the work is. |
-| **Status** | planned → in progress → handed off → done YYYY-MM-DD, or dropped, with the reason. A sprint with no place in the order yet is parked. |
+| **Status** | planned → in progress → handed off → done YYYY-MM-DD, or dropped, with the reason. A sprint with no place in the order yet is parked. Legs move through the same states, recorded on their headings. |
 | **Housekeeping** | Work with no home yet, which can join any sprint. |
 | **Tech debt** | Work deferred, probably for a while. |
 
@@ -62,7 +62,7 @@ docs/reading/reading-list-for-<id>-<leg>.txt     what one coding session was han
 
 - `plan.md` owns order, the dependency map, the completed log, and the model the appetite is sized against. It holds no sprint content.
 - A sprint file owns everything about that sprint: why now, Kind, legs, done-when lists, commit tables, Watches, entry gates, Out of Scope, and Landed notes.
-- Nothing owns status. The folder is the status: `remaining/` is not done, `completed/` is.
+- No single line closes a sprint. A sprint is closed when every step in *Close a sprint* has been done. The folder is the quickest check: `remaining/` is not closed, `completed/` is. The Status lines in the sprint file and in `plan.md` are copies for reading at a glance. Where they disagree, the steps are what count, and a step found missing later is simply done then.
 - Nothing outside `plan.md` stores a path to a sprint file, so a sprint that moves costs one line.
 
 ## IDs and file names
@@ -166,7 +166,7 @@ Do not reconcile these against each other or against `git log`. They measure dif
 - `plan.md` holds one table: `NNN | id | name | status | depends on | reading list`.
 - Leave `NNN` blank until the sprint closes. It records the order things were actually done in, not the order they were planned in.
 - Put `[s-<id>]` tags in **depends on**. Anything not named there may be reordered freely, which is the reason to write the column at all.
-- Treat **status** as a convenience copy for reading the table at a glance. The folder is the truth, and a linter can check the two agree.
+- Treat **status** as a convenience copy for reading the table at a glance. The folder is the quickest check, and a linter can check the two agree.
 - Link the leg's reading list with the date it was written. The file wins where they disagree.
 - Re-order by editing this table. No sprint file changes when the order changes, which is the whole reason the ID is not the order.
 - Tighten the plan at every leg close: the order, the gates, and the next leg's reading list.
