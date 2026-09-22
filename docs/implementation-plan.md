@@ -56,7 +56,7 @@ Key relationships:
 - `GET /sessions/{id}` — full session state
 - `GET /jds/{id}/tailoring/{job_id}` — tailoring job status + outputs
 - Resume CRUD (paste, label, edit, list, delete; max 3)
-- Activities: `GET /api/activities/active` (open to-dos by due date), `POST /api/activities` (log stage, triggers cascade)
+- Activities: `GET /api/activities/active` (open to-dos by due date), `POST /api/activities` (log stage, triggers cascade) — deferred, never built; the design waits in architecture.md and the work in [h-d4b631]
 
 ### Frontend — Session View
 
@@ -131,7 +131,7 @@ All shipped:
 6. Cookie-based anonymous auth (data isolation per browser, no login)
 7. Deploy to Railway (single-service: Dockerfile, SPA static serving)
 
-**Deferred**: Tab 2 Calibrate, Tab 3 Review & Enrich, Full Tracker, compare, analytics, multi-user, accounts and sign-in, payments.
+**Deferred**: Tab 2 Calibrate, Tab 3 Review & Enrich, Full Tracker and the Activities layer under it ([h-d4b631]), compare, analytics, multi-user, accounts and sign-in, payments.
 
 ---
 
@@ -231,7 +231,7 @@ Calibrate (1 conversation per flagged JD or meta-summary):
 1. User lands, no account. Server creates anonymous session (cookie + server token).
 2. User pastes resume, creates session, pastes JDs — stored server-side.
 3. Full session runs: analysis, review, tailoring (up to 4 parallel), 1 interview prep.
-4. "Save your results and start a new session — just enter your email."
+4. "Save your results and start a new session — sign in with Google."
 5. Data persists 30 days without an account, permanently with one.
 6. Second session attempt without account → conversion point.
 
