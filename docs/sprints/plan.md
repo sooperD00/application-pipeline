@@ -25,7 +25,7 @@ done in. Re-order by moving a row: no sprint file changes when the order does.
 
 | NNN | id | name | status | depends on | reading list |
 |-----|----|------|--------|------------|--------------|
-| | `[s-a75ff1]` | [Backend dependencies](remaining/sprint-a75ff1-backend-dependencies.md) | in progress | — | — |
+| | `[s-a75ff1]` | [Backend dependencies](remaining/sprint-a75ff1-backend-dependencies.md) | in progress | — | [leg b](../reading/reading-list-for-a75ff1-b.txt), 2026-09-22 |
 | | `[s-572aff]` | **ASAP** [Scrubbing personal data](remaining/sprint-572aff-scrubbing-personal-data.md) | planned | — | — |
 | | `[s-41441e]` | [Tests](remaining/sprint-41441e-tests.md) | planned | `[s-a75ff1]` | — |
 | | `[s-07579b]` | [Consolidating Railway services into one project](remaining/sprint-07579b-railway-consolidation.md) | planned | — | — |
@@ -47,7 +47,8 @@ next, behind only the sprint in flight.
 Whatever a `[SPRINT-<id>-CLEANUP]` marker names has to exist in this table — which is why a
 parked sprint still gets a row and an ID.
 
-No reading lists yet: the first one belongs to the next leg that runs.
+A **reading list** is linked with the date it was written. Where the row and the file disagree,
+the file wins. One list per leg, and only for the sprint in progress or already finished.
 
 ## Completed
 

@@ -1,0 +1,143 @@
+READING LIST -- [s-a75ff1-b], flip the consumers, delete requirements.txt
+Written 2026-09-22, against main at bdc7f11. If the repo has moved since, regenerate this: a
+reading list describes the repo it was written from.
+
+
+THE LEG, IN ONE PARAGRAPH
+
+  backend/requirements.txt is generated output that two consumers still install from: the
+  Docker image and the README. This leg moves both onto pyproject.toml + uv.lock and then
+  deletes the file. Four commits: pin the interpreter, flip the image, flip the README, delete
+  the file. No package version moves -- that is leg c, and pyproject's constraint block is its
+  property, not yours.
+
+
+THE SPEC
+
+  docs/sprints/remaining/sprint-a75ff1-backend-dependencies.md          252 lines, read it all
+    92-195 .... leg b. Two preworks, ten done-when items, four commits, five Watches. This is
+                the spec. Everything else in the file is context for it.
+    1-18 ...... why the sprint exists, and how the four legs divide the factors.
+    19-91 ..... leg a, already shipped. Its Landed notes are why this leg's Watches read as
+                they do: a "stash" commit on main broke the Railway deploy, and the honest
+                done-when became "must not change what prod runs".
+    196-252 ... legs c and d, and Out of Scope. Read these to know what is not yours.
+
+
+THE RULES YOU WORK UNDER
+
+  docs/decisions/adr-021-planning-system.md                            207 lines, read these:
+    Vocabulary ................. Leg, Kind, Watch, Appetite, Status, and the three bolded
+                                 paragraphs under it: Landed, Checklist marks, Entry gate
+    Referring to a sprint ...... [s-<id>] and [s-<id>-<leg>] in prose; never a bare number
+    Tags in source ............. the [SPRINT-<id>-<leg>-CLEANUP] form, and the banned words
+    Reading lists .............. this list is your scope. The session guards -- what you may
+                                 read and what you must not -- come with your prompt, not from
+                                 the repo
+    Run a sprint ............... update the sprint file as the work moves; add a Watch the
+                                 moment you hit a trap
+    Hand off a leg ............. your closing checklist, item by item
+    Housekeeping and tech debt . how to file what this leg sheds
+    IDs and file names ......... only the ID rule, and only if you file something
+
+  Skip, in that same file: Plan a sprint, Hand off a sprint, Close a sprint, Three clocks,
+  Order and re-order, Migration, Consequences, Alternatives. They belong to whoever plans and
+  closes, which is not this session.
+
+  docs/decisions/adr-018-uv-for-backend-dependencies.md                 25 lines, read it all
+    The decision this leg executes, why the legs are cut where they are, and the Update of
+    2026-09-21 that settles the interpreter at 3.12.
+
+
+FILES YOU WILL EDIT
+
+  Dockerfile                      36   stage 2 pip-installs from requirements.txt today. This
+                                       is commit 2 and the largest thing in the leg.
+  README.md                      190   "Quick Start", lines 86-113: the venv and pip block, and
+                                       the paragraph about the generated requirements.txt. The
+                                       Tests and Checks subsections below it stay as they are.
+  .gitattributes                  18   its opening comment uses requirements.txt as the example
+                                       of what churned. One clause.
+  .dockerignore                   92   line 34 carries this leg's cleanup marker. The marker and
+                                       its note go; the **/.venv and **/venv rules stay.
+  backend/.python-version          -   does not exist yet. `uv python pin 3.12` writes it.
+  backend/requirements.txt         -   deleted in commit 4. See the last item at the bottom.
+
+
+FILES TO READ, NOT EDIT
+
+  start.sh                         8   calls bare alembic and uvicorn. PATH inside the image is
+                                       the contract. Do not rewrite this file.
+  backend/pyproject.toml         105   the roots, the dev group, package = false. Lines 48-100
+                                       are leg c's constraint block: do not touch them.
+  backend/uv.lock                893   generated resolution. uv reads it; you do not.
+
+
+WHAT IS WAITING ON THIS LEG
+
+  Found by grepping the tag rather than by reading forward, which is the direction that hides
+  these:
+
+  [s-26220f]  its entry gate wants "one Python" from commit 1 before its own leg a.
+  [s-3f291c]  its CI job takes Python from the backend/.python-version you write, and its
+              Makefile preflight is the automated form of this leg's second prework block.
+  [s-41441e]  gated on leg c, not on this leg. Its 18 red tests are not yours to fix.
+
+
+WHAT MUST NOT MOVE
+
+  package versions ..... no re-lock with upgrades, no touching constraint-dependencies.
+                         `uv sync --locked` only. Moving versions is leg c's whole job.
+  base images .......... python:3.12-slim stays. node:20-slim stays -- [h-2f37b7] owns Node.
+  the apt line ......... libxml2 and libxslt1.1 are a different factor. Leave them.
+  ignore rules ......... **/.venv, **/venv, **/prompts, **/DEVLOG, docs, test-vehicles.
+  start.sh ............. satisfy it from PATH in the image; do not edit it.
+  the scaffolding ...... backend/scripts/dep_freeze.py and backend/tests/test_dep_freeze.py die
+                         in leg c, not here.
+
+
+COMMANDS THIS LEG RUNS
+
+  cd backend && uv python pin 3.12              commit 1
+  uv run python --version                       must say 3.12
+  uv sync                                       from backend/ only; sys.prefix ends in backend/.venv
+  docker build -t ap:legb .                     and one build of a commit at or after da59650,
+                                                to have something to compare size against
+  docker run --env-file backend/.env ...        then: curl -i localhost:8000/health -> 200
+  python3 scripts/check_docker_context.py --probe
+  git ls-files --error-unmatch backend/requirements.txt       must fail by the end
+  git grep -n requirements.txt -- ':!docs' ':!test-vehicles'  must return nothing
+
+
+WHAT THIS LIST CANNOT SEE
+
+  1. Whether the Railway prework was done. The healthcheck path and the builder setting live in
+     a dashboard, not in this repo. Nothing here can check them. Ask before you push.
+
+  2. What the old image measured. "Same or smaller" needs a build of a commit at or after
+     da59650, and that number does not exist until someone builds it.
+
+  3. Which database backend/.env points at, or whether it is there when you run. Checked on
+     2026-09-22: it does not exist on this machine, which is a fresh clone. The container run
+     needs it, so it gets made from backend/.env.example first -- and what goes in it is the
+     dev DATABASE_PUBLIC_URL, never prod's.
+
+  4. What the plan deliberately left open. How uv gets into the image, one stage or two, the
+     layer order: the Watches give constraints, not an implementation. Those decisions are
+     yours, and the sprint file is where you write down the ones worth keeping.
+
+  5. That the suite is red before you start: 18 known failures in test_tailoring.py, all of them
+     [s-41441e]'s. A green suite is not a done-when here, and the frontend suite cannot run at
+     all until node_modules exists.
+
+  6. Whether uv pulled its own Python into the image. Only the build log says so, and it says it
+     once, in a line that scrolls past.
+
+  7. A rule this leg needs that no file cites. A grep finds citations, never the dependency
+     nobody wrote down. This list was assembled by reading, which fails the same way from the
+     other side: it names what one reader noticed.
+
+  8. Whether the file being deleted holds anything worth keeping. Normally you read what you
+     delete. requirements.txt is the exception: it is generated, and the only fact in it is the
+     `uv export` line in its header that records how it was made -- a command that dies with the
+     file. Stated here because the usual rule points the other way.
