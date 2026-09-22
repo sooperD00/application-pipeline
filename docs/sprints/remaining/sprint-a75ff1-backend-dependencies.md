@@ -91,6 +91,9 @@ The first attempt is parked in `test-vehicles/dockerignore-check/`. It sat on br
 
 ## leg b — flip the consumers, delete requirements.txt (consumer flip) --- planned
 
+**Kind:** migration — consumer graph: the image first, then the README, then the file both of
+them named.
+
 **Prework (in the Railway dashboard, before this leg's first push)**
 
 This leg changes how the image is built, so its deploy is the one that wants the service
@@ -131,7 +134,9 @@ That cost an hour in leg a, when a stale root `.venv` answered instead of `backe
       this Mac's first venv is right from the start; leg c pulled it from Housekeeping on
       2026-09-17.)
 - [ ] `docker build` succeeds installing from pyproject + uv.lock, with no requirements.txt in the repo
-- [ ] the built image runs migrations and starts uvicorn
+- [ ] the built image runs migrations and starts uvicorn — run it with `--env-file backend/.env`,
+      which points at the dev database. Never prod's: the image carries no `.env`, so whatever
+      you hand it is what `alembic upgrade head` runs against
 - [ ] image size is same or smaller — compare against a build from `da59650` or later, never
       anything earlier. Until that commit `.dockerignore` excluded neither `**/venv` nor
       `**/.venv`, so `COPY backend/ .` copied a local backend/venv into local builds and
