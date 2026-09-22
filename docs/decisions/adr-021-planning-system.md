@@ -26,6 +26,7 @@ Anyone may do any step in this record, and everyone follows it whoever they are.
 | **Appetite** | One sitting per leg for a person, and a leg that fits the context of the model named in `plan.md`. |
 | **Watch** | A known trap, written where the work is. |
 | **Status** | planned → in progress → handed off → done YYYY-MM-DD, or dropped, with the reason. A sprint with no place in the order yet is parked. Legs move through the same states, recorded on their headings. |
+| **ASAP** | A sprint with a clock outside the repo: exposure, an expiry, a date somebody else set. It runs next, behind only what is already in flight, and keeps its marker in `plan.md` until it closes. Two at once means one of them is not. |
 | **Housekeeping** | Work with no home yet, which can join any sprint. |
 | **Tech debt** | Work deferred, probably for a while. |
 
@@ -171,6 +172,7 @@ Do not reconcile these against each other or against `git log`. They measure dif
 - Put `[s-<id>]` tags in **depends on**. Anything not named there may be reordered freely, which is the reason to write the column at all.
 - Treat **status** as a convenience copy for reading the table at a glance. The folder is the quickest check, and a linter can check the two agree.
 - Link the leg's reading list with the date it was written. The file wins where they disagree.
+- Mark an ASAP sprint `**ASAP**` in its name cell, and let its **Why now** say which clock is running. The marker is for the eye and for a linter; the row itself still sits where the sprint will actually run.
 - Re-order by editing this table. No sprint file changes when the order changes, which is the whole reason the ID is not the order.
 - Tighten the plan at every leg close: the order, the gates, and the next leg's reading list.
 

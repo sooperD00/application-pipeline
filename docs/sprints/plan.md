@@ -40,6 +40,9 @@ done in. Re-order by moving a row: no sprint file changes when the order does.
 recommended gates included, pointing at the leg that owns the work. Anything not named here may
 be reordered freely.
 
+**ASAP** on a row means a clock outside this repo is running, which ADR-021 defines. It runs
+next, behind only what is already in flight.
+
 Whatever a `[SPRINT-<id>-CLEANUP]` marker names has to exist in this table — which is why a
 parked sprint still gets a row and an ID.
 
