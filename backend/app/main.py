@@ -61,6 +61,24 @@ app.include_router(resumes.router)
 # In production, the Dockerfile copies the built React app into /app/static/.
 _static_dir = Path(__file__).resolve().parent.parent / "static"
 
+
+def _spa_file(static_dir: Path, full_path: str) -> Path:
+    """The file to send for a request path: a real file inside static_dir, else index.html.
+
+    Resolves before checking, so a path that climbs out with "..", names an absolute path
+    ("//etc/passwd" arrives as "/etc/passwd", and pathlib lets an absolute right-hand side
+    replace the left), or follows a symlink out of static_dir gets index.html instead.
+    """
+    root = static_dir.resolve()
+    try:
+        candidate = (root / full_path).resolve()
+        if candidate.is_relative_to(root) and candidate.is_file():
+            return candidate
+    except (OSError, ValueError):  # ValueError: an embedded NUL byte from %00
+        pass
+    return root / "index.html"
+
+
 if _static_dir.exists():
     app.mount(
         "/assets",
@@ -70,7 +88,4 @@ if _static_dir.exists():
 
     @app.get("/{full_path:path}")
     async def _serve_spa(full_path: str):
-        file_path = _static_dir / full_path
-        if file_path.is_file():
-            return FileResponse(file_path)
-        return FileResponse(_static_dir / "index.html")
+        return FileResponse(_spa_file(_static_dir, full_path))
