@@ -63,3 +63,15 @@ about fifty unassigned items, hold a planning session before adding features.
       imports it at module level, so the lab cannot start — `--dry-run` included. It should
       still exist on the Windows machine. (Moved out of [s-a75ff1], which had nothing to do with
       it, 2026-09-22.)
+- [ ] [h-eac801] Run analysis as a job the session page watches, not inside the request.
+      `stream_analysis` runs inside the SSE response, so a run lives exactly as long as the
+      browser stays on the session page: leave mid-run and it stops, and the batch in flight is
+      lost. The shielded reset in its `finally` only puts the session back to `active` so
+      Analyze works again. Moving the run into a background job that commits each batch, with
+      the page reattaching on return (a fresh stream or polling, the way tailoring already
+      works), means leaving loses nothing. That reverses half of ADR-005, which kept analysis
+      synchronous because the user is watching the cards sort, so it wants an ADR alongside the
+      sprint. It matters more once [s-2716d1-c] charges per batch: a run lost to a closed tab is
+      one the user paid for. [s-2716d1-e]'s abort item stands either way, since the server only
+      sees the disconnect once the fetch is aborted. (Filed with the stuck-session hotfix,
+      2026-10-23.)

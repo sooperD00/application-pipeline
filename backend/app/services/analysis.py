@@ -25,13 +25,19 @@ writing each meta-analysis, enabling cross-session strategic observations.
 
 import asyncio
 import json
+import logging
 import re
 from collections.abc import AsyncGenerator
 from uuid import UUID
 
+# [SPRINT-a75ff1-d-CLEANUP] anyio arrives only through Starlette, the same transitive luck
+# greenlet has. Declare it in pyproject alongside sqlalchemy[asyncio].
+import anyio
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
+from ..database import AsyncSessionLocal
 from ..models import (
     JD,
     JDStatus,
@@ -174,6 +180,30 @@ def _jd_block(jds: list[JD]) -> str:
 
 # ── Main generator ────────────────────────────────────────────────────────────
 
+async def _release_if_still_analyzing(session_id: UUID) -> None:
+    """Put a session left at `analyzing` back to `active`, so Analyze works again.
+
+    A session that finished (`complete`) or already reset itself on an error (`active`) is left
+    alone, so this is safe to run on every exit. Failures are logged rather than raised: from a
+    finally, an exception here would replace whatever stopped the run.
+    """
+    try:
+        async with AsyncSessionLocal() as cleanup_db:
+            await cleanup_db.execute(
+                update(SessionModel)
+                .where(
+                    SessionModel.id == session_id,
+                    SessionModel.status == SessionStatus.analyzing,
+                )
+                .values(status=SessionStatus.active)
+            )
+            await cleanup_db.commit()
+    except Exception:
+        logging.getLogger(__name__).exception(
+            "Could not reset session %s from analyzing to active", session_id
+        )
+
+
 async def stream_analysis(
     session_id: UUID,
     db: AsyncSession,
@@ -221,112 +251,124 @@ async def stream_analysis(
     db.add(session)
     await db.commit()
 
-    # ── Set up conversation ───────────────────────────────────────────────────
-    conversation = ClaudeConversation(system=ANALYSIS_SYSTEM_PROMPT)
+    # From here on the session says `analyzing`, so every way out of this generator passes
+    # through the finally: a finished run (complete), a Claude or JSON error (those paths reset
+    # to active themselves), or a browser that left the page, which stops the generator mid-run.
+    try:
+        # ── Set up conversation ───────────────────────────────────────────────────
+        conversation = ClaudeConversation(system=ANALYSIS_SYSTEM_PROMPT)
 
-    # ── Batch loop ────────────────────────────────────────────────────────────
-    batch_size = 5
-    batches = [jds[i : i + batch_size] for i in range(0, len(jds), batch_size)]
-    counts: dict[str, int] = {"apply": 0, "maybe": 0, "no": 0}
+        # ── Batch loop ────────────────────────────────────────────────────────────
+        batch_size = 5
+        batches = [jds[i : i + batch_size] for i in range(0, len(jds), batch_size)]
+        counts: dict[str, int] = {"apply": 0, "maybe": 0, "no": 0}
 
-    for batch_index, batch in enumerate(batches):
-        batch_num = batch_index + 1
-        jd_numbers = [jd.number for jd in batch]
+        for batch_index, batch in enumerate(batches):
+            batch_num = batch_index + 1
+            jd_numbers = [jd.number for jd in batch]
 
-        yield _sse("batch_start", {"batch": batch_num, "jd_numbers": jd_numbers})
+            yield _sse("batch_start", {"batch": batch_num, "jd_numbers": jd_numbers})
 
-        # Build the user turn — first batch includes resumes, subsequent ones don't
-        jd_text = _jd_block(list(batch))
-        if batch_index == 0:
-            resume_text = _resume_block(list(resumes))
-            message = (
-                f"Here are the candidate's resumes:\n\n{resume_text}\n\n"
-                f"Please analyze the following {len(batch)} job description(s):\n\n{jd_text}"
-            )
-        else:
-            message = (
-                f"Please scrutinize these {len(batch)} job description(s) "
-                f"in the same manner:\n\n{jd_text}"
-            )
+            # Build the user turn — first batch includes resumes, subsequent ones don't
+            jd_text = _jd_block(list(batch))
+            if batch_index == 0:
+                resume_text = _resume_block(list(resumes))
+                message = (
+                    f"Here are the candidate's resumes:\n\n{resume_text}\n\n"
+                    f"Please analyze the following {len(batch)} job description(s):\n\n{jd_text}"
+                )
+            else:
+                message = (
+                    f"Please scrutinize these {len(batch)} job description(s) "
+                    f"in the same manner:\n\n{jd_text}"
+                )
 
-        # ── Call Claude (one retry on failure) ────────────────────────────────
-        try:
-            raw_response, _tokens = await _send_with_retry(conversation, message)
-        except Exception as exc:
-            # Reset session so the user can re-trigger analyze
-            session.status = SessionStatus.active
+            # ── Call Claude (one retry on failure) ────────────────────────────────
+            try:
+                raw_response, _tokens = await _send_with_retry(conversation, message)
+            except Exception as exc:
+                # Reset session so the user can re-trigger analyze
+                session.status = SessionStatus.active
+                db.add(session)
+                await db.commit()
+                yield _sse("error", {
+                    "batch": batch_num,
+                    "message": f"Claude API error after retry: {exc}",
+                    "recoverable": True,
+                })
+                return
+
+            # ── Parse response ────────────────────────────────────────────────────
+            try:
+                parsed = _parse_claude_json(raw_response)
+            except json.JSONDecodeError:
+                session.status = SessionStatus.active
+                db.add(session)
+                await db.commit()
+                yield _sse("error", {
+                    "batch": batch_num,
+                    "message": "Claude returned unparseable JSON. Re-run analysis to retry.",
+                    "recoverable": True,
+                })
+                return
+
+            # ── Write JD results to DB and stream events ──────────────────────────
+            # Index the batch by number — Claude might return results out of order
+            jd_by_number = {jd.number: jd for jd in batch}
+
+            for item in parsed.get("results", []):
+                jd_number = item.get("jd_number")
+                jd = jd_by_number.get(jd_number)
+                if jd is None:
+                    continue  # Claude returned a number we didn't send — skip it
+
+                raw_status = str(item.get("status", "maybe")).lower()
+                status_val = (
+                    JDStatus(raw_status)
+                    if raw_status in ("apply", "maybe", "no")
+                    else JDStatus.maybe
+                )
+
+                jd.status = status_val
+                jd.status_source = JDStatusSource.ai
+                jd.analysis_text = item.get("analysis", "")
+                jd.requirements_met = item.get("requirements_met", [])
+                db.add(jd)
+
+                counts[status_val.value] += 1
+
+                yield _sse("jd_result", {
+                    "jd_id": str(jd.id),
+                    "number": jd.number,
+                    "status": status_val.value,
+                    "analysis": jd.analysis_text,
+                    "requirements_met": jd.requirements_met,
+                    "exclude_company": item.get("exclude_company", False),
+                })
+
+            # ── Commit the batch and update rolling meta-analysis ─────────────────
+            # All JD updates + meta-analysis write commit together — atomic per batch
+            meta = parsed.get("meta_analysis", "")
+            session.meta_analysis = meta
             db.add(session)
             await db.commit()
-            yield _sse("error", {
-                "batch": batch_num,
-                "message": f"Claude API error after retry: {exc}",
-                "recoverable": True,
-            })
-            return
 
-        # ── Parse response ────────────────────────────────────────────────────
-        try:
-            parsed = _parse_claude_json(raw_response)
-        except json.JSONDecodeError:
-            session.status = SessionStatus.active
-            db.add(session)
-            await db.commit()
-            yield _sse("error", {
-                "batch": batch_num,
-                "message": "Claude returned unparseable JSON. Re-run analysis to retry.",
-                "recoverable": True,
-            })
-            return
+            yield _sse("batch_complete", {"batch": batch_num, "meta_analysis": meta})
 
-        # ── Write JD results to DB and stream events ──────────────────────────
-        # Index the batch by number — Claude might return results out of order
-        jd_by_number = {jd.number: jd for jd in batch}
-
-        for item in parsed.get("results", []):
-            jd_number = item.get("jd_number")
-            jd = jd_by_number.get(jd_number)
-            if jd is None:
-                continue  # Claude returned a number we didn't send — skip it
-
-            raw_status = str(item.get("status", "maybe")).lower()
-            status_val = (
-                JDStatus(raw_status)
-                if raw_status in ("apply", "maybe", "no")
-                else JDStatus.maybe
-            )
-
-            jd.status = status_val
-            jd.status_source = JDStatusSource.ai
-            jd.analysis_text = item.get("analysis", "")
-            jd.requirements_met = item.get("requirements_met", [])
-            db.add(jd)
-
-            counts[status_val.value] += 1
-
-            yield _sse("jd_result", {
-                "jd_id": str(jd.id),
-                "number": jd.number,
-                "status": status_val.value,
-                "analysis": jd.analysis_text,
-                "requirements_met": jd.requirements_met,
-                "exclude_company": item.get("exclude_company", False),
-            })
-
-        # ── Commit the batch and update rolling meta-analysis ─────────────────
-        # All JD updates + meta-analysis write commit together — atomic per batch
-        meta = parsed.get("meta_analysis", "")
-        session.meta_analysis = meta
+        # ── All batches complete ──────────────────────────────────────────────────
+        session.status = SessionStatus.complete
         db.add(session)
         await db.commit()
 
-        yield _sse("batch_complete", {"batch": batch_num, "meta_analysis": meta})
-
-    # ── All batches complete ──────────────────────────────────────────────────
-    session.status = SessionStatus.complete
-    db.add(session)
-    await db.commit()
-
-    yield _sse("analysis_complete", {
-        "session_id": str(session_id),
-        "summary": counts,
-    })
+        yield _sse("analysis_complete", {
+            "session_id": str(session_id),
+            "summary": counts,
+        })
+    finally:
+        # Starlette stops this generator through an anyio task group, and anyio re-cancels
+        # every await inside a cancelled scope, so the reset is shielded (with a deadline, so a
+        # dead database can't hold it open). It opens its own session because the request's db
+        # can be mid-commit when the cancel lands. Leaving still loses the batch in flight;
+        # running analysis outside the request is [h-eac801].
+        with anyio.move_on_after(10, shield=True):
+            await _release_if_still_analyzing(session_id)
